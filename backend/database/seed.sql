@@ -1,0 +1,2 @@
+-- Inserta datos iniciales o de prueba en la base de datos.
+-- Se utiliza para cargar información de ejemplo o necesaria para comenzar a usar la aplicación.

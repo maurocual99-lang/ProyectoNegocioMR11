@@ -1,0 +1,2 @@
+-- Define la estructura de la base de datos.
+-- Aquí se crean las tablas, relaciones, claves primarias y foráneas.
