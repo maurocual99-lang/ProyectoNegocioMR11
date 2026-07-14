@@ -15,7 +15,8 @@ CREATE TABLE producto (
     codigo_barra varchar(20) UNIQUE NOT NULL,
     stock int,
     categoria categoria_productos,
-    precio decimal(10,4)
+    precio decimal(10,4),
+    precio_venta decimal (10,4) --Aregado para poner el precio de venta despues del calculo
 );
 
 CREATE TABLE cliente (
@@ -40,7 +41,7 @@ CREATE TABLE detalle_venta (
     venta_id int not null,
     producto_id int not null,
     cantidad int not null,
-    precio_unitario decimal (10,4) not NULL,
+    precio_unitario decimal (10,4) not NULL,    --Este seria el precio unitario del precio de venta despues del porcentaje
     subtotal decimal (10,4) not null,
 
 -- CONEXIONES ENTRE CLASES MUCHOS A MUCHOS
