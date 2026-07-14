@@ -19,3 +19,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en http://localhost:${PORT}`);
 });
+
+const productosRouter = require("./routes/producto");
+app.use("/productos",productosRouter);
