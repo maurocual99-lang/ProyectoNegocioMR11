@@ -15,7 +15,13 @@ async function crearProducto(codigo_barra, stock, categoria, precio,nombre) {
         INSERT INTO producto(codigo_barra, stock, categoria, precio, nombre) 
         VALUES($1,$2,$3,$4,$5)
         RETURNING *`;
-        const valores = [codigo_barra, stock, precio, categoria, nombre];
+        const valores = [
+            codigo_barra,
+            stock,
+            categoria,
+            precio,
+            nombre
+        ];
         const resultado = await db.query(query, valores)
         console.log("¡Producto creado con éxito!");
     return resultado.rows[0]; // Devuelve el producto con su nuevo ID
@@ -27,5 +33,6 @@ async function crearProducto(codigo_barra, stock, categoria, precio,nombre) {
 }
 
 module.exports = {
-    obtener_productos
+    obtener_productos,
+    crearProducto
 };

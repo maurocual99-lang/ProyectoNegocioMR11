@@ -9,14 +9,14 @@ async function listar_productos(req, res) {
 async function crearProducto(req, res) {
   try {
     //obtenemos las datos solicitados desde el front
-    const { codigo_barra, nombre, precio, stock, categoria } = req.body;
+    const { codigo_barra, stock, categoria,precio , nombre } = req.body;
 
     // Le paso los datos a la base de datos en orden exacto
     const producto = await productoModel.crearProducto(
       codigo_barra, 
-      precio, 
       stock, 
       categoria,
+      precio,
       nombre
     );
     res.status(201).json(producto); //Codigo de exito 201
@@ -30,8 +30,6 @@ async function crearProducto(req, res) {
 }
 
 module.exports = {
-    listar_productos
-};
-module.exports = {
+    listar_productos,
     crearProducto
 };
