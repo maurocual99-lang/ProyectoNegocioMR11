@@ -1,0 +1,17 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
+
+export default function MenuProducto() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="container">
+      <h1>Productos</h1>
+      <button className="btn-secundario" onClick={() => navigate("/agregar-producto")}>
+        Agregar producto
+      </button>
+      <br />
+      <button onClick={() => navigate("/")}>Inicio</button>
+    </div>
+  );
+}
