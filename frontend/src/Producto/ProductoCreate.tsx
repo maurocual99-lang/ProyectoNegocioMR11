@@ -157,6 +157,7 @@ export default function ProductoCreate() {
             <button
               className="btn-volver"
               type="button"
+              
               onClick={() => navigate("/menu")}
             >
               Volver

@@ -29,10 +29,10 @@ async function crearProducto(req, res) {
   }
 }
 
-async function modficar_producto(req,res) {
+async function modificar_producto(req,res) {
     const producto = req.body;
 
-    await productoModel.modficar_producto(producto);
+    await productoModel.modificar_producto(producto);
 
     res.json({
         mensaje: "Producto Modificado Correctamente"
@@ -41,6 +41,6 @@ async function modficar_producto(req,res) {
 
 module.exports = {
     listar_productos,
-    modficar_producto,
+    modificar_producto,
     crearProducto
 };

@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import MenuProducto from "./MenuProducto";
-import ProductoCreate from "./ProductoCreate";
+import MenuProducto from "./Producto/MenuProducto";
+import ProductoCreate from "./Producto/ProductoCreate";
 import "./App.css";
-import Producto from "./Producto/Producto";
+import Producto from "./Producto/ModificarProducto";
 
 function PantallaPrincipal() {
   const navigate = useNavigate(); 
@@ -24,6 +24,7 @@ function App() {
         <Route path="/" element={<PantallaPrincipal />} />
         <Route path="/menu" element={<MenuProducto />} />
         <Route path="/agregar-producto" element={<ProductoCreate />} />
+        <Route path="/modificar-producto" element={<Producto />} />
       </Routes>
     </BrowserRouter>
   );

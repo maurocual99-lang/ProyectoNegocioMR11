@@ -9,14 +9,14 @@ async function obtener_productos() {
 }
 
 //Funcion para modificar producto
-async function modficar_producto(producto) {
+async function modificar_producto(producto) {
     await db.query(
 
         `UPDATE producto
         SET
             nombre = $1,
             precio = $2,
-            stock = 3
+            stock = $3
         WHERE codigo_barra = $4
         `,
 
@@ -54,6 +54,6 @@ async function crearProducto(codigo_barra, stock, categoria, precio,nombre) {
 
 module.exports = {
     obtener_productos,
-    modficar_producto,
+    modificar_producto,
     crearProducto
 };
