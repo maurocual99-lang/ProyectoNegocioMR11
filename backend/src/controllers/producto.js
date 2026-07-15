@@ -7,6 +7,17 @@ async function listar_productos(req, res) {
 
 }
 
+async function modficar_producto(req,res) {
+    const producto = req.body;
+
+    await productoModel.modficar_producto(producto);
+
+    res.json({
+        mensaje: "Producto Modificado Correctamente"
+    });
+}
+
 module.exports = {
-    listar_productos
+    listar_productos,
+    modficar_producto
 };
