@@ -15,6 +15,10 @@ export default function MenuProducto() {
         Modificar Producto
       </button>
       <br />
+      <button className="btn-secundario" onClick={() => navigate("/catalogo-producto")}>
+        Catalogo
+      </button>
+      <br/>
       <button onClick={() => navigate("/")}>Inicio</button>
     </div>
   );

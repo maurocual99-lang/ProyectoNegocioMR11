@@ -22,7 +22,6 @@ export default function ProductoCreate() {
   const [ganancia, setGanancia] = useState("63");
   const [stock, setStock] = useState("");
 
-  // Calculo precio de venta
   const precioFinal =
     Number(costo || 0) * (1 + Number(ganancia || 0) / 100);
 

@@ -3,6 +3,7 @@ import MenuProducto from "./Producto/MenuProducto";
 import ProductoCreate from "./Producto/ProductoCreate";
 import "./App.css";
 import Producto from "./Producto/ModificarProducto";
+import Catalogo from "./Producto/CatalogoProducto";
 
 function PantallaPrincipal() {
   const navigate = useNavigate(); 
@@ -11,7 +12,7 @@ function PantallaPrincipal() {
     <main className="container">
       <h1>Caja y Gestion</h1>
       <button className="btn-primario" onClick={() => navigate("/menu")}>
-        Menu producto
+        Catalogo
       </button>
     </main>
   );
@@ -25,6 +26,7 @@ function App() {
         <Route path="/menu" element={<MenuProducto />} />
         <Route path="/agregar-producto" element={<ProductoCreate />} />
         <Route path="/modificar-producto" element={<Producto />} />
+        <Route path="/catalogo-producto" element={<Catalogo/>} />
       </Routes>
     </BrowserRouter>
   );
