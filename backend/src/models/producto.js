@@ -16,15 +16,17 @@ async function modificar_producto(producto) {
         SET
             nombre = $1,
             precio = $2,
-            stock = $3
-        WHERE codigo_barra = $4
+            stock = $3,
+            codigo_barra = $4
+        WHERE codigo_barra = $5
         `,
 
         [
             producto.nombre,
             producto.precio,
             producto.stock,
-            producto.codigo_barra
+            producto.codigoNuevo,
+            producto.codigoViejo
         ]
     );
 }

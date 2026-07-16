@@ -12,7 +12,8 @@ function Producto(){
     const navigate = useNavigate();
 
     const [productos, setProductos] = useState<Producto[]>([]);
-    const [codigo, setCodigo] = useState("");
+    const [codigoViejo, setCodigoViejo] = useState("");
+    const [codigoNuevo, setCodigoNuevo] = useState("");
     const [nombre, setNombre] = useState("");
     const [precio, setPrecio] = useState(0);
     const [stock, setStock] = useState(0);
@@ -31,7 +32,8 @@ function Producto(){
     }
 
     function editarProducto(producto: Producto){
-        setCodigo(producto.codigo_barra);
+        setCodigoViejo(producto.codigo_barra);
+        setCodigoNuevo(producto.codigo_barra);
         setNombre(producto.nombre);
         setPrecio(producto.precio);
         setStock(producto.stock);
@@ -41,7 +43,8 @@ function Producto(){
 
     async function guardarCambios() {
         const producto = {
-            codigo_barra: codigo,
+            codigoViejo: codigoViejo,
+            codigoNuevo: codigoNuevo,
             nombre: nombre,
             precio: precio,
             stock: stock
@@ -66,6 +69,7 @@ function Producto(){
                 <table className="tabla-productos">
                     <thead>
                         <tr>
+                            <th>Codigo De Barras</th>
                             <th>Nombre</th>
                             <th>Precio</th>
                             <th>Stock</th>
@@ -75,7 +79,8 @@ function Producto(){
                     <tbody>
                         {
                             productos.map((producto =>(
-                                <tr key={producto.codigo_barra}> 
+                                <tr key={producto.codigo_barra}>
+                                        <td>{producto.codigo_barra}</td> 
                                         <td>{producto.nombre}</td>
                                         <td>{producto.precio}</td>
                                         <td>{producto.stock}</td>
@@ -95,6 +100,11 @@ function Producto(){
                     <div className="modal">
                         <div className="modal-content">
                             <h2>Editar Producto</h2>
+                            <label>Codigo De Barras</label>
+                            <input
+                                value={codigoNuevo}
+                                onChange={(e)=>setCodigoNuevo(e.target.value)}
+                            />
                             <label>Nombre</label>
                             <input
                                 value={nombre}
