@@ -19,7 +19,7 @@ export default function ProductoCreate() {
   const [categoria, setCategoria] = useState(categorias[0]);
 
   const [costo, setCosto] = useState("");
-  const [ganancia, setGanancia] = useState("30");
+  const [ganancia, setGanancia] = useState("63");
   const [stock, setStock] = useState("");
 
   // Calculo precio de venta

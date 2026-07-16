@@ -17,8 +17,9 @@ async function modificar_producto(producto) {
             nombre = $1,
             precio = $2,
             stock = $3,
-            codigo_barra = $4
-        WHERE codigo_barra = $5
+            codigo_barra = $4,
+            categoria = $5
+        WHERE codigo_barra = $6
         `,
 
         [
@@ -26,6 +27,7 @@ async function modificar_producto(producto) {
             producto.precio,
             producto.stock,
             producto.codigoNuevo,
+            producto.categoria,
             producto.codigoViejo
         ]
     );
