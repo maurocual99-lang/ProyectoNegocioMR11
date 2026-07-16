@@ -101,9 +101,7 @@ export default function ProductoCreate() {
 
           <div className="campo">
             <label>Costo del Producto ($)</label>
-
             <input
-              type="number"
               min="0"
               step="0.01"
               value={costo}
@@ -117,7 +115,6 @@ export default function ProductoCreate() {
             <label>Ganancia (%)</label>
 
             <input
-              type="number"
               min="0"
               step="0.1"
               value={ganancia}
@@ -130,7 +127,6 @@ export default function ProductoCreate() {
             <label>Precio de Venta ($)</label>
 
             <input
-              type="number"
               value={precioFinal.toFixed(2)}
               readOnly
               className="precio"
@@ -141,7 +137,6 @@ export default function ProductoCreate() {
             <label>Stock</label>
 
             <input
-              type="number"
               min="0"
               value={stock}
               onChange={(e) => setStock(e.target.value)}
