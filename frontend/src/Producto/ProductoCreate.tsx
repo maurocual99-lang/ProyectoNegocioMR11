@@ -152,7 +152,7 @@ export default function ProductoCreate() {
               className="btn-volver"
               type="button"
               
-              onClick={() => navigate("/menu")}
+              onClick={() => navigate("/catalogo-producto")}
             >
               Volver
             </button>

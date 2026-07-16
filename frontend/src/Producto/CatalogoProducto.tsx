@@ -40,9 +40,15 @@ function Catalogo() {
   }
 
   return (
+
     <div className="producto-page">
       <div className="producto-card">
         <h1>Catálogo de Productos</h1>
+        <div  style={{ display: 'flex', justifyContent: 'flex-end',  marginTop: '32px',marginBottom: '32px'}}>
+        <button style={{backgroundColor:'green'}} onClick={() => navigate("/agregar-producto")}>
+            Agregar Producto
+        </button>
+        </div>
         <table className="tabla-productos">
           <thead>
             <tr>
