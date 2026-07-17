@@ -1,0 +1,45 @@
+import { useState } from "react";
+import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton  } from '@coreui/react'
+
+type Props = {
+  producto: string;        
+  recargar: () => void;
+};
+
+function EliminarProducto({producto, recargar}: Props) {
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+
+  const eliminarPregunta = () => {
+    fetch(`http://localhost:3000/productos/${producto}`, {
+      method: "PUT",
+    })
+    recargar();
+    setMostrarConfirmacion(false);
+  };
+
+  return (
+    <>
+        <CButton   color="danger" className="border-secondary" onClick={() => setMostrarConfirmacion(true)}>
+            Eliminar
+            <i className="fa-solid fa-trash" style={{ fontSize: '18px', color: "rgba(163, 32, 52, 1)" }}></i>
+        </CButton >
+
+        <CModal visible={mostrarConfirmacion} onClose={() => setMostrarConfirmacion(false)}>
+          <CModalHeader closeButton>
+                <CModalTitle>Confirmar eliminación</CModalTitle>
+            </CModalHeader>
+                <CModalBody>¿Seguro que querés eliminar este producto?</CModalBody>
+            <CModalFooter>
+                <CButton  color="secondary" onClick={() => setMostrarConfirmacion(false)}>
+                    Cancelar
+                </CButton >
+                <CButton  color="danger" onClick={eliminarPregunta}>
+                    Eliminar
+                </CButton >
+            </CModalFooter>
+        </CModal>
+    </>
+  );
+}
+
+export default EliminarProducto;

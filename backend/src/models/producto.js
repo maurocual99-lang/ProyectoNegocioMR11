@@ -3,7 +3,7 @@ const db = require("../db");
 
 //Funcion para obtener todos los productos, espera de la base de datos la lista de todos los productos
 async function obtener_productos() {
-    const resultado = await db.query("SELECT *FROM producto");
+    const resultado = await db.query("SELECT *FROM producto WHERE activo=TRUE");
     
     return resultado.rows;
 }
@@ -56,8 +56,22 @@ async function crearProducto(codigo_barra, stock, categoria, precio,nombre) {
   }
 }
 
+async function eliminarProducto(codigo_barra) {
+    await db.query(
+        `UPDATE producto
+            SET activo = FALSE
+            WHERE codigo_barra = $1
+        `,
+    
+    [
+        codigo_barra
+    ]
+    );
+}
+
 module.exports = {
     obtener_productos,
     modificar_producto,
-    crearProducto
+    crearProducto,
+    eliminarProducto
 };

@@ -19,6 +19,10 @@ export default function MenuProducto() {
         Catalogo
       </button>
       <br/>
+      <button className="btn-secundario" onClick={() => navigate("/eliminar-producto")}>
+        Eliminar
+      </button>
+      <br/>
       <button onClick={() => navigate("/")}>Inicio</button>
     </div>
   );

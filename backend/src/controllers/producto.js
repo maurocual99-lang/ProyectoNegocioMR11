@@ -38,9 +38,13 @@ async function modificar_producto(req,res) {
         mensaje: "Producto Modificado Correctamente"
     });
 }
-
+async function eliminarProducto(req, res) {
+    await productoModel.eliminarProducto(req.params.codigo_barra);
+    res.sendStatus(200);
+}
 module.exports = {
     listar_productos,
     modificar_producto,
-    crearProducto
+    crearProducto,
+    eliminarProducto
 };

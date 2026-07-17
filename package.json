@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-"scripts": {
-  "backend": "cd backend && npm run dev",
-  "frontend": "cd frontend && npm run tauri dev",
-  "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
-  "install:all": "cd backend && npm install && cd ../frontend && npm install"
-},
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run tauri dev",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/maurocual99-lang/ProyectoNegocioMR11.git"
@@ -22,5 +22,9 @@
   "homepage": "https://github.com/maurocual99-lang/ProyectoNegocioMR11#readme",
   "devDependencies": {
     "concurrently": "^10.0.3"
+  },
+  "dependencies": {
+    "@coreui/react": "^5.12.0",
+    "@fortawesome/fontawesome-free": "^7.3.1"
   }
 }

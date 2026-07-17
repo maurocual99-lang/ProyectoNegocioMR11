@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import EliminarProducto from "./EliminarProducto";
 
 const categorias = [
   "Bebidas",
@@ -77,6 +78,7 @@ function Catalogo() {
                   >
                     Editar
                   </button>
+                   <EliminarProducto producto={producto.codigo_barra} recargar={cargarProductos}/>
                 </td>
               </tr>
             ))}

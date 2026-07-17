@@ -4,6 +4,7 @@ import ProductoCreate from "./Producto/ProductoCreate";
 import "./App.css";
 import Producto from "./Producto/ModificarProducto";
 import Catalogo from "./Producto/CatalogoProducto";
+import  EliminarProducto  from "./Producto/EliminarProducto";
 
 function PantallaPrincipal() {
   const navigate = useNavigate(); 
@@ -26,7 +27,8 @@ function App() {
         <Route path="/menu" element={<MenuProducto />} />
         <Route path="/agregar-producto" element={<ProductoCreate />} />
         <Route path="/modificar-producto" element={<Producto />} />
-        <Route path="/catalogo-producto" element={<Catalogo/>} />
+        <Route path="/catalogo-producto" element={<Catalogo/>} />  
+        <Route path="/eliminar-producto" element={<EliminarProducto/>} />
       </Routes>
     </BrowserRouter>
   );
