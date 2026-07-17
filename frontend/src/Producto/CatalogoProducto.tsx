@@ -83,6 +83,7 @@ function Catalogo() {
           </tbody>
         </table>
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "15px" }}>
+    
           <button
             className="btn-volver"
             type="button"

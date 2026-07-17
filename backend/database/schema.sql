@@ -16,7 +16,8 @@ CREATE TABLE producto (
     stock int,
     categoria categoria_productos,
     precio decimal(10,4),
-    nombre varchar(20)
+    nombre varchar(20),
+    activo boolean DEFAULT TRUE
 );
 
 CREATE TABLE cliente (
