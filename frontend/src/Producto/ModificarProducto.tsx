@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton, CForm, CFormSelect, CFormInput, CFormLabel } from '@coreui/react'
 
 const categorias = [
   "Bebidas",
@@ -19,13 +19,13 @@ interface Producto {
   stock: number;
   categoria: Categoria;
 }
+type Props = {
+  producto: Producto;        
+  recargar: () => void;
+};
 
-function Producto() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const productoOriginal = location.state?.producto as Producto | undefined;
-
+function ModificarProducto({producto, recargar}: Props) {
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [codigoViejo, setCodigoViejo] = useState("");
   const [codigoNuevo, setCodigoNuevo] = useState("");
   const [nombre, setNombre] = useState("");
@@ -35,18 +35,14 @@ function Producto() {
   const [categoria, setCategoria] = useState("");
 
   useEffect(() => {
-    if (!productoOriginal) {
-      navigate("/catalogo"); 
-      return;
-    }
 
-    setCodigoViejo(productoOriginal.codigo_barra);
-    setCodigoNuevo(productoOriginal.codigo_barra);
-    setNombre(productoOriginal.nombre);
-    setPrecio(productoOriginal.precio);
-    setStock(productoOriginal.stock);
-    setCategoria(productoOriginal.categoria);
-  }, [productoOriginal, navigate]);
+    setCodigoViejo(producto.codigo_barra);
+    setCodigoNuevo(producto.codigo_barra);
+    setNombre(producto.nombre);
+    setPrecio(producto.precio);
+    setStock(producto.stock);
+    setCategoria(producto.categoria);
+  }, [producto]);
 
   const precioFinal = Number(precio || 0) * (1 + Number(ganancia || 0) / 100);
 
@@ -69,7 +65,8 @@ function Producto() {
       });
 
       if (res.ok) {
-        navigate("/catalogo-producto");
+        recargar(); 
+        setMostrarConfirmacion(false);
       } else {
         alert("Error al intentar guardar los cambios.");
       }
@@ -79,110 +76,109 @@ function Producto() {
     }
   }
 
-  if (!productoOriginal) {
-    return (
-      <div className="producto-page">
-        <p>Cargando datos del producto...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="producto-page">
-      <div className="producto-card">
-        <h1>Modificar Producto</h1>
-        <form onSubmit={guardarCambios}  className="producto-form">
-          <div className="campo">
-            <label>Código De Barras</label>
-            <input
-              value={codigoNuevo}
-              onChange={(e) => setCodigoNuevo(e.target.value)}
-              required
-            />
-          </div>
-          <div className="campo">
-            <label>Nombre</label>
-            <input
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              required
-            />
-          </div>
+    <>
+      <CButton className="border-secondary" onClick={() => setMostrarConfirmacion(true)}>
+          Editar
+      </CButton >
+      <CModal visible={mostrarConfirmacion} size="lg" alignment="center">
+      <CModalHeader closeButton={false}>
+        <CModalTitle>Modificar Producto</CModalTitle>
+      </CModalHeader>
+        <CModalBody>
+          <CForm onSubmit={guardarCambios}  className="producto-form">
+            <div className="campo">
+              <CFormLabel>Código De Barras</CFormLabel>
+              <CFormInput
+                value={codigoNuevo}
+                onChange={(e) => setCodigoNuevo(e.target.value)}
+                required
+              />
+            </div>
+            <div className="campo">
+              <CFormLabel>Nombre</CFormLabel>
+              <CFormInput
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                required
+              />
+            </div>
 
-          <div className="campo">
-            <label>Costo del Producto ($)</label>
-            <input
-              type="number"
-              step="any"
-              value={precio}
-              onChange={(e) => setPrecio(Number(e.target.value))}
-              required
-            />
-          </div>
+            <div className="campo">
+              <CFormLabel>Costo del Producto ($)</CFormLabel>
+              <CFormInput
+                type="number"
+                step="any"
+                value={precio}
+                onChange={(e) => setPrecio(Number(e.target.value))}
+                required
+              />
+            </div>
 
-          <div className="campo">
-            <label>Ganancia (%)</label>
-            <input
-              type="number"
-              value={ganancia}
-              onChange={(e) => setGanancia(e.target.value)}
-              required
-            />
-          </div>
+            <div className="campo">
+              <CFormLabel>Ganancia (%)</CFormLabel>
+              <CFormInput
+                type="number"
+                value={ganancia}
+                onChange={(e) => setGanancia(e.target.value)}
+                required
+              />
+            </div>
 
-          <div className="campo">
-            <label>Precio de Venta ($)</label>
-            <input
-              type="text"
-              value={precioFinal.toFixed(2)}
-              readOnly
-              className="precio"
-              style={{ backgroundColor: "#f0f0f0", cursor: "not-allowed" }}
-            />
-          </div>
+            <div className="campo">
+              <CFormLabel>Precio de Venta ($)</CFormLabel>
+              <CFormInput
+                type="text"
+                value={precioFinal.toFixed(2)}
+                readOnly
+                className="precio"
+                style={{ backgroundColor: "#f0f0f0", cursor: "not-allowed" }}
+              />
+            </div>
 
-          <div className="campo">
-            <label>Stock</label>
-            <input
-              type="number"
-              value={stock}
-              onChange={(e) => setStock(Number(e.target.value))}
-              required
-            />
-          </div>
+            <div className="campo">
+              <CFormLabel>Stock</CFormLabel>
+              <CFormInput
+                type="number"
+                value={stock}
+                onChange={(e) => setStock(Number(e.target.value))}
+                required
+              />
+            </div>
 
-          <div className="campo campo-completo">
-            <label>Categoría</label>
-            <select
-              value={categoria}
-              onChange={(e) => setCategoria(e.target.value)}
-              required
-            >
-              <option value="" disabled>Seleccione una categoría</option>
-              {categorias.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="campo campo-completo">
+              <CFormLabel>Categoría</CFormLabel>
+              <CFormSelect
+                value={categoria}
+                onChange={(e) => setCategoria(e.target.value)}
+                required
+              >
+                <option value="" disabled>Seleccione una categoría</option>
+                {categorias.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </CFormSelect>
+            </div>
 
-          <div className="modal-botones">
-            <button
-              type="button"
-              className="btn-volver"
-              onClick={() => navigate("/catalogo-producto")}
-            >
-              Cancelar
-            </button>
-            <button type="submit" className="btn-guardar">
-              Guardar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            <CModalFooter className="modal-botones">
+              <CButton
+                type="button"
+                className="btn-volver"
+                onClick={() => setMostrarConfirmacion(false)}
+              >
+                Cancelar
+              </CButton>
+              <CButton type="submit" className="btn-guardar">
+                Guardar
+              </CButton>
+            </CModalFooter>
+          </CForm>
+        </CModalBody>
+      </CModal>
+    </>
   );
 }
 
-export default Producto;
+export default ModificarProducto;

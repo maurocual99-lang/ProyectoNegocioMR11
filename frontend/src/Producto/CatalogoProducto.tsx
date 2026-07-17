@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EliminarProducto from "./EliminarProducto";
-
+import ModificarProducto from "./ModificarProducto";
+import ProductoCreate from "./ProductoCreate";
+import { CCard, CCardHeader, CCardBody, CTable,CTableDataCell ,CTableHead ,CTableBody ,CTableRow,CTableHeaderCell ,CButton} from '@coreui/react';
 const categorias = [
   "Bebidas",
   "Kiosco",
@@ -41,61 +43,63 @@ function Catalogo() {
   }
 
   return (
-
-    <div className="producto-page">
-      <div className="producto-card">
-        <h1>Catálogo de Productos</h1>
-        <div  style={{ display: 'flex', justifyContent: 'flex-end',  marginTop: '32px',marginBottom: '32px'}}>
-        <button style={{backgroundColor:'green'}} onClick={() => navigate("/agregar-producto")}>
-            Agregar Producto
-        </button>
-        </div>
-        <table className="tabla-productos">
-          <thead>
-            <tr>
-              <th>Código De Barras</th>
-              <th>Nombre</th>
-              <th>Precio</th>
-              <th>Stock</th>
-              <th>Categoría</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {productos.map((producto) => (
-              <tr key={producto.codigo_barra}>
-                <td>{producto.codigo_barra}</td>
-                <td>{producto.nombre}</td>
-                <td>{producto.precio}</td>
-                <td>{producto.stock}</td>
-                <td>{producto.categoria}</td>
-                <td>
-                  <button
-                    className="btn-editar"
-                    onClick={() =>
-                      navigate("/modificar-producto", { state: { producto } }) 
-                    }
-                  >
-                    Editar
-                  </button>
-                   <EliminarProducto producto={producto.codigo_barra} recargar={cargarProductos}/>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "15px" }}>
-    
-          <button
-            className="btn-volver"
-            type="button"
-            onClick={() => navigate("/menu")}
-          >
-            Volver
-          </button>
-        </div>
-      </div>
-    </div>
+  <div style={{ 
+      display: "flex",
+      justifyContent: "center",    // Centra horizontalmente
+      alignItems: "center",        // Centra verticalmente
+      minHeight: "100vh",          // Fuerza a que ocupe toda la pantalla
+      width: "100%",
+      backgroundColor: "#f8f9fa",  // Forzamos un fondo gris muy claro (estilo CoreUI) en toda la pantalla
+      padding: "20px"
+    }}>
+    <div style={{ width: "100%", maxWidth: "1000px" }}> 
+      <CCard className="shadow-sm">
+        <CCardHeader component="h3" className="py-3">Catálogo de Productos </CCardHeader>
+          <CCardBody>
+            <CTable align="middle" responsive hover striped>
+              <CTableHead color="dark">
+                <CTableRow>
+                  <CTableHeaderCell scope="col">Código De Barras</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Nombre</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Precio</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Stock</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Categoría</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Acción</CTableHeaderCell>
+                </CTableRow>
+              </CTableHead>
+              <CTableBody>
+                {productos.map((producto) => (
+                  <CTableRow key={producto.codigo_barra}>
+                    <CTableDataCell>{producto.codigo_barra}</CTableDataCell>
+                    <CTableDataCell>{producto.nombre}</CTableDataCell>
+                    <CTableDataCell>{producto.precio}</CTableDataCell>
+                    <CTableDataCell>{producto.stock}</CTableDataCell>
+                    <CTableDataCell>{producto.categoria}</CTableDataCell>
+                    <CTableDataCell>
+                      <div className="d-flex justify-content-center gap-2">
+                        <ModificarProducto producto={producto} recargar={cargarProductos}/>
+                        <EliminarProducto producto={producto.codigo_barra} recargar={cargarProductos}/>
+                      </div>
+                    </CTableDataCell>
+                  </CTableRow>
+                ))}
+              </CTableBody>
+            </CTable>
+            <div className="d-flex justify-content-end gap-2 mt-4">
+        
+              <ProductoCreate recargar={cargarProductos}/>
+              <CButton
+                className="btn-volver"
+                type="button"
+                onClick={() => navigate("/")}
+              >
+                Volver
+              </CButton>
+            </div>
+        </CCardBody>
+      </CCard>
+    </div> 
+  </div>
   );
 }
 

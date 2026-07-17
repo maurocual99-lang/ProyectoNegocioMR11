@@ -1,10 +1,9 @@
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import MenuProducto from "./Producto/MenuProducto";
 import ProductoCreate from "./Producto/ProductoCreate";
 import "./App.css";
-import Producto from "./Producto/ModificarProducto";
 import Catalogo from "./Producto/CatalogoProducto";
-import  EliminarProducto  from "./Producto/EliminarProducto";
+import EliminarProducto  from "./Producto/EliminarProducto";
+import ModificarProducto from "./Producto/ModificarProducto";
 
 function PantallaPrincipal() {
   const navigate = useNavigate(); 
@@ -24,11 +23,17 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<PantallaPrincipal />} />
-        <Route path="/menu" element={<MenuProducto />} />
-        <Route path="/agregar-producto" element={<ProductoCreate />} />
-        <Route path="/modificar-producto" element={<Producto />} />
+        <Route path="/menu" element={<Catalogo />} />
+        <Route path="/agregar-producto" element={<ProductoCreate recargar={() => {}} />} />
+        <Route
+          path="/modificar-producto"
+          element={<ModificarProducto producto={undefined as any} recargar={() => {}} />}
+        />
         <Route path="/catalogo-producto" element={<Catalogo/>} />  
-        <Route path="/eliminar-producto" element={<EliminarProducto/>} />
+        <Route
+          path="/eliminar-producto"
+          element={<EliminarProducto producto={undefined as any} recargar={() => {}} />}
+        />
       </Routes>
     </BrowserRouter>
   );
