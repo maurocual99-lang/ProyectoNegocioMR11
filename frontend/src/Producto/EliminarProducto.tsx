@@ -9,12 +9,22 @@ type Props = {
 function EliminarProducto({producto, recargar}: Props) {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
-  const eliminarPregunta = () => {
-    fetch(`http://localhost:3000/productos/${producto}`, {
-      method: "PUT",
-    })
-    recargar();
-    setMostrarConfirmacion(false);
+  const eliminarPregunta = async () => {
+    try {
+      const respuesta = await fetch(`http://localhost:3000/productos/${producto}`, {
+        method: "PUT",
+      });
+
+      if (!respuesta.ok) {
+        throw new Error("El servidor falló al intentar eliminar el producto");
+      }
+
+      recargar();
+      setMostrarConfirmacion(false);
+
+    } catch (error) {
+      console.error("Error en la eliminación:", error);
+    }
   };
 
   return (
