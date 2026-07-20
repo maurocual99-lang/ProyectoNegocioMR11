@@ -1,7 +1,17 @@
 import { useState } from "react";
 import "./Producto.css";
-import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton, CForm, CFormSelect, CFormInput, CFormLabel} from '@coreui/react'
-
+import {
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
+  CButton,
+  CForm,
+  CFormSelect,
+  CFormInput,
+  CFormLabel,
+} from "@coreui/react";
 
 const categorias = [
   "Bebidas",
@@ -12,13 +22,16 @@ const categorias = [
   "Verduleria",
 ];
 
-type Props = {     
+type Props = {
   recargar: () => void;
 };
 
-export default function ProductoCreate({recargar}:Props) {
+export default function ProductoCreate({ recargar }: Props) {
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarPregunta, setMostrarPregunta] = useState(false);
 
-  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [productoPendiente, setProductoPendiente] = useState<any>(null);
+
   const [codigoBarra, setCodigoBarra] = useState("");
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState(categorias[0]);
@@ -30,8 +43,27 @@ export default function ProductoCreate({recargar}:Props) {
   const precioFinal =
     Number(costo || 0) * (1 + Number(ganancia || 0) / 100);
 
-  const guardarProducto = async (e: React.FormEvent) => {
+  function limpiarFormulario() {
+    setCodigoBarra("");
+    setNombre("");
+    setCategoria(categorias[0]);
+    setCosto("");
+    setGanancia("63");
+    setStock("");
+    setProductoPendiente(null);
+    setMostrarPregunta(false);
+  }
+
+  async function guardarProducto(e: React.FormEvent) {
     e.preventDefault();
+
+    const nuevoProducto = {
+      codigo_barra: codigoBarra,
+      nombre,
+      precio: Number(precioFinal.toFixed(2)),
+      stock: Number(stock),
+      categoria,
+    };
 
     try {
       const response = await fetch("http://localhost:3000/productos", {
@@ -39,39 +71,71 @@ export default function ProductoCreate({recargar}:Props) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          codigo_barra: codigoBarra,
-          nombre,
-          precio: Number(precioFinal.toFixed(2)),
-          stock: Number(stock),
-          categoria,
-        }),
-  
+        body: JSON.stringify(nuevoProducto),
       });
 
-      if (!response.ok) {
-        throw new Error("No se pudo guardar el producto.");
-      } else {
-        recargar();
+      const datos = await response.json();
+
+      if (datos.existe) {
+        setProductoPendiente(nuevoProducto);
+        setMostrarPregunta(true);
+        return;
       }
 
       alert("Producto agregado correctamente.");
+
+      recargar();
+      limpiarFormulario();
+
     } catch (error) {
       console.error(error);
       alert("Error al guardar el producto.");
     }
-  };
+  }
+
+  async function agregarStock() {
+    try {
+      await fetch(
+        `http://localhost:3000/productos/${productoPendiente.codigo_barra}/stock`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            stock: productoPendiente.stock,
+          }),
+        }
+      );
+
+      alert("Stock actualizado.");
+
+      recargar();
+      limpiarFormulario();
+
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo actualizar el stock.");
+    }
+  }
 
   return (
     <>
-      <CButton color="primary" onClick={() => setMostrarConfirmacion(true)}>
-            Agregar
-        </CButton >
-      <CModal visible={mostrarConfirmacion} size="lg" alignment="center">
-        <CModalHeader closeButton={true} onClick={() => setMostrarConfirmacion(false)}>
-          <CModalTitle> Agregar Producto</CModalTitle>
+      <CButton color="primary" onClick={() => setMostrarFormulario(true)}>
+        Agregar
+      </CButton>
+
+      <CModal
+        visible={mostrarFormulario}
+        size="lg"
+        alignment="center"
+        onClose={() => setMostrarFormulario(false)}
+      >
+        <CModalHeader closeButton={false}>
+          <CModalTitle>Agregar Producto</CModalTitle>
         </CModalHeader>
-        <CModalBody >
+
+        <CModalBody>
           <p>Complete los datos para registrar un nuevo producto.</p>
 
           <CForm className="producto-form" onSubmit={guardarProducto}>
@@ -156,12 +220,49 @@ export default function ProductoCreate({recargar}:Props) {
             </div>
 
             <CModalFooter className="botones">
+              <CButton
+                color="secondary"
+                onClick={() => setMostrarFormulario(false)}
+              >
+                Cancelar
+              </CButton>
+
               <CButton className="btn-guardar" type="submit">
                 Crear Producto
               </CButton>
             </CModalFooter>
           </CForm>
         </CModalBody>
+      </CModal>
+
+      <CModal
+        visible={mostrarPregunta}
+        alignment="center"
+        onClose={() => setMostrarPregunta(false)}
+      >
+        <CModalHeader closeButton>
+          <CModalTitle>Producto existente</CModalTitle>
+        </CModalHeader>
+
+        <CModalBody>
+          Ya existe un producto con ese código de barras.
+          <br />
+          <br />
+          ¿Deseás agregar <strong>{stock}</strong> unidades al stock existente?
+        </CModalBody>
+
+        <CModalFooter>
+          <CButton
+            color="secondary"
+            onClick={() => setMostrarPregunta(false)}
+          >
+            Cancelar
+          </CButton>
+
+          <CButton color="primary" onClick={agregarStock}>
+            Agregar stock
+          </CButton>
+        </CModalFooter>
       </CModal>
     </>
   );

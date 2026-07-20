@@ -11,15 +11,29 @@ async function crearProducto(req, res) {
     //obtenemos las datos solicitados desde el front
     const { codigo_barra, stock, categoria,precio , nombre } = req.body;
 
-    // Le paso los datos a la base de datos en orden exacto
-    const producto = await productoModel.crearProducto(
-      codigo_barra, 
-      stock, 
-      categoria,
-      precio,
-      nombre
-    );
-    res.status(201).json(producto); //Codigo de exito 201
+    const existe = await productoModel.buscarProducto(codigo_barra);
+
+    if(!existe){
+
+      // Le paso los datos a la base de datos en orden exacto
+      const producto = await productoModel.crearProducto(
+        codigo_barra, 
+        stock, 
+        categoria,
+        precio,
+        nombre
+      );
+
+      res.status(201).json({
+        existe: false,
+        producto}); //Codigo de exito 201
+
+    } else{
+      return res.json({
+        existe: true
+      });
+    }
+      
 
   } catch (error) {
     console.error("Error en el controlador al crear producto:", error);//Si existe un producto creado agarramos el error
@@ -27,6 +41,20 @@ async function crearProducto(req, res) {
       mensaje: "Hubo un error al intentar guardar el producto." 
     });
   }
+}
+
+async function agregarStock(req,res){
+
+    const { stock } = req.body;
+
+    await productoModel.agregarStock(
+        req.params.codigo_barra,
+        stock
+    );
+
+    res.json({
+        mensaje:"Stock agregado correctamente"
+    });
 }
 
 async function modificar_producto(req,res) {
@@ -46,5 +74,6 @@ module.exports = {
     listar_productos,
     modificar_producto,
     crearProducto,
-    eliminarProducto
+    eliminarProducto,
+    agregarStock   
 };

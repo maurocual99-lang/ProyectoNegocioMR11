@@ -69,9 +69,29 @@ async function eliminarProducto(codigo_barra) {
     );
 }
 
+async function buscarProducto(codigo_barra) {
+    const resultado = await db.query(
+        `SELECT * FROM producto WHERE codigo_barra = $1`,
+        [codigo_barra]
+    )
+    return resultado.rows[0];
+}
+
+async function agregarStock(codigo_barra, stock) {
+  await db.query(
+    `UPDATE producto
+     SET stock = stock + $1,
+        activo= TRUE
+     WHERE codigo_barra = $2`,
+    [stock, codigo_barra]
+  );
+}
+
 module.exports = {
     obtener_productos,
     modificar_producto,
     crearProducto,
-    eliminarProducto
+    eliminarProducto,
+    buscarProducto,
+    agregarStock
 };
