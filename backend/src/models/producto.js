@@ -32,6 +32,7 @@ async function modificar_producto(producto) {
         ]
     );
 }
+
 //Funcion para crear un nuevo producto
 async function crearProducto(codigo_barra, stock, categoria, precio,nombre) {
     try {
@@ -86,6 +87,7 @@ async function agregarStock(codigo_barra, stock) {
     [stock, codigo_barra]
   );
 }
+
 
 module.exports = {
     obtener_productos,

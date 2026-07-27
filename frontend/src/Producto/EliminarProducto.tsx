@@ -9,7 +9,7 @@ type Props = {
 function EliminarProducto({producto, recargar}: Props) {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
-  const eliminarPregunta = async () => {
+  const eliminarProducto = async () => {
     try {
       const respuesta = await fetch(`http://localhost:3000/productos/${producto}`, {
         method: "PUT",
@@ -43,7 +43,7 @@ function EliminarProducto({producto, recargar}: Props) {
                 <CButton  color="secondary" onClick={() => setMostrarConfirmacion(false)}>
                     Cancelar
                 </CButton >
-                <CButton  color="danger" onClick={eliminarPregunta}>
+                <CButton  color="danger" onClick={eliminarProducto}>
                     Eliminar
                 </CButton >
             </CModalFooter>

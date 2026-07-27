@@ -75,5 +75,5 @@ module.exports = {
     modificar_producto,
     crearProducto,
     eliminarProducto,
-    agregarStock   
+    agregarStock
 };
