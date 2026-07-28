@@ -21,4 +21,6 @@ app.listen(PORT, () => {
 });
 
 const productosRouter = require("./routes/producto");
+const ventaRouter =  require("./routes/venta");
 app.use("/productos",productosRouter);
+app.use("/ventas",ventaRouter);
