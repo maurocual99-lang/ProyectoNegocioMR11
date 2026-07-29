@@ -20,6 +20,8 @@ import EliminarProducto from "./Producto/EliminarProducto";
 import ModificarProducto from "./Producto/ModificarProducto";
 import VentaProducto from "./Producto/VentaProducto"
 
+import ClienteDeudor from "./clienteDeudor/AgregarDeudor"
+
 import "./App.css";
 
 function Layout({ children }: { children: React.ReactNode }) {

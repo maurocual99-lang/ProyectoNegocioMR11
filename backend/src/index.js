@@ -22,5 +22,7 @@ app.listen(PORT, () => {
 
 const productosRouter = require("./routes/producto");
 const ventaRouter =  require("./routes/venta");
+const deudoresRouter = require("./routes/clienteDeudor");
 app.use("/productos",productosRouter);
 app.use("/ventas",ventaRouter);
+app.use("/deudores", deudoresRouter)
