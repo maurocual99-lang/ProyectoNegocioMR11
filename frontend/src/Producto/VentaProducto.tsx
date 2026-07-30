@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useState } from "react";
 import { Barcode, Minus, Plus, Check, Trash2, DollarSign } from "lucide-react";
 import { CCard, CCardHeader, CCardBody, CFormLabel, CFormInput, CRow, CCol, CInputGroup, CInputGroupText, CButton, CForm, CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell } from '@coreui/react';
 
@@ -32,40 +32,6 @@ function VentaProducto() {
   const [cantidadUnidades, setCantidadUnidades] = useState<number>(0);
   const [error, setError] = useState<string>("");
 
-  const ventaCreada = useRef(false);
-
-  useEffect(() => {
-    if (ventaCreada.current) return;
-    ventaCreada.current = true;
-
-    const iniciarVenta = async () => {
-      // Si ya había una venta en curso (de un montaje/remontaje anterior), la reusamos
-      // en vez de crear una nueva. Esto evita ventas duplicadas por StrictMode o remounts.
-      const ventaGuardada = sessionStorage.getItem("venta_en_curso");
-      if (ventaGuardada) {
-        const id = Number(ventaGuardada);
-        setVentaId(id);
-        // Traemos el estado real desde el backend, no confiamos en estado local viejo
-        const res = await fetch(`http://localhost:3000/ventas/${id}`);
-        if (res.ok) {
-          const data: ResumenResponse = await res.json();
-          actualizarDesdeRespuesta(data);
-        }
-        return;
-      }
-
-      const res = await fetch(`http://localhost:3000/ventas`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
-      });
-      const venta = await res.json();
-      sessionStorage.setItem("venta_en_curso", String(venta.id));
-      setVentaId(venta.id);
-    };
-    iniciarVenta();
-  }, []);
-
   const actualizarDesdeRespuesta = (data: ResumenResponse) => {
     setDetalle(data.detalle || []);
     setTotal(data.total || 0);
@@ -74,18 +40,46 @@ function VentaProducto() {
     setError(data.error || "");
   };
 
-  const escanear = async (codigo: string) => {
-    if (!codigo.trim() || !ventaId) return;
 
-    const res = await fetch(`http://localhost:3000/ventas/${ventaId}/productos`, {
+  const crearVenta = async (): Promise<number> => {
+    const res = await fetch("http://localhost:3000/ventas", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ codigo_barra: codigo })
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({})
     });
+
+    const venta = await res.json();
+
+    setVentaId(venta.id);
+
+    return venta.id;
+  };
+
+  const escanear = async (codigo: string) => {
+    if (!codigo.trim()) return;
+
+    let idVenta = ventaId;
+
+    if (!idVenta) {
+      idVenta = await crearVenta();
+    }
+
+    const res = await fetch(`http://localhost:3000/ventas/${idVenta}/productos`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        codigo_barra: codigo,
+      }),
+    });
+
     const data: ResumenResponse = await res.json();
 
     if (!res.ok) {
-      setError(data.mensaje || "Hubo un error en el servidor al agregar el producto.");
+      setError(data.mensaje || "Hubo un error.");
       return;
     }
 
@@ -132,34 +126,27 @@ function VentaProducto() {
   const finalizarVenta = async () => {
     if (!ventaId || detalle.length === 0) return;
 
-    const res = await fetch(`http://localhost:3000/ventas/${ventaId}/finalizar`, { method: "POST" });
-    const data: ResumenResponse = await res.json();
+    const res = await fetch(`http://localhost:3000/ventas/${ventaId}/finalizar`, {
+      method: "POST",
+    });
+
+    const data = await res.json();
 
     if (!res.ok) {
       setError(data.mensaje || "No se pudo finalizar la venta.");
       return;
     }
 
-    // Venta confirmada: se limpia la persistida y se arranca una nueva
     sessionStorage.removeItem("venta_en_curso");
+
     setVentaId(null);
     setDetalle([]);
     setTotal(0);
     setCantidadProductos(0);
     setCantidadUnidades(0);
     setError("");
-
-    const nuevaVentaRes = await fetch(`http://localhost:3000/ventas`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({})
-    });
-    const nuevaVenta = await nuevaVentaRes.json();
-    sessionStorage.setItem("venta_en_curso", String(nuevaVenta.id));
-    setVentaId(nuevaVenta.id);
   };
-
-  return (
+    return (
     <>
       <div style={{
         minHeight: "100vh",
