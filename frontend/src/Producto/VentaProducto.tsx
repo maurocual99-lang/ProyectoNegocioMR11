@@ -39,12 +39,28 @@ function VentaProducto() {
     ventaCreada.current = true;
 
     const iniciarVenta = async () => {
+      // Si ya había una venta en curso (de un montaje/remontaje anterior), la reusamos
+      // en vez de crear una nueva. Esto evita ventas duplicadas por StrictMode o remounts.
+      const ventaGuardada = sessionStorage.getItem("venta_en_curso");
+      if (ventaGuardada) {
+        const id = Number(ventaGuardada);
+        setVentaId(id);
+        // Traemos el estado real desde el backend, no confiamos en estado local viejo
+        const res = await fetch(`http://localhost:3000/ventas/${id}`);
+        if (res.ok) {
+          const data: ResumenResponse = await res.json();
+          actualizarDesdeRespuesta(data);
+        }
+        return;
+      }
+
       const res = await fetch(`http://localhost:3000/ventas`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({})
       });
       const venta = await res.json();
+      sessionStorage.setItem("venta_en_curso", String(venta.id));
       setVentaId(venta.id);
     };
     iniciarVenta();
@@ -124,6 +140,8 @@ function VentaProducto() {
       return;
     }
 
+    // Venta confirmada: se limpia la persistida y se arranca una nueva
+    sessionStorage.removeItem("venta_en_curso");
     setVentaId(null);
     setDetalle([]);
     setTotal(0);
@@ -137,6 +155,7 @@ function VentaProducto() {
       body: JSON.stringify({})
     });
     const nuevaVenta = await nuevaVentaRes.json();
+    sessionStorage.setItem("venta_en_curso", String(nuevaVenta.id));
     setVentaId(nuevaVenta.id);
   };
 
@@ -394,7 +413,8 @@ function VentaProducto() {
           </CCard>
         </div>
 
-        <AgregarDeuda />
+        <AgregarDeuda 
+          ventaId={ventaId} />
 
       </div>
     </>

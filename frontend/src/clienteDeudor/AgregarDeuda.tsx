@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, UserPlus, Plus } from "lucide-react";
 import { 
   CCard, 
@@ -18,7 +18,11 @@ import {
   CModalFooter
 } from '@coreui/react';
 
-function AgregarDeuda() {
+interface Props {
+    ventaId: number | null;
+}
+
+function AgregarDeuda({ventaId}:Props) {
   const [esMoroso, setEsMoroso] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [resultadosBusqueda, setResultadosBusqueda] = useState<any[]>([]); 
@@ -30,6 +34,16 @@ function AgregarDeuda() {
   const [nuevoApellido, setNuevoApellido] = useState("");
   const [nuevoApodo, setNuevoApodo] = useState("");
   const [mensajeModal, setMensajeModal] = useState({ tipo: "", texto: "" });
+
+  // Si la venta activa cambia (venta nueva, o se corrigió una duplicada), el cliente
+  // seleccionado localmente ya no es válido para esta venta: se resetea todo.
+  useEffect(() => {
+    setEsMoroso(false);
+    setBusqueda("");
+    setResultadosBusqueda([]);
+    setClienteSeleccionado(null);
+    setErrorBuscar("");
+  }, [ventaId]);
 
   const esRespuestaJSON = (res: Response) => {
     const contentType = res.headers.get("content-type");
@@ -82,11 +96,28 @@ function AgregarDeuda() {
     }
   };
 
-  const handleSeleccionarCliente = (cliente: any) => {
+  const handleSeleccionarCliente = async (cliente: any) => {
     setClienteSeleccionado(cliente);
-    setBusqueda(`${cliente.apellido} ${cliente.nombre}`); 
-    setResultadosBusqueda([]); 
+    setBusqueda(`${cliente.apellido} ${cliente.nombre}`);
+    setResultadosBusqueda([]);
     setErrorBuscar("");
+
+    if (esMoroso && ventaId) {
+      try {
+        await fetch(`http://localhost:3000/ventas/${ventaId}/cliente`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            cliente_id: cliente.id,
+            cuenta_pendiente: true,
+          }),
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
   };
 
   const handleCrearCliente = async () => {
@@ -125,11 +156,23 @@ function AgregarDeuda() {
       const clienteCreado = data.cliente;
       
       if (clienteCreado) {
-        setClienteSeleccionado(clienteCreado); 
-        const nombreMostrar = `${clienteCreado.apellido} ${clienteCreado.nombre}`;
-        setBusqueda(nombreMostrar);
-      } else {
-        setBusqueda(`${nuevoApellido} ${nuevoNombre}`);
+          setClienteSeleccionado(clienteCreado); 
+          if (esMoroso && ventaId) {
+            await fetch(`http://localhost:3000/ventas/${ventaId}/cliente`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                cliente_id: clienteCreado.id,
+                cuenta_pendiente: true,
+              }),
+            });
+            const nombreMostrar = `${clienteCreado.apellido} ${clienteCreado.nombre}`;
+            setBusqueda(nombreMostrar);
+          } else {
+            setBusqueda(`${nuevoApellido} ${nuevoNombre}`);
+          }
       }
       
       setTimeout(() => {
@@ -240,23 +283,23 @@ function AgregarDeuda() {
               {errorBuscar && <div className="text-danger mt-1" style={{ fontSize: "0.8rem" }}>{errorBuscar}</div>}
             </CCol>
 
+            {/* Crear cliente nuevo: siempre habilitado, independiente del switch de moroso */}
             <CCol md={4}>
               <div
                 className="d-flex align-items-center p-2"
                 style={{
-                  background: esMoroso ? "#eef4ff" : "#f3f4f6",
-                  border: esMoroso ? "1px solid #dbeafe" : "1px solid #e5e7eb",
+                  background: "#eef4ff",
+                  border: "1px solid #dbeafe",
                   borderRadius: "8px",
                   fontSize: "0.8rem",
                   height: "36px",
-                  cursor: esMoroso ? "pointer" : "default",
-                  opacity: esMoroso ? 1 : 0.6
+                  cursor: "pointer"
                 }}
-                onClick={() => esMoroso && setModalVisible(true)}
+                onClick={() => setModalVisible(true)}
               >
                 <UserPlus
                   size={20}
-                  color={esMoroso ? "#2563eb" : "#9ca3af"}
+                  color="#2563eb"
                   style={{ marginRight: "10px", minWidth: "20px" }}
                 />
                 <div>

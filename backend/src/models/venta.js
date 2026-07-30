@@ -164,11 +164,37 @@ async function finalizarVenta(venta_id) {
     return await obtenerResumen(venta_id);
 }
 
+async function asociarCliente(venta_id, cliente_id) {
+    await db.query(
+        `UPDATE venta
+         SET cliente_id = $1,
+             cuenta_pendiente = TRUE
+         WHERE id = $2`,
+        [cliente_id, venta_id]
+    );
+
+    return await obtenerResumen(venta_id);
+}
+
+async function quitarCliente(venta_id) {
+    await db.query(
+        `UPDATE venta
+         SET cliente_id = NULL,
+             cuenta_pendiente = FALSE
+         WHERE id = $1`,
+        [venta_id]
+    );
+
+    return await obtenerResumen(venta_id);
+}
+
 module.exports = {
     crearVentaVacia,
     obtenerResumen,
     agregarProductoAVenta,
     actualizarCantidad,
     eliminarProductoDeVenta,
-    finalizarVenta
+    finalizarVenta,
+    asociarCliente,
+    quitarCliente
 };

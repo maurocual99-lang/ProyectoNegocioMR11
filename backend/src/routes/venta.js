@@ -9,5 +9,7 @@ router.post("/:venta_id/productos", ventaController.agregarProducto);           
 router.put("/:venta_id/productos/:producto_id", ventaController.actualizarCantidad); // botones +/-
 router.delete("/:venta_id/productos/:producto_id", ventaController.eliminarProducto); // basurero
 router.post("/:venta_id/finalizar", ventaController.finalizarVenta);                // finalizar venta
+router.put("/:venta_id/cliente",ventaController.asociarCliente);
+router.delete("/:venta_id/cliente",ventaController.quitarCliente);
 
 module.exports = router;
