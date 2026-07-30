@@ -18,7 +18,7 @@ export default function ListaDeudores() {
   // Endpoint base según tu archivo venta.js
   const API_URL = "http://localhost:3000/ventas";
 
-  // 1. Al cargar la pantalla, buscamos quiénes deben plata
+  // Busca los clientes morosos
   useEffect(() => {
     cargarClientesMorosos();
   }, []);
@@ -33,10 +33,9 @@ export default function ListaDeudores() {
     }
   };
 
-  // 2. Cuando el cajero selecciona un cliente de la lista
   const seleccionarCliente = async (cliente) => {
     setClienteSeleccionado(cliente);
-    // Buscamos sus boletas específicas
+    // Buscamos sus boletas
     try {
       const res = await fetch(`${API_URL}/deudas/${cliente.id}`);
       const data = await res.json();
@@ -48,7 +47,6 @@ export default function ListaDeudores() {
     }
   };
 
-  // 3. Manejo de los checkbox de las boletas
   const toggleSeleccion = (ventaId, total) => {
     setVentasSeleccionadas((prev) => {
       const yaSeleccionado = prev.includes(ventaId);
@@ -62,7 +60,7 @@ export default function ListaDeudores() {
     });
   };
 
-  // 4. Confirmar el pago
+
   const confirmarPago = async () => {
     try {
       const res = await fetch(`${API_URL}/pagar`, {
@@ -73,7 +71,6 @@ export default function ListaDeudores() {
       
       if (res.ok) {
         alert("Pago registrado correctamente");
-        // Recargamos los clientes por si este cliente ya pagó todo y debe desaparecer de la lista
         setClienteSeleccionado(null);
         cargarClientesMorosos();
       }
@@ -82,14 +79,11 @@ export default function ListaDeudores() {
     }
   };
 
-  // ================= RENDER =================
-
-  // VISTA 1: Lista de Clientes Morosos
+  //Ver cliente seleccionado
   if (!clienteSeleccionado) {
     return (
       <CCard className="mt-3 shadow-sm border-0">
         <CCardBody>
-          {/* Botón para regresar al panel anterior */}
           <div className="d-flex align-items-center mb-4 gap-3">
             <CButton color="light" onClick={() => navigate(-1)} size="sm">
               <ArrowLeft size={16} /> Volver
@@ -98,7 +92,7 @@ export default function ListaDeudores() {
           </div>
 
           {clientesMorosos.length === 0 ? (
-            <p className="text-muted">¡Excelente! Ningún cliente debe dinero.</p>
+            <p className="text-muted">¡Excelente! Ningun cliente debe dinero.</p>
           ) : (
             <CListGroup>
               {clientesMorosos.map((cliente) => (
@@ -126,11 +120,10 @@ export default function ListaDeudores() {
     );
   }
 
-  // VISTA 2: Boletas del Cliente Seleccionado
+  // ver boletas del clietne
   return (
     <CCard className="mt-3 shadow-sm border-0">
       <CCardBody>
-        {/* Botón para volver a la lista de clientes */}
         <div className="d-flex align-items-center mb-4 gap-3">
           <CButton color="light" onClick={() => setClienteSeleccionado(null)} size="sm">
             <ArrowLeft size={16} /> Volver a la lista
@@ -153,7 +146,7 @@ export default function ListaDeudores() {
                 <div>
                   <CFormCheck 
                     id={`venta-${venta.id}`}
-                    label={`Boleta #${venta.id} - ${new Date(venta.fecha_venta).toLocaleDateString()}`}
+                    label={`Ticket #${venta.id} - ${new Date(venta.fecha_venta).toLocaleDateString()}`}
                     checked={ventasSeleccionadas.includes(venta.id)}
                     onChange={() => toggleSeleccion(venta.id, venta.total)}
                   />

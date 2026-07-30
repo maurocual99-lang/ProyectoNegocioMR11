@@ -106,6 +106,41 @@ async function listarClientesMorosos(req, res) {
     }
 }
 
+async function asociarCliente(req, res) {
+    try {
+        const { cliente_id } = req.body;
+
+        const resultado = await ventaModel.asociarCliente(
+            req.params.venta_id,
+            cliente_id
+        );
+
+        res.json(resultado);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            mensaje: "Error al asociar el cliente."
+        });
+    }
+}
+async function quitarCliente(req, res) {
+    try {
+
+        const resultado = await ventaModel.quitarCliente(
+            req.params.venta_id
+        );
+
+        res.json(resultado);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            mensaje: "Error al quitar el cliente."
+        });
+    }
+}
+
 module.exports = {
     crearVenta,
     obtenerResumen,
@@ -115,5 +150,7 @@ module.exports = {
     finalizarVenta,
     obtenerDeudas,
     procesarPago,
-    listarClientesMorosos
+    listarClientesMorosos,
+    quitarCliente,
+    asociarCliente
 };

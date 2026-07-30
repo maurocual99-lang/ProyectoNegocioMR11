@@ -186,7 +186,6 @@ async function obtenerDeudasPorCliente(cliente_id) {
 // Recibe un array de IDs de ventas y las marca como pagadas (cuenta_pendiente = false)
 async function pagarVentas(ventas_ids) {
     try {
-        // Usamos ANY($1::int[]) para actualizar múltiples ventas en una sola consulta
         const query = `
             UPDATE venta 
             SET cuenta_pendiente = false 
@@ -204,7 +203,6 @@ async function pagarVentas(ventas_ids) {
 // Trae solo a los clientes que tienen al menos una venta pendiente de pago
 async function obtenerClientesConDeuda() {
     try {
-        // Usamos DISTINCT para que no nos repita al cliente si tiene 5 boletas sin pagar
         const query = `
             SELECT DISTINCT c.id, c.nombre, c.apellido, c.apodo
             FROM cliente c
@@ -220,6 +218,30 @@ async function obtenerClientesConDeuda() {
     }
 }
 
+async function asociarCliente(venta_id, cliente_id) {
+    await db.query(
+        `UPDATE venta
+         SET cliente_id = $1,
+             cuenta_pendiente = TRUE
+         WHERE id = $2`,
+        [cliente_id, venta_id]
+    );
+
+    return await obtenerResumen(venta_id);
+}
+
+async function quitarCliente(venta_id) {
+    await db.query(
+        `UPDATE venta
+         SET cliente_id = NULL,
+             cuenta_pendiente = FALSE
+         WHERE id = $1`,
+        [venta_id]
+    );
+
+    return await obtenerResumen(venta_id);
+}
+
 module.exports = {
     crearVentaVacia,
     obtenerResumen,
@@ -229,5 +251,7 @@ module.exports = {
     finalizarVenta,
     obtenerDeudasPorCliente,
     pagarVentas,
-    obtenerClientesConDeuda
+    obtenerClientesConDeuda,
+    asociarCliente,
+    quitarCliente
 };
