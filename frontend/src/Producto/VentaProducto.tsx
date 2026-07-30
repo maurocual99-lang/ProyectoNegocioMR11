@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Barcode, Minus, Plus, Check, Trash2, DollarSign } from "lucide-react";
+import { Barcode, Minus, Plus, Trash2, DollarSign } from "lucide-react";
 import { CCard, CCardHeader, CCardBody, CFormLabel, CFormInput, CRow, CCol, CInputGroup, CInputGroupText, CButton, CForm, CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell } from '@coreui/react';
-
-
+import ModalExito from "../ModalExito";
 import AgregarDeuda from "../clienteDeudor/AgregarDeuda"; 
 
 interface DetalleItem {
@@ -123,8 +122,8 @@ function VentaProducto() {
     actualizarDesdeRespuesta(data);
   };
 
-  const finalizarVenta = async () => {
-    if (!ventaId || detalle.length === 0) return;
+  const finalizarVenta = async (): Promise<boolean> => {
+    if (!ventaId || detalle.length === 0) return false;
 
     const res = await fetch(`http://localhost:3000/ventas/${ventaId}/finalizar`, {
       method: "POST",
@@ -134,11 +133,13 @@ function VentaProducto() {
 
     if (!res.ok) {
       setError(data.mensaje || "No se pudo finalizar la venta.");
-      return;
+      return false;
     }
 
-    sessionStorage.removeItem("venta_en_curso");
+    return true;
+  };
 
+  const limpiarVenta = () => {
     setVentaId(null);
     setDetalle([]);
     setTotal(0);
@@ -146,6 +147,7 @@ function VentaProducto() {
     setCantidadUnidades(0);
     setError("");
   };
+
     return (
     <>
       <div style={{
@@ -392,9 +394,14 @@ function VentaProducto() {
                     </h2>
                   </div>
                 </div>
-                <CButton onClick={finalizarVenta} className="w-100" color="success" style={{ color: "white", marginTop: "8px" }}>
-                  <Check size={16} className="me-2" /> Finalizar Venta
-                </CButton>
+                <ModalExito
+                    onEnviar={finalizarVenta}
+                    onExito={limpiarVenta}
+                    desactivado={!ventaId || detalle.length === 0}
+                    textoBoton="Finalizar Venta"
+                    variante="success"
+                    className="w-100"
+                />
               </div>
             </CCardBody>
           </CCard>

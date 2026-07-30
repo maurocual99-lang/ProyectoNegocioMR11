@@ -40,7 +40,7 @@ function ModalExito({ onEnviar, onExito, desactivado, textoBoton, variante, clas
                 {textoBoton}
             </CButton>
 
-            <CModal show={mostrar}>
+            <CModal visible={mostrar} onClose={() => setMostrar(false)}>
                 <CModalHeader className="bg-success text-white">
                     <CModalTitle>¡Éxito!</CModalTitle>
                 </CModalHeader>
