@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import EliminarProducto from "./EliminarProducto";
 import ModificarProducto from "./ModificarProducto";
 import ProductoCreate from "./ProductoCreate";
+import { Barcode} from "lucide-react";
 import { CCard, CCardHeader, CCardBody, CTable,CTableDataCell ,CTableHead ,CTableBody ,CTableRow,CTableHeaderCell ,CButton} from '@coreui/react';
 const categorias = [
   "Bebidas",
@@ -56,35 +57,42 @@ function Catalogo() {
       <CCard className="shadow-sm">
         <CCardHeader component="h3" className="py-3">Catálogo de Productos </CCardHeader>
           <CCardBody>
-            <CTable align="middle" responsive hover striped>
-              <CTableHead color="dark">
-                <CTableRow>
-                  <CTableHeaderCell scope="col">Código De Barras</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Nombre</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Precio</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Stock</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Categoría</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Acción</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody>
-                {productos.map((producto) => (
-                  <CTableRow key={producto.codigo_barra}>
-                    <CTableDataCell>{producto.codigo_barra}</CTableDataCell>
-                    <CTableDataCell>{producto.nombre}</CTableDataCell>
-                    <CTableDataCell>{producto.precio}</CTableDataCell>
-                    <CTableDataCell>{producto.stock}</CTableDataCell>
-                    <CTableDataCell>{producto.categoria}</CTableDataCell>
-                    <CTableDataCell>
-                      <div className="d-flex justify-content-center gap-2">
-                        <ModificarProducto producto={producto} recargar={cargarProductos}/>
-                        <EliminarProducto producto={producto.codigo_barra} recargar={cargarProductos}/>
-                      </div>
-                    </CTableDataCell>
+            <div className="rounded overflow-hidden border">
+              <CTable align="middle" responsive hover striped>
+                <CTableHead color="#2563eb">
+                  <CTableRow>
+                    <CTableHeaderCell scope="col"  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Código De Barras</CTableHeaderCell>
+                    <CTableHeaderCell scope="col" style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Nombre</CTableHeaderCell>
+                    <CTableHeaderCell scope="col" style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Precio</CTableHeaderCell>
+                    <CTableHeaderCell scope="col" style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Stock</CTableHeaderCell>
+                    <CTableHeaderCell scope="col"  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Categoría</CTableHeaderCell>
+                    <CTableHeaderCell scope="col"  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Acción</CTableHeaderCell>
                   </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
+                </CTableHead>
+                <CTableBody>
+                  {productos.map((producto) => (
+                    <CTableRow  key={producto.codigo_barra}>
+                      <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2}}>
+                        <div className="d-flex justify-content-center align-items-center gap-2">
+                          <Barcode size={20} color="#2563eb" />
+                          <span>{producto.codigo_barra}</span>
+                        </div>
+                      </CTableDataCell>
+                      <CTableDataCell style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2 }}>{producto.nombre}</CTableDataCell>
+                      <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2 }}>{producto.precio}</CTableDataCell>
+                      <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2  }}>{producto.stock}</CTableDataCell>
+                      <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2}}>{producto.categoria}</CTableDataCell>
+                      <CTableDataCell>
+                        <div className="d-flex justify-content-center align-items-center gap-3">
+                          <ModificarProducto producto={producto} recargar={cargarProductos}/>
+                          <EliminarProducto producto={producto.codigo_barra} recargar={cargarProductos}/>
+                        </div>
+                      </CTableDataCell>
+                    </CTableRow>
+                  ))}
+                </CTableBody>
+              </CTable>
+            </div>
             <div className="d-flex justify-content-end gap-2 mt-4">
         
               <ProductoCreate recargar={cargarProductos}/>

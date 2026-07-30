@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton  } from '@coreui/react'
+import { Trash } from "lucide-react";
 
 type Props = {
   producto: string;        
@@ -29,9 +30,10 @@ function EliminarProducto({producto, recargar}: Props) {
 
   return (
     <>
-        <CButton   color="danger" className="border-secondary" onClick={() => setMostrarConfirmacion(true)}>
-            Eliminar
-            <i className="fa-solid fa-trash" style={{ fontSize: '18px', color: "rgba(163, 32, 52, 1)" }}></i>
+        <CButton  style={{color: "#fe0000"}} className="border-secondary" onClick={() => setMostrarConfirmacion(true)}>
+            <div className="d-flex justify-content-center align-items-center gap-2">
+              <Trash size={16}/>Eliminar
+            </div>
         </CButton >
 
         <CModal visible={mostrarConfirmacion} onClose={() => setMostrarConfirmacion(false)}>

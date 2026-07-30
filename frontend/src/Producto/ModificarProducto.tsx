@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton, CForm, CFormSelect, CFormInput, CFormLabel } from '@coreui/react'
+import { Pencil } from "lucide-react";
 
 const categorias = [
   "Bebidas",
@@ -65,8 +66,8 @@ function ModificarProducto({producto, recargar}: Props) {
       });
 
       if (res.ok) {
-        recargar(); 
-        setMostrarConfirmacion(false);
+          await recargar();
+          setMostrarConfirmacion(false);
       } else {
         alert("Error al intentar guardar los cambios.");
       }
@@ -78,10 +79,17 @@ function ModificarProducto({producto, recargar}: Props) {
 
   return (
     <>
-      <CButton className="border-secondary" onClick={() => setMostrarConfirmacion(true)}>
-          Editar
+      <CButton style={{color: "#2563eb"}} className="border-secondary" onClick={() => setMostrarConfirmacion(true)}>
+        <div className="d-flex justify-content-center align-items-center gap-2">
+          <Pencil size={16}/>  Editar
+        </div>
       </CButton >
-      <CModal visible={mostrarConfirmacion} size="lg" alignment="center">
+      <CModal
+          visible={mostrarConfirmacion}
+          onClose={() => setMostrarConfirmacion(false)}
+          size="lg"
+          alignment="center"
+      >
       <CModalHeader closeButton={false}>
         <CModalTitle>Modificar Producto</CModalTitle>
       </CModalHeader>
