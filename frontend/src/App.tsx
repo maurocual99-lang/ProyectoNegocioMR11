@@ -19,6 +19,7 @@ import Catalogo from "./Producto/CatalogoProducto";
 import EliminarProducto from "./Producto/EliminarProducto";
 import ModificarProducto from "./Producto/ModificarProducto";
 import VentaProducto from "./Producto/VentaProducto"
+import ListaDeudores from "./clienteDeudor/ListaDeudores";
 
 import ClienteDeudor from "./clienteDeudor/AgregarDeudor"
 
@@ -378,18 +379,13 @@ export default function App() {
           }
         />
 
-        <Route
-          path="/deudores"
-          element={
-            <Layout>
-              <div style={{ marginTop: "20px" }}>
-                <h2>👥 Deudores</h2>
-                <p>Listado de clientes con deuda</p>
-              </div>
-            </Layout>
-          }
-        />
 
+        <Route path="/deudores" 
+        element={
+          <ListaDeudores />
+        } 
+        />
+        
         <Route
           path="/resumenes"
           element={

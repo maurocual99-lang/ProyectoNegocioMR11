@@ -67,11 +67,53 @@ async function finalizarVenta(req, res) {
     }
 }
 
+//-------------------------------------------Mauro-------------------------
+
+async function obtenerDeudas(req, res) {
+    try {
+        const { cliente_id } = req.params;
+        const deudas = await ventaModel.obtenerDeudasPorCliente(cliente_id);
+        res.status(200).json(deudas);
+    } catch (error) {
+        res.status(500).json({ mensaje: "Error al obtener las deudas del cliente." });
+    }
+}
+
+async function procesarPago(req, res) {
+    try {
+        const { ventas_ids } = req.body;
+        
+        if (!ventas_ids || ventas_ids.length === 0) {
+            return res.status(400).json({ mensaje: "Debes seleccionar al menos una venta para pagar." });
+        }
+
+        const ventasPagadas = await ventaModel.pagarVentas(ventas_ids);
+        res.status(200).json({ 
+            mensaje: "Pago registrado con Exito", 
+            ventas_actualizadas: ventasPagadas.length 
+        });
+    } catch (error) {
+        res.status(500).json({ mensaje: "Error al procesar el pago." });
+    }
+}
+
+async function listarClientesMorosos(req, res) {
+    try {
+        const clientes = await ventaModel.obtenerClientesConDeuda();
+        res.status(200).json(clientes);
+    } catch (error) {
+        res.status(500).json({ mensaje: "Error al cargar la lista de deudores." });
+    }
+}
+
 module.exports = {
     crearVenta,
     obtenerResumen,
     agregarProducto,
     actualizarCantidad,
     eliminarProducto,
-    finalizarVenta
+    finalizarVenta,
+    obtenerDeudas,
+    procesarPago,
+    listarClientesMorosos
 };

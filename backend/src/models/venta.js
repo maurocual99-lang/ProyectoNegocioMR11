@@ -164,11 +164,70 @@ async function finalizarVenta(venta_id) {
     return await obtenerResumen(venta_id);
 }
 
+//-------------------------------------------Mauro-------------------------
+
+// buscar las deudas de un cliente
+async function obtenerDeudasPorCliente(cliente_id) {
+    try {
+        const query = `
+            SELECT id, fecha_venta, total 
+            FROM venta 
+            WHERE cliente_id = $1 AND cuenta_pendiente = true 
+            ORDER BY fecha_venta ASC;
+        `;
+        const resultado = await db.query(query, [cliente_id]);
+        return resultado.rows;
+    } catch (error) {
+        console.error("Error al obtener deudas:", error);
+        throw error;
+    }
+}
+
+// Recibe un array de IDs de ventas y las marca como pagadas (cuenta_pendiente = false)
+async function pagarVentas(ventas_ids) {
+    try {
+        // Usamos ANY($1::int[]) para actualizar múltiples ventas en una sola consulta
+        const query = `
+            UPDATE venta 
+            SET cuenta_pendiente = false 
+            WHERE id = ANY($1::int[]) 
+            RETURNING *;
+        `;
+        const resultado = await db.query(query, [ventas_ids]);
+        return resultado.rows;
+    } catch (error) {
+        console.error("Error al pagar ventas:", error);
+        throw error;
+    }
+}
+
+// Trae solo a los clientes que tienen al menos una venta pendiente de pago
+async function obtenerClientesConDeuda() {
+    try {
+        // Usamos DISTINCT para que no nos repita al cliente si tiene 5 boletas sin pagar
+        const query = `
+            SELECT DISTINCT c.id, c.nombre, c.apellido, c.apodo
+            FROM cliente c
+            JOIN venta v ON c.id = v.cliente_id
+            WHERE v.cuenta_pendiente = true
+            ORDER BY c.apellido ASC;
+        `;
+        const resultado = await db.query(query);
+        return resultado.rows;
+    } catch (error) {
+        console.error("Error al obtener clientes con deuda:", error);
+        throw error;
+    }
+}
+
 module.exports = {
     crearVentaVacia,
     obtenerResumen,
     agregarProductoAVenta,
     actualizarCantidad,
     eliminarProductoDeVenta,
-    finalizarVenta
+    finalizarVenta,
+    obtenerDeudasPorCliente,
+    pagarVentas,
+    obtenerClientesConDeuda
 };
