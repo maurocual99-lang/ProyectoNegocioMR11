@@ -295,7 +295,6 @@ function AgregarDeuda({ventaId}:Props) {
                   height: "36px",
                   cursor: "pointer"
                 }}
-                onClick={() => setModalVisible(true)}
               >
                 <UserPlus
                   size={20}
@@ -315,10 +314,10 @@ function AgregarDeuda({ventaId}:Props) {
             className="w-100 mt-3" 
             style={{ marginTop: "8px" }} 
             size="sm"
-            disabled={!esMoroso || !clienteSeleccionado}
+            onClick={() => setModalVisible(true)}
           >
             <Plus size={16} className="me-2" />
-            Vincular deuda al cliente: {clienteSeleccionado ? `${clienteSeleccionado.nombre}` : ""}
+            Agregar Nuevo Cliente
           </CButton>
         </CCardBody>
       </CCard>
