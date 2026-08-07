@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import EliminarProducto from "./EliminarProducto";
 import ModificarProducto from "./ModificarProducto";
 import ProductoCreate from "./ProductoCreate";
+import OrdenarTabla from "../OrdenarTabla";
+import Capitalizar from "../Capitalizar";
 import { Barcode, Box, MoveLeft, MoveRight, Search } from "lucide-react";
 import { CRow, CCol,CFormInput, CFormLabel, CFormSelect, CTable,CTableDataCell ,CTableHead ,CTableBody ,CTableRow,CTableHeaderCell ,CButton, CForm, CInputGroup, CInputGroupText, CCard, CCardBody} from '@coreui/react';
 const categorias = [
@@ -24,12 +26,15 @@ interface Producto {
   categoria: Categoria;
 }
 
+
 function Catalogo() {
   const navigate = useNavigate();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [categoriaFiltro, setCategoriaFiltro] = useState("");
   const [pagina, setPagina] = useState(1);
+  const [ordenarPor, setOrdenarPor] = useState<keyof Producto | "">("");
+  const [direccion, setDireccion] = useState<"asc" | "desc">("asc");  
 
   const productosPorPagina = 10;
 
@@ -48,6 +53,16 @@ function Catalogo() {
     }
   }
 
+  function ordenar(columna: keyof Producto){
+    if(ordenarPor === columna){
+      setDireccion(direccion=== "asc"? "desc": "asc")
+    } else{
+      setOrdenarPor(columna);
+      setDireccion("asc");
+    }
+  }
+
+
   const productosFiltrados = productos.filter((producto)=>{
     const coincideBusqueda =
       producto.nombre.toLocaleLowerCase().includes(busqueda.toLowerCase()) ||
@@ -60,18 +75,30 @@ function Catalogo() {
     return coincideBusqueda && coincideCategoria
   });
 
-  const indiceInicial = (pagina - 1) * productosPorPagina;
-  const indiceFinal = indiceInicial + productosPorPagina;
-
-  const productosPagina = productosFiltrados.slice(
-    indiceInicial,
-    indiceFinal
-  );
 
   const totalPaginas = Math.ceil(
     productosFiltrados.length / productosPorPagina
   );
 
+  const productosOrdenados = [...productosFiltrados].sort((a,b)=>{
+    if (!ordenarPor) return 0;
+
+    const valorA = a[ordenarPor];
+    const valorB = b[ordenarPor];
+
+    if (valorA < valorB) return direccion==="asc" ? -1:1;
+    if (valorA > valorB) return direccion==="asc" ? 1: -1;
+
+    return 0;
+  })
+
+  const indiceInicial = (pagina - 1) * productosPorPagina;
+  const indiceFinal = indiceInicial + productosPorPagina;
+
+  const productosPagina = productosOrdenados.slice(
+    indiceInicial,
+    indiceFinal
+  );
 
   return (
     <>
@@ -214,11 +241,45 @@ function Catalogo() {
               <CTable align="middle" responsive hover striped>
                 <CTableHead color="#2563eb">
                   <CTableRow>
-                    <CTableHeaderCell scope="col"  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Código De Barras</CTableHeaderCell>
-                    <CTableHeaderCell scope="col" style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Nombre</CTableHeaderCell>
-                    <CTableHeaderCell scope="col" style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Precio</CTableHeaderCell>
-                    <CTableHeaderCell scope="col" style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Stock</CTableHeaderCell>
-                    <CTableHeaderCell scope="col"  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Categoría</CTableHeaderCell>
+                      <OrdenarTabla
+                        titulo="Código de Barras"
+                        campo="codigo_barra"
+                        ordenarPor={ordenarPor}
+                        direccion={direccion}
+                        ordenar={ordenar}
+                      />
+
+                      <OrdenarTabla
+                        titulo="Nombre"
+                        campo="nombre"
+                        ordenarPor={ordenarPor}
+                        direccion={direccion}
+                        ordenar={ordenar}
+                      />
+
+                      <OrdenarTabla
+                        titulo="Precio"
+                        campo="precio"
+                        ordenarPor={ordenarPor}
+                        direccion={direccion}
+                        ordenar={ordenar}
+                      />
+
+                      <OrdenarTabla
+                        titulo="Stock"
+                        campo="stock"
+                        ordenarPor={ordenarPor}
+                        direccion={direccion}
+                        ordenar={ordenar}
+                      />
+
+                      <OrdenarTabla
+                        titulo="Categoría"
+                        campo="categoria"
+                        ordenarPor={ordenarPor}
+                        direccion={direccion}
+                        ordenar={ordenar}
+                      />
                     <CTableHeaderCell scope="col"  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2, background: "#2563eb",color: "#fff"  }}>Acción</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
@@ -231,7 +292,7 @@ function Catalogo() {
                           <span>{producto.codigo_barra}</span>
                         </div>
                       </CTableDataCell>
-                      <CTableDataCell style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2 }}>{producto.nombre}</CTableDataCell>
+                      <CTableDataCell style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2 }}>{Capitalizar(producto.nombre)}</CTableDataCell>
                       <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2 }}>{producto.precio}</CTableDataCell>
                       <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2  }}>{producto.stock}</CTableDataCell>
                       <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2}}>{producto.categoria}</CTableDataCell>
@@ -246,7 +307,7 @@ function Catalogo() {
                 </CTableBody>
               </CTable>
             </div>
-            <div className="d-flex justify-content-between aling-items-center mt-4">
+            <div className="d-flex justify-content-between align-items-center mt-4">
 
                   <span className="text-muted">
                     Mostrando {indiceInicial+1}-
@@ -257,7 +318,7 @@ function Catalogo() {
                   <div className="d-flex gap-2">
                     <CButton 
                       color="light"
-                      disable={pagina===1}
+                      disabled={pagina===1}
                       onClick={()=>setPagina(pagina-1)}
                     >
                       <MoveLeft></MoveLeft>
@@ -275,7 +336,7 @@ function Catalogo() {
 
                     <CButton
                       color="light"
-                      disable={pagina===totalPaginas}
+                      disabled={pagina===totalPaginas}
                       onClick={()=> setPagina(pagina+1)}
                     >
                       <MoveRight></MoveRight>
