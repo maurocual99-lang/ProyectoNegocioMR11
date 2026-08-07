@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import type { ElementType } from "react";
 import EliminarProducto from "./EliminarProducto";
 import ModificarProducto from "./ModificarProducto";
 import ProductoCreate from "./ProductoCreate";
@@ -7,8 +8,35 @@ import OrdenarTabla from "../OrdenarTabla";
 import Capitalizar from "../Capitalizar";
 import ListaCompra from "./ListaCompra";
 import ModalListaCompra from "./ModalListaCompra";
-import { Barcode, Box, MoveLeft, MoveRight, Search } from "lucide-react";
-import { CRow, CCol,CFormInput, CFormLabel, CFormSelect, CTable,CTableDataCell ,CTableHead ,CTableBody ,CTableRow,CTableHeaderCell ,CButton, CForm, CInputGroup, CInputGroupText, CCard, CCardBody} from '@coreui/react';
+import {  Barcode,
+  Box,
+  MoveLeft,
+  MoveRight,
+  Search,
+  Wine,
+  Store,
+  Beef,
+  ShoppingBasket,
+  Gift,
+  Carrot, } from "lucide-react";
+import {   CRow,
+  CCol,
+  CFormInput,
+  CFormLabel,
+  CFormSelect,
+  CTable,
+  CTableDataCell,
+  CTableHead,
+  CTableBody,
+  CTableRow,
+  CTableHeaderCell,
+  CButton,
+  CForm,
+  CInputGroup,
+  CInputGroupText,
+  CCard,
+  CCardBody,} from '@coreui/react';
+
 const categorias = [
   "Bebidas",
   "Kiosco",
@@ -28,6 +56,59 @@ interface Producto {
   categoria: Categoria;
 }
 
+  const categoriaConfig: Record<
+    Categoria,
+    { bg: string; color: string; icon: ElementType }
+    > = {
+    Bebidas: { bg: "#eef4ff", color: "#2563eb", icon: Wine },
+    Kiosco: { bg: "#eafaf0", color: "#16a34a", icon: Store },
+    Fiambres: { bg: "#fdeeee", color: "#dc2626", icon: Beef },
+    Almacen: { bg: "#fff7e6", color: "#d97706", icon: ShoppingBasket },
+    Regaleria: { bg: "#f3eefd", color: "#7c3aed", icon: Gift },
+    Verduleria: { bg: "#eafaf0", color: "#16a34a", icon: Carrot },
+  };
+
+  function BadgeCategoria({ categoria }: { categoria: Categoria }) {
+    const cfg = categoriaConfig[categoria];
+    const Icono = cfg.icon;
+    return (
+      <span
+        className="d-inline-flex align-items-center gap-1"
+        style={{
+          backgroundColor: cfg.bg,
+          color: cfg.color,
+          borderRadius: "999px",
+          padding: "4px 10px",
+          fontSize: "0.8rem",
+          fontWeight: 500,
+        }}
+      >
+        <Icono size={14} />
+        {categoria}
+      </span>
+    );
+  }
+
+  function BadgeStock({ stock }: { stock: number }) {
+    const bajo = stock <= 3;
+    return (
+      <span
+        className="d-inline-flex align-items-center gap-1"
+        style={{
+          backgroundColor: bajo ? "#fdece0" : "#eafaf0",
+          color: bajo ? "#c2410c" : "#16a34a",
+          borderRadius: "999px",
+          padding: "3px 10px",
+          fontSize: "0.8rem",
+          fontWeight: 600,
+        }}
+      >
+        {stock}
+        {bajo && <span style={{ fontWeight: 500 }}>¡Stock bajo!</span>}
+      </span>
+    );
+  }
+
 
 function Catalogo() {
   const navigate = useNavigate();
@@ -36,9 +117,9 @@ function Catalogo() {
   const [categoriaFiltro, setCategoriaFiltro] = useState("");
   const [pagina, setPagina] = useState(1);
   const [ordenarPor, setOrdenarPor] = useState<keyof Producto | "">("");
-  const [direccion, setDireccion] = useState<"asc" | "desc">("asc");  
+  const [direccion, setDireccion] = useState<"asc" | "desc">("asc");
   const [mostrarListaCompra, setMostrarListaCompra] = useState(false);
-  const productosPorPagina = 10;
+  const [productosPorPagina, setProductosPorPagina] = useState(6);
 
   useEffect(() => {
     cargarProductos();
@@ -121,10 +202,10 @@ function Catalogo() {
             gap: "16px",
           }}
         >
-          <header className="d-flex justify-content-between align-items-center mb-3">
+          <header className="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div className="d-flex align-items-center gap-3">
               <div
-                  className="d-flex align-items-center p-2"
+                  className="d-flex align-items-center justify-content-center"
                     style={{
                       width: "48px",
                       height: "48px",
@@ -135,15 +216,15 @@ function Catalogo() {
                       borderRadius: "8px",
                     }}
                   >
-                <Box size={32} color="#2563eb" />
+                <Box size={28} color="#2563eb" />
               </div>      
               <div>
-                <h2 className="mb-1 fw-bold" style={{ fontSize: "1.8rem" }}>
+                <h2 className="mb-1 fw-bold" style={{ fontSize: "1.6rem" }}>
                   Catálogo de Productos
                 </h2>
                 <p
                   className="mb-0 text-muted"
-                  style={{ fontSize: "0.95rem" }}
+                  style={{ fontSize: "0.9rem" }}
                 >
                   Gestioná y mantené tu inventario de productos
                 </p>
@@ -151,6 +232,7 @@ function Catalogo() {
             </div>
             <ProductoCreate recargar={cargarProductos}/>
           </header>
+
           <ListaCompra
             productos={productos}
             abrirModal={() => setMostrarListaCompra(true)}
@@ -160,12 +242,13 @@ function Catalogo() {
             onClose={() => setMostrarListaCompra(false)}
             productos={productos}
           />
+
           <CCard>
             <CCardBody>
               <CForm >
-                <CRow className="align-items-end mb-4">
+                <CRow className="align-items-end g-3">
 
-                  <CCol md={3}>
+                  <CCol xs={12} md={3}>
                     <CFormLabel>Categoría</CFormLabel>
                     <CFormSelect
                       value={categoriaFiltro}
@@ -183,7 +266,7 @@ function Catalogo() {
                     </CFormSelect>
                   </CCol>
 
-                  <CCol md={5}>
+                  <CCol xs={12} md={5}>
                     <CFormLabel>Buscar Producto</CFormLabel>
                     <CInputGroup>
                       <CInputGroupText>
@@ -201,7 +284,7 @@ function Catalogo() {
                     </CInputGroup>
                   </CCol>
 
-                  <CCol md={4}>
+                  <CCol xs={12} md={4}>
                     <div
                       className="d-flex justify-content-between align-items-center p-3"
                       style={{
@@ -229,13 +312,13 @@ function Catalogo() {
                       <div
                         className="d-flex justify-content-center align-items-center"
                         style={{
-                          width: "52px",
-                          height: "52px",
+                          width: "48px",
+                          height: "48px",
                           background: "#dbeafe",
                           borderRadius: "50%",
                         }}
                       >
-                        <Box size={26} color="#2563eb" />
+                        <Box size={24} color="#2563eb" />
                       </div>
                     </div>
                   </CCol>
@@ -244,12 +327,14 @@ function Catalogo() {
               </CForm>
             </CCardBody>
           </CCard>
+
           <CCard>
             <CCardBody>
 
 
-            <div className="rounded overflow-hidden border">
-              <CTable align="middle" responsive hover striped>
+            <div className="rounded overflow-hidden border" 
+              style={{ maxHeight: "55vh", overflowY: "auto" }}>
+              <CTable align="middle" responsive hover striped className="mb-0">
                 <CTableHead color="#2563eb">
                   <CTableRow>
                       <OrdenarTabla
@@ -297,18 +382,18 @@ function Catalogo() {
                 <CTableBody>
                   {productosPagina.map((producto) => (
                     <CTableRow  key={producto.codigo_barra}>
-                      <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2}}>
+                      <CTableDataCell  style={{ textAlign: "center"}}>
                         <div className="d-flex justify-content-center align-items-center gap-2">
-                          <Barcode size={20} color="#2563eb" />
+                          <Barcode size={18} color="#2563eb" />
                           <span>{producto.codigo_barra}</span>
                         </div>
                       </CTableDataCell>
-                      <CTableDataCell style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2 }}>{Capitalizar(producto.nombre)}</CTableDataCell>
-                      <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2 }}>{producto.precio}</CTableDataCell>
-                      <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2  }}>{producto.stock}</CTableDataCell>
-                      <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2}}>{producto.categoria}</CTableDataCell>
+                      <CTableDataCell style={{ textAlign: "center"}}>{Capitalizar(producto.nombre)}</CTableDataCell>
+                      <CTableDataCell  style={{ textAlign: "center",  color: "#2563eb", fontWeight: 600}}>${producto.precio.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</CTableDataCell>
+                      <CTableDataCell  style={{ textAlign: "center" }}><BadgeStock stock={producto.stock} /></CTableDataCell>
+                      <CTableDataCell  style={{ textAlign: "center"}}><BadgeCategoria categoria={producto.categoria} /></CTableDataCell>
                       <CTableDataCell>
-                        <div className="d-flex justify-content-center align-items-center gap-3">
+                        <div className="d-flex justify-content-center align-items-center gap-2">
                           <ModificarProducto producto={producto} recargar={cargarProductos}/>
                           <EliminarProducto producto={producto.codigo_barra} recargar={cargarProductos}/>
                         </div>
@@ -318,12 +403,13 @@ function Catalogo() {
                 </CTableBody>
               </CTable>
             </div>
-            <div className="d-flex justify-content-between align-items-center mt-4">
 
-                  <span className="text-muted">
-                    Mostrando {indiceInicial+1}-
-                    {Math.min(indiceFinal,productosFiltrados.length)} de {productosFiltrados.length} productos
-                      
+            <div className="d-flex flex-wrap justify-content-between align-items-center mt-4 gap-3">
+
+                  <span className="text-muted" style={{ fontSize: "0.9rem" }}>
+                  Mostrando {productosFiltrados.length === 0 ? 0 : indiceInicial + 1}-
+                  {Math.min(indiceFinal, productosFiltrados.length)} de{" "}
+                  {productosFiltrados.length} productos
                   </span>
 
                   <div className="d-flex gap-2">
@@ -353,26 +439,45 @@ function Catalogo() {
                       <MoveRight></MoveRight>
                     </CButton>
                   </div>
-            </div>
 
-              <div className="d-flex justify-content-end mt-3">
-                <CButton
-                  className="btn-volver"
-                  type="button"
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: "8px",
+              <div className="d-flex align-items-center gap-2">
+                <span className="text-muted" style={{ fontSize: "0.85rem" }}>
+                  Mostrar por página:
+                </span>
+
+                <CFormSelect
+                  size="sm"
+                  style={{ width: "80px" }}
+                  value={productosPorPagina}
+                  onChange={(e) => {
+                    setProductosPorPagina(Number(e.target.value));
+                    setPagina(1);
                   }}
-                  onClick={() => navigate("/")}
                 >
-                  <MoveLeft size={18}></MoveLeft> 
-                  <span style={{ fontSize: "0.95rem"}}>
-                    Volver al inicio
-                  </span>
-                </CButton>
+                  {[6, 10, 20, 50].map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </CFormSelect>
               </div>
+            </div>
+            {/* <div className="d-flex justify-content-end mt-3">
+              <CButton
+                className="btn-volver"
+                type="button"
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+                onClick={() => navigate("/")}
+              >
+                <MoveLeft size={18} />
+                <span style={{ fontSize: "0.95rem" }}>Volver al inicio</span>
+              </CButton>
+            </div> */}
 
           </CCardBody>
         </CCard>
