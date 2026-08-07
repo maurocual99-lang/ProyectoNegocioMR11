@@ -56,7 +56,6 @@ async function eliminarProducto(req, res) {
     }
 }
 
-// Se llama al apretar "Finalizar Venta"
 async function finalizarVenta(req, res) {
     try {
         const resultado = await ventaModel.finalizarVenta(req.params.venta_id);
@@ -66,8 +65,6 @@ async function finalizarVenta(req, res) {
         res.status(409).json({ mensaje: error.message || "No se pudo finalizar la venta." });
     }
 }
-
-//-------------------------------------------Mauro-------------------------
 
 async function obtenerDeudas(req, res) {
     try {

@@ -164,25 +164,43 @@ async function finalizarVenta(venta_id) {
     return await obtenerResumen(venta_id);
 }
 
-//-------------------------------------------Mauro-------------------------
 
 // buscar las deudas de un cliente
 async function obtenerDeudasPorCliente(cliente_id) {
     try {
-        const query = `
+        const queryVentas = `
             SELECT id, fecha_venta, total 
             FROM venta 
             WHERE cliente_id = $1 AND cuenta_pendiente = true 
             ORDER BY fecha_venta ASC;
         `;
-        const resultado = await db.query(query, [cliente_id]);
-        return resultado.rows;
+        const resultadoVentas = await db.query(queryVentas, [cliente_id]);
+        const ventas = resultadoVentas.rows;
+
+        for (let venta of ventas) {
+            const queryDetalles = `
+                SELECT 
+                    dv.id, 
+                    dv.producto_id, 
+                    p.nombre AS producto_nombre, 
+                    dv.cantidad, 
+                    dv.precio_unitario, 
+                    dv.subtotal
+                FROM detalle_venta dv
+                JOIN producto p ON p.id = dv.producto_id
+                WHERE dv.venta_id = $1
+                ORDER BY dv.id ASC;
+            `;
+            const resultadoDetalles = await db.query(queryDetalles, [venta.id]);
+            venta.detalles = resultadoDetalles.rows; 
+        }
+
+        return ventas;
     } catch (error) {
         console.error("Error al obtener deudas:", error);
         throw error;
     }
 }
-
 // Recibe un array de IDs de ventas y las marca como pagadas (cuenta_pendiente = false)
 async function pagarVentas(ventas_ids) {
     try {
