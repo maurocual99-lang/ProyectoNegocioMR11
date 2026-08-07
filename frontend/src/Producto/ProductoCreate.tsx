@@ -12,6 +12,7 @@ import {
   CFormInput,
   CFormLabel,
 } from "@coreui/react";
+import { Plus } from "lucide-react";
 
 const categorias = [
   "Bebidas",
@@ -121,8 +122,23 @@ export default function ProductoCreate({ recargar }: Props) {
 
   return (
     <>
-      <CButton color="primary" onClick={() => setMostrarFormulario(true)}>
-        Agregar
+      <CButton
+        style={{
+          backgroundColor: "#2563eb",
+          color: "#fff",
+          width: "100%",
+          maxWidth: "250px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: "8px",
+        }}
+        onClick={() => setMostrarFormulario(true)}
+      >
+        <Plus size={18} />
+        <span style={{ fontSize: "0.95rem", fontWeight: 500 }}>
+          Nuevo Producto
+        </span>
       </CButton>
 
       <CModal

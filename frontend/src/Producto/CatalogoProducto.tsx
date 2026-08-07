@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import EliminarProducto from "./EliminarProducto";
 import ModificarProducto from "./ModificarProducto";
 import ProductoCreate from "./ProductoCreate";
-import { Barcode} from "lucide-react";
-import { CCard, CCardHeader, CCardBody, CTable,CTableDataCell ,CTableHead ,CTableBody ,CTableRow,CTableHeaderCell ,CButton} from '@coreui/react';
+import { Barcode, Box, MoveLeft, Search } from "lucide-react";
+import { CRow, CCol,CFormInput, CFormLabel, CFormSelect, CTable,CTableDataCell ,CTableHead ,CTableBody ,CTableRow,CTableHeaderCell ,CButton, CForm, CInputGroup, CInputGroupText, CCard, CCardBody} from '@coreui/react';
 const categorias = [
   "Bebidas",
   "Kiosco",
@@ -44,19 +44,131 @@ function Catalogo() {
   }
 
   return (
-  <div style={{ 
-      display: "flex",
-      justifyContent: "center",    // Centra horizontalmente
-      alignItems: "center",        // Centra verticalmente
-      minHeight: "100vh",          // Fuerza a que ocupe toda la pantalla
-      width: "100%",
-      backgroundColor: "#f8f9fa",  // Forzamos un fondo gris muy claro (estilo CoreUI) en toda la pantalla
-      padding: "20px"
-    }}>
-    <div style={{ width: "100%", maxWidth: "1000px" }}> 
-      <CCard className="shadow-sm">
-        <CCardHeader component="h3" className="py-3">Catálogo de Productos </CCardHeader>
-          <CCardBody>
+    <>
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          padding: "16px",
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "1000px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px",
+          }}
+        >
+          <header className="d-flex justify-content-between align-items-center mb-3">
+            <div className="d-flex align-items-center gap-3">
+              <div
+                  className="d-flex align-items-center p-2"
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      backgroundColor: "#eef4ff",
+                      borderColor: "#dbeafe",
+                      borderStyle: "solid",
+                      borderWidth: "1px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                <Box size={32} color="#2563eb" />
+              </div>      
+              <div>
+                <h2 className="mb-1 fw-bold" style={{ fontSize: "1.8rem" }}>
+                  Catálogo de Productos
+                </h2>
+                <p
+                  className="mb-0 text-muted"
+                  style={{ fontSize: "0.95rem" }}
+                >
+                  Gestioná y mantené tu inventario de productos
+                </p>
+              </div>
+            </div>
+            <ProductoCreate recargar={cargarProductos}/>
+          </header>
+          <CCard>
+            <CCardBody>
+              <CForm >
+                <CRow className="align-items-end mb-4">
+
+                  <CCol md={3}>
+                    <CFormLabel>Categoría</CFormLabel>
+                    <CFormSelect>
+                      <option value="">Todas las categorías</option>
+                      {categorias.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </CCol>
+
+                  <CCol md={5}>
+                    <CFormLabel>Buscar Producto</CFormLabel>
+                    <CInputGroup>
+                      <CInputGroupText>
+                        <Search size={16} />
+                      </CInputGroupText>
+
+                      <CFormInput
+                        placeholder="Buscar por nombre o código de barras..."
+                      />
+                    </CInputGroup>
+                  </CCol>
+
+                  <CCol md={4}>
+                    <div
+                      className="d-flex justify-content-between align-items-center p-3"
+                      style={{
+                        background: "#eef4ff",
+                        border: "1px solid #dbeafe",
+                        borderRadius: "12px",
+                      }}
+                    >
+                      <div>
+                        <p
+                          className="mb-1 text-muted"
+                          style={{ fontSize: "0.85rem" }}
+                        >
+                          Total de Productos
+                        </p>
+
+                        <h4
+                          className="mb-0 fw-bold"
+                          style={{ color: "#2563eb" }}
+                        >
+                          26
+                        </h4>
+                      </div>
+
+                      <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{
+                          width: "52px",
+                          height: "52px",
+                          background: "#dbeafe",
+                          borderRadius: "50%",
+                        }}
+                      >
+                        <Box size={26} color="#2563eb" />
+                      </div>
+                    </div>
+                  </CCol>
+
+                </CRow>
+              </CForm>
+            </CCardBody>
+          </CCard>
+          <CCard>
+            <CCardBody>
+
+
             <div className="rounded overflow-hidden border">
               <CTable align="middle" responsive hover striped>
                 <CTableHead color="#2563eb">
@@ -93,21 +205,30 @@ function Catalogo() {
                 </CTableBody>
               </CTable>
             </div>
-            <div className="d-flex justify-content-end gap-2 mt-4">
-        
-              <ProductoCreate recargar={cargarProductos}/>
-              <CButton
-                className="btn-volver"
-                type="button"
-                onClick={() => navigate("/")}
-              >
-                Volver
-              </CButton>
-            </div>
-        </CCardBody>
-      </CCard>
-    </div> 
-  </div>
+              <div className="d-flex justify-content-end mt-3">
+                <CButton
+                  className="btn-volver"
+                  type="button"
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                  onClick={() => navigate("/")}
+                >
+                  <MoveLeft size={18}></MoveLeft> 
+                  <span style={{ fontSize: "0.95rem"}}>
+                    Volver al inicio
+                  </span>
+                </CButton>
+              </div>
+
+          </CCardBody>
+        </CCard>
+        </div>
+      </div>
+    </>
   );
 }
 
