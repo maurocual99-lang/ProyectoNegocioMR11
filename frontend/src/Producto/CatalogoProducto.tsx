@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import EliminarProducto from "./EliminarProducto";
 import ModificarProducto from "./ModificarProducto";
 import ProductoCreate from "./ProductoCreate";
-import { Barcode, Box, MoveLeft, Search } from "lucide-react";
+import { Barcode, Box, MoveLeft, MoveRight, Search } from "lucide-react";
 import { CRow, CCol,CFormInput, CFormLabel, CFormSelect, CTable,CTableDataCell ,CTableHead ,CTableBody ,CTableRow,CTableHeaderCell ,CButton, CForm, CInputGroup, CInputGroupText, CCard, CCardBody} from '@coreui/react';
 const categorias = [
   "Bebidas",
@@ -27,6 +27,11 @@ interface Producto {
 function Catalogo() {
   const navigate = useNavigate();
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [categoriaFiltro, setCategoriaFiltro] = useState("");
+  const [pagina, setPagina] = useState(1);
+
+  const productosPorPagina = 10;
 
   useEffect(() => {
     cargarProductos();
@@ -42,6 +47,31 @@ function Catalogo() {
       console.error(error);
     }
   }
+
+  const productosFiltrados = productos.filter((producto)=>{
+    const coincideBusqueda =
+      producto.nombre.toLocaleLowerCase().includes(busqueda.toLowerCase()) ||
+      producto.codigo_barra.includes(busqueda);
+
+    const coincideCategoria =
+      categoriaFiltro === "" ||
+      producto.categoria === categoriaFiltro;
+
+    return coincideBusqueda && coincideCategoria
+  });
+
+  const indiceInicial = (pagina - 1) * productosPorPagina;
+  const indiceFinal = indiceInicial + productosPorPagina;
+
+  const productosPagina = productosFiltrados.slice(
+    indiceInicial,
+    indiceFinal
+  );
+
+  const totalPaginas = Math.ceil(
+    productosFiltrados.length / productosPorPagina
+  );
+
 
   return (
     <>
@@ -99,7 +129,13 @@ function Catalogo() {
 
                   <CCol md={3}>
                     <CFormLabel>Categoría</CFormLabel>
-                    <CFormSelect>
+                    <CFormSelect
+                      value={categoriaFiltro}
+                      onChange={(e)=>{
+                        setCategoriaFiltro(e.target.value);
+                        setPagina(1);
+                      }}
+                    >
                       <option value="">Todas las categorías</option>
                       {categorias.map((cat) => (
                         <option key={cat} value={cat}>
@@ -117,6 +153,11 @@ function Catalogo() {
                       </CInputGroupText>
 
                       <CFormInput
+                        value={busqueda}
+                        onChange={(e)=>{
+                          setBusqueda(e.target.value);
+                          setPagina(1);
+                        }}
                         placeholder="Buscar por nombre o código de barras..."
                       />
                     </CInputGroup>
@@ -143,7 +184,7 @@ function Catalogo() {
                           className="mb-0 fw-bold"
                           style={{ color: "#2563eb" }}
                         >
-                          26
+                          {productosFiltrados.length}
                         </h4>
                       </div>
 
@@ -182,7 +223,7 @@ function Catalogo() {
                   </CTableRow>
                 </CTableHead>
                 <CTableBody>
-                  {productos.map((producto) => (
+                  {productosPagina.map((producto) => (
                     <CTableRow  key={producto.codigo_barra}>
                       <CTableDataCell  style={{ textAlign: "center", position: "sticky", top: 0, zIndex: 2}}>
                         <div className="d-flex justify-content-center align-items-center gap-2">
@@ -205,6 +246,43 @@ function Catalogo() {
                 </CTableBody>
               </CTable>
             </div>
+            <div className="d-flex justify-content-between aling-items-center mt-4">
+
+                  <span className="text-muted">
+                    Mostrando {indiceInicial+1}-
+                    {Math.min(indiceFinal,productosFiltrados.length)} de {productosFiltrados.length} productos
+                      
+                  </span>
+
+                  <div className="d-flex gap-2">
+                    <CButton 
+                      color="light"
+                      disable={pagina===1}
+                      onClick={()=>setPagina(pagina-1)}
+                    >
+                      <MoveLeft></MoveLeft>
+                    </CButton>
+
+                    {Array.from({length: totalPaginas}, (_,i) =>(
+                      <CButton
+                        key={i}
+                        color={pagina===i + 1? "primary": "light"}
+                        onClick={()=> setPagina(i+1)}
+                      >
+                        {i+1}
+                      </CButton>
+                    ))}
+
+                    <CButton
+                      color="light"
+                      disable={pagina===totalPaginas}
+                      onClick={()=> setPagina(pagina+1)}
+                    >
+                      <MoveRight></MoveRight>
+                    </CButton>
+                  </div>
+            </div>
+
               <div className="d-flex justify-content-end mt-3">
                 <CButton
                   className="btn-volver"
