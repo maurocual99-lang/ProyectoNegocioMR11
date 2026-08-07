@@ -5,6 +5,8 @@ import ModificarProducto from "./ModificarProducto";
 import ProductoCreate from "./ProductoCreate";
 import OrdenarTabla from "../OrdenarTabla";
 import Capitalizar from "../Capitalizar";
+import ListaCompra from "./ListaCompra";
+import ModalListaCompra from "./ModalListaCompra";
 import { Barcode, Box, MoveLeft, MoveRight, Search } from "lucide-react";
 import { CRow, CCol,CFormInput, CFormLabel, CFormSelect, CTable,CTableDataCell ,CTableHead ,CTableBody ,CTableRow,CTableHeaderCell ,CButton, CForm, CInputGroup, CInputGroupText, CCard, CCardBody} from '@coreui/react';
 const categorias = [
@@ -35,7 +37,7 @@ function Catalogo() {
   const [pagina, setPagina] = useState(1);
   const [ordenarPor, setOrdenarPor] = useState<keyof Producto | "">("");
   const [direccion, setDireccion] = useState<"asc" | "desc">("asc");  
-
+  const [mostrarListaCompra, setMostrarListaCompra] = useState(false);
   const productosPorPagina = 10;
 
   useEffect(() => {
@@ -149,6 +151,15 @@ function Catalogo() {
             </div>
             <ProductoCreate recargar={cargarProductos}/>
           </header>
+          <ListaCompra
+            productos={productos}
+            abrirModal={() => setMostrarListaCompra(true)}
+          />
+          <ModalListaCompra
+            visible={mostrarListaCompra}
+            onClose={() => setMostrarListaCompra(false)}
+            productos={productos}
+          />
           <CCard>
             <CCardBody>
               <CForm >
