@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-
+import { useEffect, useState ,ChangeEvent } from "react";
+import Capitalizar from "../Capitalizar"
 import {
   CModal,
   CModalHeader,
@@ -30,6 +30,8 @@ import {
   Package,
   Gift,
   Carrot,
+  ShoppingBag,
+  PackageCheck
 } from "lucide-react";
 
 import { jsPDF } from "jspdf";
@@ -116,34 +118,12 @@ export default function ModalListaCompra({
     });
   }, [visible, productos]);
 
-  /* ================================
-     BÚSQUEDA
-  ================================ */
-
-  const productosBuscados = productos.filter((producto) => {
-    if (!busqueda.trim()) return false;
-
-    const texto = busqueda.toLowerCase();
-
-    return (
-      producto.nombre.toLowerCase().includes(texto) ||
-      producto.codigo_barra.includes(busqueda)
-    );
-  });
-
-  /* ================================
-     TOTAL UNIDADES
-  ================================ */
 
   const cantidadTotal = listaCompra.reduce(
     (acumulador, producto) =>
       acumulador + producto.cantidadComprar,
     0
   );
-
-  /* ================================
-     AGREGAR PRODUCTO
-  ================================ */
 
   function agregarProducto(producto: Producto) {
     const yaExiste = listaCompra.some(
@@ -499,44 +479,64 @@ export default function ModalListaCompra({
 
             {/* CONTADOR */}
 
-            <div
-              className="contador-lista-compra"
-            >
-
-              <div>
-
-                <div
-                  className="text-muted"
-                  style={{
-                    fontSize: "0.78rem",
-                  }}
-                >
-                  Total de productos
-                </div>
-
+              <div
+                className="contador-lista-compra d-flex justify-content-between align-items-center"
+                style={{
+                  width: "210px",
+                  minHeight: "78px",
+                  background: "#eef4ff",
+                  border: "1px solid #dbeafe",
+                  borderRadius: "10px",
+                  padding: "12px 14px",
+                }}
+              >
+                {/* TEXTO */}
                 <div
                   style={{
-                    color: "#2563eb",
-                    fontSize: "1.6rem",
-                    fontWeight: 700,
-                    lineHeight: 1.2,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
                   }}
                 >
-                  {listaCompra.length}
+                  <span
+                    className="text-muted"
+                    style={{
+                      fontSize: "0.78rem",
+                      marginBottom: "3px",
+                    }}
+                  >
+                    Total de productos
+                  </span>
+
+                  <span
+                    style={{
+                      color: "#2563eb",
+                      fontSize: "1.6rem",
+                      fontWeight: 700,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {listaCompra.length}
+                  </span>
                 </div>
 
+                {/* CÍRCULO DEL CARRITO */}
+                <div
+                  className="d-flex justify-content-center align-items-center"
+                  style={{
+                    width: "46px",
+                    height: "46px",
+                    minWidth: "46px",
+                    background: "#dbeafe",
+                    borderRadius: "50%",
+                  }}
+                >
+                  <ShoppingCart
+                    size={21}
+                    color="#2563eb"
+                  />
+                </div>
               </div>
-
-              <div className="contador-lista-icono">
-
-                <ShoppingCart
-                  size={21}
-                  color="#2563eb"
-                />
-
-              </div>
-
-            </div>
 
           </div>
 
@@ -552,6 +552,7 @@ export default function ModalListaCompra({
           {/* PESTAÑAS */}
           <div className="lista-compra-tabs">
 
+           
             <button
               type="button"
               className={`boton-pestana ${
@@ -648,7 +649,7 @@ export default function ModalListaCompra({
 
                                 <div>
                                   <div style={{ fontWeight: 600 }}>
-                                    {producto.nombre}
+                                    {Capitalizar(producto.nombre)}
                                   </div>
 
                                   <div
@@ -687,7 +688,7 @@ export default function ModalListaCompra({
                                 type="number"
                                 min={1}
                                 value={producto.cantidadComprar}
-                                onChange={(e) =>
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                                   cambiarCantidad(
                                     producto.codigo_barra,
                                     Number(e.target.value)
@@ -762,7 +763,7 @@ export default function ModalListaCompra({
 
                   <CFormInput
                     value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setBusqueda(e.target.value)}
                     placeholder="Buscar por nombre o código de barras..."
                   />
                 </CInputGroup>
@@ -772,34 +773,107 @@ export default function ModalListaCompra({
               {/* RESUMEN: NO SCROLLEA */}
               <div className="resumen-compra">
 
-                <div className="d-flex gap-5">
-
-                  <div>
-                    <strong>
-                      {listaCompra.length} productos
-                    </strong>
-
+                <div
+                  className="d-flex align-items-center"
+                  style={{
+                    background: "#f8fafc",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* PRODUCTOS */}
+                  <div
+                    className="d-flex align-items-center gap-3"
+                    style={{
+                      flex: 1,
+                      padding: "14px 18px",
+                    }}
+                  >
                     <div
-                      className="text-muted"
-                      style={{ fontSize: "0.8rem" }}
+                      className="d-flex justify-content-center align-items-center"
+                      style={{
+                        width: "48px",
+                        height: "48px",
+                        minWidth: "48px",
+                        background: "#f1f5f9",
+                        borderRadius: "10px",
+                      }}
                     >
-                      en la lista
+                      <ShoppingBag size={21} color="#64748b" />
+                    </div>
+
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "1rem",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {listaCompra.length} productos
+                      </div>
+
+                      <div
+                        className="text-muted"
+                        style={{
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        en la lista
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <strong>
-                      {cantidadTotal} unidades
-                    </strong>
+                  {/* LÍNEA DIVISORIA */}
+                  <div
+                    style={{
+                      width: "1px",
+                      height: "55px",
+                      background: "#e5e7eb",
+                    }}
+                  />
 
+                  {/* UNIDADES */}
+                  <div
+                    className="d-flex align-items-center gap-3"
+                    style={{
+                      flex: 1,
+                      padding: "14px 18px",
+                    }}
+                  >
                     <div
-                      className="text-muted"
-                      style={{ fontSize: "0.8rem" }}
+                      className="d-flex justify-content-center align-items-center"
+                      style={{
+                        width: "48px",
+                        height: "48px",
+                        minWidth: "48px",
+                        background: "#ecfdf3",
+                        borderRadius: "10px",
+                      }}
                     >
-                      cantidad total a comprar
+                      <PackageCheck size={21} color="#16a34a" />
+                    </div>
+
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "1rem",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {cantidadTotal} unidades
+                      </div>
+
+                      <div
+                        className="text-muted"
+                        style={{
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        cantidad total a comprar
+                      </div>
                     </div>
                   </div>
-
                 </div>
 
                 <CButton
@@ -815,10 +889,6 @@ export default function ModalListaCompra({
 
             </div>
           )}
-
-        {/* =========================================
-            PESTAÑA TODOS LOS PRODUCTOS
-        ========================================= */}
 
         {pestana === "todos" && (
           <div className="lista-compra-panel">
@@ -899,7 +969,7 @@ export default function ModalListaCompra({
                                   fontWeight: 600,
                                 }}
                               >
-                                {producto.nombre}
+                                {Capitalizar(producto.nombre)}
                               </div>
 
                               <div

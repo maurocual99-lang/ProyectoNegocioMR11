@@ -1,4 +1,5 @@
 import {
+  ChangeEvent,
   useEffect,
   useState,
 } from "react";
@@ -490,7 +491,7 @@ function Catalogo() {
                         categoriaFiltro
                       }
 
-                      onChange={(e) => {
+                      onChange={(e: ChangeEvent<HTMLSelectElement>) => {
 
                         setCategoriaFiltro(
                           e.target.value
@@ -556,7 +557,7 @@ function Catalogo() {
                           busqueda
                         }
 
-                        onChange={(e) => {
+                        onChange={(e: ChangeEvent<HTMLSelectElement>) => {
 
                           setBusqueda(
                             e.target.value
