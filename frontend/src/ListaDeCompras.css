@@ -1,0 +1,605 @@
+/* =============================================
+   MODAL
+============================================= */
+
+.modal-lista-compra .modal-dialog {
+  width: calc(100% - 48px);
+  max-width: 1100px;
+  margin: 1.75rem auto;
+}
+
+.modal-lista-compra .modal-content {
+  height: min(850px, calc(100vh - 56px));
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border: none;
+  border-radius: 18px;
+
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.22);
+}
+
+
+/* HEADER FIJO */
+
+.modal-lista-compra .modal-header {
+  flex: 0 0 auto;
+
+  padding: 24px 28px 20px;
+}
+
+
+/* FOOTER FIJO */
+
+.modal-lista-compra .modal-footer {
+  flex: 0 0 auto;
+
+  padding: 16px 28px;
+
+  background: white;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+
+/* =============================================
+   BODY
+============================================= */
+
+.lista-compra-body {
+  flex: 1 1 0;
+
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  padding: 0 28px 18px;
+}
+
+
+/* =============================================
+   TABS
+============================================= */
+
+.lista-compra-tabs {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: flex-end;
+
+  gap: 32px;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  margin-bottom: 18px;
+}
+
+
+/*
+  IMPORTANTE:
+  esto elimina completamente el aspecto
+  de botón HTML que aparece en tu captura.
+*/
+
+.boton-pestana {
+  appearance: none;
+  -webkit-appearance: none;
+
+  border: 0;
+  border-bottom: 3px solid transparent;
+
+  outline: none;
+
+  background: transparent;
+
+  box-shadow: none;
+
+  border-radius: 0;
+
+  padding: 11px 18px 10px;
+
+  margin: 0;
+
+  color: #6b7280;
+
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+.boton-pestana:hover {
+  color: #2563eb;
+}
+
+
+.boton-pestana:focus,
+.boton-pestana:focus-visible,
+.boton-pestana:active {
+  outline: none;
+
+  box-shadow: none;
+
+  background: transparent;
+}
+
+
+.boton-pestana-activa {
+  color: #2563eb;
+
+  border-bottom-color: #2563eb;
+}
+
+
+/* =============================================
+   PANEL
+============================================= */
+
+/*
+  GRID es la clave.
+
+  fila 1 = tabla, toma todo el espacio sobrante
+  fila 2 = buscador, tamaño natural
+  fila 3 = resumen, tamaño natural
+
+  Por eso ni buscador ni resumen se mueven.
+*/
+
+.lista-compra-panel {
+  flex: 1 1 0;
+
+  min-height: 0;
+
+  display: grid;
+
+  grid-template-rows:
+    minmax(0, 1fr)
+    auto
+    auto;
+
+  gap: 14px;
+
+  overflow: hidden;
+}
+
+
+/* =============================================
+   TABLA: ÚNICO ELEMENTO CON SCROLL
+============================================= */
+
+.tabla-lista-scroll {
+  min-height: 0;
+
+  width: 100%;
+
+  overflow-y: scroll;
+  overflow-x: auto;
+
+  scrollbar-gutter: stable;
+
+  border: 1px solid #d9dee7;
+
+  border-radius: 12px;
+
+  background: white;
+}
+
+
+/*
+  Importante:
+  no uses responsive en el CTable de este modal.
+*/
+
+.tabla-lista-compra {
+  width: 100%;
+
+  min-width: 850px;
+
+  margin-bottom: 0;
+}
+
+
+/* HEADER DE TABLA FIJO */
+
+.tabla-lista-scroll thead th {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 5;
+
+  background: #f8fafc;
+
+  padding-top: 14px;
+  padding-bottom: 14px;
+
+  white-space: nowrap;
+
+  border-bottom: 1px solid #d9dee7;
+}
+
+
+/* FILAS */
+
+.tabla-lista-scroll tbody td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  vertical-align: middle;
+}
+
+
+/* =============================================
+   SCROLL VISIBLE
+============================================= */
+
+.tabla-lista-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+
+.tabla-lista-scroll::-webkit-scrollbar-track {
+  background: #eef2f7;
+
+  border-radius: 10px;
+}
+
+
+.tabla-lista-scroll::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+
+  border: 2px solid #eef2f7;
+
+  border-radius: 10px;
+}
+
+
+.tabla-lista-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+
+/* Firefox */
+
+.tabla-lista-scroll {
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #9ca3af
+    #eef2f7;
+}
+
+
+/* =============================================
+   STOCK
+============================================= */
+
+.stock-badge {
+  min-width: 36px;
+  height: 36px;
+
+  display: inline-flex;
+
+  justify-content: center;
+  align-items: center;
+
+  padding: 0 8px;
+
+  border-radius: 999px;
+
+  font-weight: 600;
+}
+
+
+/* =============================================
+   BUSCADOR
+============================================= */
+
+.buscador-lista-compra {
+  min-height: 0;
+
+  position: relative;
+}
+
+
+/* =============================================
+   RESUMEN
+============================================= */
+
+.resumen-compra {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  min-height: 70px;
+
+  padding: 12px 16px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 12px;
+}/* =============================================
+   MODAL
+============================================= */
+
+.modal-lista-compra .modal-dialog {
+  width: calc(100% - 48px);
+  max-width: 1100px;
+  margin: 1.75rem auto;
+}
+
+.modal-lista-compra .modal-content {
+  height: min(850px, calc(100vh - 56px));
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border: none;
+  border-radius: 18px;
+
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.22);
+}
+
+
+/* HEADER FIJO */
+
+.modal-lista-compra .modal-header {
+  flex: 0 0 auto;
+
+  padding: 24px 28px 20px;
+}
+
+
+/* FOOTER FIJO */
+
+.modal-lista-compra .modal-footer {
+  flex: 0 0 auto;
+
+  padding: 16px 28px;
+
+  background: white;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+
+/* =============================================
+   BODY
+============================================= */
+
+.lista-compra-body {
+  flex: 1 1 0;
+
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  padding: 0 28px 18px;
+}
+
+
+/* =============================================
+   TABS
+============================================= */
+
+.lista-compra-tabs {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: flex-end;
+
+  gap: 32px;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  margin-bottom: 18px;
+}
+
+
+/*
+  IMPORTANTE:
+  esto elimina completamente el aspecto
+  de botón HTML que aparece en tu captura.
+*/
+
+.boton-pestana {
+  appearance: none;
+  -webkit-appearance: none;
+
+  border: 0;
+  border-bottom: 3px solid transparent;
+
+  outline: none;
+
+  background: transparent;
+
+  box-shadow: none;
+
+  border-radius: 0;
+
+  padding: 11px 18px 10px;
+
+  margin: 0;
+
+  color: #6b7280;
+
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+.boton-pestana:hover {
+  color: #2563eb;
+}
+
+
+.boton-pestana:focus,
+.boton-pestana:focus-visible,
+.boton-pestana:active {
+  outline: none;
+
+  box-shadow: none;
+
+  background: transparent;
+}
+
+
+.boton-pestana-activa {
+  color: #2563eb;
+
+  border-bottom-color: #2563eb;
+}
+
+
+/* =============================================
+   PANEL
+============================================= */
+
+/*
+  GRID es la clave.
+
+  fila 1 = tabla, toma todo el espacio sobrante
+  fila 2 = buscador, tamaño natural
+  fila 3 = resumen, tamaño natural
+
+  Por eso ni buscador ni resumen se mueven.
+*/
+
+.lista-compra-panel {
+  flex: 1 1 0;
+
+  min-height: 0;
+
+  display: grid;
+
+  grid-template-rows:
+    minmax(0, 1fr)
+    auto
+    auto;
+
+  gap: 14px;
+
+  overflow: hidden;
+}
+
+
+/* =============================================
+   TABLA: ÚNICO ELEMENTO CON SCROLL
+============================================= */
+
+.tabla-lista-scroll {
+  width: 100%;
+}
+
+.tabla-lista-scroll table {
+  margin-bottom: 0;
+}
+
+.tabla-lista-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8fafc;
+}
+
+.tabla-lista-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tabla-lista-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.tabla-lista-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.tabla-lista-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Firefox */
+
+.tabla-lista-scroll {
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #9ca3af
+    #eef2f7;
+}
+
+
+/* =============================================
+   STOCK
+============================================= */
+
+.stock-badge {
+  min-width: 36px;
+  height: 36px;
+
+  display: inline-flex;
+
+  justify-content: center;
+  align-items: center;
+
+  padding: 0 8px;
+
+  border-radius: 999px;
+
+  font-weight: 600;
+}
+
+
+/* =============================================
+   BUSCADOR
+============================================= */
+
+.buscador-lista-compra {
+  min-height: 0;
+
+  position: relative;
+}
+
+
+/* =============================================
+   RESUMEN
+============================================= */
+
+.resumen-compra {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  min-height: 70px;
+
+  padding: 12px 16px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 12px;
+}
