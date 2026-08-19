@@ -18,20 +18,18 @@ import ProductoCreate from "./Producto/ProductoCreate";
 import Catalogo from "./Producto/CatalogoProducto";
 import EliminarProducto from "./Producto/EliminarProducto";
 import ModificarProducto from "./Producto/ModificarProducto";
-import VentaProducto from "./Producto/VentaProducto"
-
-import ClienteDeudor from "./clienteDeudor/AgregarDeudor"
+import VentaProducto from "./Producto/VentaProducto";
+import ListaDeudores from "./clienteDeudor/ListaDeudores";
 
 import "./App.css";
 
-function Layout({ children }: { children: React.ReactNode }) {
+function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
     <div className="layout-principal">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
-      {/* Overlay para cerrar sidebar en mobile */}
       {sidebarOpen && (
         <div
           className="sidebar-overlay"
@@ -102,7 +100,7 @@ function PantallaPrincipal() {
       </header>
 
       <section className="cards-superiores">
-        <div className="card-stat">
+        <div className="card-stat card-verde">
           <div className="icon-wrapper bg-verde">
             <DollarSign size={24} color="#16a34a" />
           </div>
@@ -118,7 +116,7 @@ function PantallaPrincipal() {
           </div>
         </div>
 
-        <div className="card-stat">
+        <div className="card-stat card-azul">
           <div className="icon-wrapper bg-azul">
             <Package size={24} color="#2563eb" />
           </div>
@@ -134,7 +132,7 @@ function PantallaPrincipal() {
           </div>
         </div>
 
-        <div className="card-stat">
+        <div className="card-stat card-violeta">
           <div className="icon-wrapper bg-violeta">
             <Users size={24} color="#9333ea" />
           </div>
@@ -150,7 +148,7 @@ function PantallaPrincipal() {
           </div>
         </div>
 
-        <div className="card-stat">
+        <div className="card-stat card-naranja">
           <div className="icon-wrapper bg-naranja">
             <FileText size={24} color="#ea580c" />
           </div>
@@ -174,9 +172,7 @@ function PantallaPrincipal() {
 
             <h2>Comenzar venta</h2>
 
-            <p>
-              Realiza una nueva venta de forma rápida y sencilla.
-            </p>
+            <p>Realiza una nueva venta de forma rápida y sencilla.</p>
 
             <button
               className="btn-nueva-venta"
@@ -215,51 +211,51 @@ function PantallaPrincipal() {
             <div className="actividad-header">
               <h3>Actividad reciente</h3>
 
-              <button className="btn-link">
-                Ver todo
-              </button>
+              <button className="btn-link">Ver todo</button>
             </div>
 
-            <ul className="lista-actividad">
-              <li>
-                <div className="icono-act bg-verde">
-                  <ShoppingCart size={16} />
-                </div>
+            <div className="lista-contenedor">
+              <ul className="lista-actividad">
+                <li className="item-actividad">
+                  <div className="icono-act bg-verde">
+                    <ShoppingCart size={18} color="#16a34a" />
+                  </div>
 
-                <div className="detalle-act">
-                  <strong>Venta realizada</strong>
-                  <span>$12.500</span>
-                </div>
+                  <div className="detalle-act">
+                    <strong>Venta realizada</strong>
+                    <span>$12.500</span>
+                  </div>
 
-                <small>10 min</small>
-              </li>
+                  <small>10 min</small>
+                </li>
 
-              <li>
-                <div className="icono-act bg-naranja">
-                  <Users size={16} />
-                </div>
+                <li className="item-actividad">
+                  <div className="icono-act bg-naranja">
+                    <Users size={18} color="#ea580c" />
+                  </div>
 
-                <div className="detalle-act">
-                  <strong>Nuevo deudor</strong>
-                  <span>Juan Pérez</span>
-                </div>
+                  <div className="detalle-act">
+                    <strong>Nuevo deudor</strong>
+                    <span>Juan Pérez</span>
+                  </div>
 
-                <small>25 min</small>
-              </li>
+                  <small>25 min</small>
+                </li>
 
-              <li>
-                <div className="icono-act bg-violeta">
-                  <Package size={16} />
-                </div>
+                <li className="item-actividad">
+                  <div className="icono-act bg-violeta">
+                    <Package size={18} color="#9333ea" />
+                  </div>
 
-                <div className="detalle-act">
-                  <strong>Stock actualizado</strong>
-                  <span>Galletitas - 20 unidades</span>
-                </div>
+                  <div className="detalle-act">
+                    <strong>Stock actualizado</strong>
+                    <span>Galletitas - 20 unidades</span>
+                  </div>
 
-                <small>40 min</small>
-              </li>
-            </ul>
+                  <small>40 min</small>
+                </li>
+              </ul>
+            </div>
           </div>
 
           <div className="accesos-card">
@@ -301,6 +297,10 @@ function PantallaPrincipal() {
           </div>
         </div>
       </section>
+
+      <footer className="footer-principal">
+        Mini Mercado Ruta 11 © 2024 – Hecho con 💙 para tu negocio
+      </footer>
     </>
   );
 }
@@ -350,7 +350,7 @@ export default function App() {
           element={
             <Layout>
               <ModificarProducto
-                producto={undefined as any}
+                producto={undefined}
                 recargar={() => {}}
               />
             </Layout>
@@ -362,7 +362,7 @@ export default function App() {
           element={
             <Layout>
               <EliminarProducto
-                producto={undefined as any}
+                producto={undefined}
                 recargar={() => {}}
               />
             </Layout>
@@ -373,7 +373,7 @@ export default function App() {
           path="/caja"
           element={
             <Layout>
-              <VentaProducto/>
+              <VentaProducto />
             </Layout>
           }
         />
@@ -382,10 +382,7 @@ export default function App() {
           path="/deudores"
           element={
             <Layout>
-              <div style={{ marginTop: "20px" }}>
-                <h2>👥 Deudores</h2>
-                <p>Listado de clientes con deuda</p>
-              </div>
+              <ListaDeudores />
             </Layout>
           }
         />

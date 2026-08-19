@@ -5,7 +5,6 @@ import {
   Users,
   ShoppingCart,
   BarChart3,
-  DollarSign,
 } from "lucide-react";
 
 import logoNegocio from "./../imagenes/ChatGPT Image 20 jul 2026, 11_47_32.png";
@@ -44,35 +43,39 @@ export default function Sidebar({
         top: 0,
         width: "260px",
         height: "100vh",
-        backgroundColor: "#fff",
-        borderRight: "1px solid #e5e7eb",
+        background: "linear-gradient(180deg, #189ad3 0%, #10709b 100%)",
+        borderRight: "1px solid rgba(255, 255, 255, 0.1)",
         transform: isOpen ? "translateX(0)" : "translateX(-100%)",
         transition: "transform 0.3s ease",
         zIndex: 1001,
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
+        boxShadow: "4px 0 20px rgba(0, 0, 0, 0.08)",
       }}
     >
       {/* Header */}
       <div
         style={{
-          padding: "20px",
-          borderBottom: "1px solid #e5e7eb",
+          padding: "24px 20px",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.12)",
           textAlign: "center",
+          background: "rgba(0, 0, 0, 0.03)",
         }}
       >
         <img
           src={logoNegocio}
           alt="Logo"
           style={{
-            width: "120px",
+            width: "110px",
+            objectFit: "contain",
+            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
           }}
         />
       </div>
 
       {/* Nav Items */}
-      <nav style={{ flex: 1, padding: "20px 0" }}>
+      <nav style={{ flex: 1, padding: "24px 12px" }}>
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -83,35 +86,38 @@ export default function Sidebar({
               onClick={() => handleNavigation(item.path)}
               style={{
                 width: "100%",
-                padding: "12px 20px",
-                marginBottom: "8px",
+                padding: "12px 16px",
+                marginBottom: "6px",
                 border: "none",
+                borderRadius: "12px",
                 backgroundColor: isActive
-                  ? "rgba(37, 99, 235, 0.1)"
+                  ? "rgba(255, 255, 255, 0.2)"
                   : "transparent",
-                borderLeft: isActive ? "4px solid #2563eb" : "4px solid transparent",
-                color: isActive ? "#2563eb" : "#333",
-                fontSize: "16px",
+                color: isActive ? "#ffffff" : "rgba(255, 255, 255, 0.8)",
+                fontSize: "15px",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: "12px",
-                transition: "all 0.2s ease",
+                gap: "14px",
+                transition: "all 0.25s ease",
                 fontFamily: "inherit",
-                fontWeight: isActive ? "600" : "400",
+                fontWeight: isActive ? "600" : "500",
+                boxShadow: isActive ? "0 4px 12px rgba(0, 0, 0, 0.05)" : "none",
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.backgroundColor = "rgba(37, 99, 235, 0.05)";
+                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.08)";
+                  e.currentTarget.style.color = "#ffffff";
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
                   e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.color = "rgba(255, 255, 255, 0.8)";
                 }
               }}
             >
-              <Icon size={20} />
+              <Icon size={20} color={isActive ? "#ffffff" : "rgba(255, 255, 255, 0.8)"} />
               {item.label}
             </button>
           );
@@ -122,14 +128,15 @@ export default function Sidebar({
       <div
         style={{
           padding: "20px",
-          borderTop: "1px solid #e5e7eb",
+          borderTop: "1px solid rgba(255, 255, 255, 0.12)",
           textAlign: "center",
           fontSize: "12px",
-          color: "#666",
+          color: "rgba(255, 255, 255, 0.7)",
+          background: "rgba(0, 0, 0, 0.02)",
         }}
       >
-        <p style={{ margin: 0 }}>Mini Mercado Ruta 11</p>
-        <p style={{ margin: "5px 0 0 0" }}>Gestiona tu negocio mejor</p>
+        <p style={{ margin: 0, fontWeight: "600", color: "#ffffff" }}>Mini Mercado Ruta 11</p>
+        <p style={{ margin: "4px 0 0 0", fontSize: "11px" }}>Gestiona tu negocio mejor</p>
       </div>
     </aside>
   );

@@ -164,6 +164,78 @@ async function finalizarVenta(venta_id) {
     return await obtenerResumen(venta_id);
 }
 
+
+// buscar las deudas de un cliente
+async function obtenerDeudasPorCliente(cliente_id) {
+    try {
+        const queryVentas = `
+            SELECT id, fecha_venta, total 
+            FROM venta 
+            WHERE cliente_id = $1 AND cuenta_pendiente = true 
+            ORDER BY fecha_venta ASC;
+        `;
+        const resultadoVentas = await db.query(queryVentas, [cliente_id]);
+        const ventas = resultadoVentas.rows;
+
+        for (let venta of ventas) {
+            const queryDetalles = `
+                SELECT 
+                    dv.id, 
+                    dv.producto_id, 
+                    p.nombre AS producto_nombre, 
+                    dv.cantidad, 
+                    dv.precio_unitario, 
+                    dv.subtotal
+                FROM detalle_venta dv
+                JOIN producto p ON p.id = dv.producto_id
+                WHERE dv.venta_id = $1
+                ORDER BY dv.id ASC;
+            `;
+            const resultadoDetalles = await db.query(queryDetalles, [venta.id]);
+            venta.detalles = resultadoDetalles.rows; 
+        }
+
+        return ventas;
+    } catch (error) {
+        console.error("Error al obtener deudas:", error);
+        throw error;
+    }
+}
+// Recibe un array de IDs de ventas y las marca como pagadas (cuenta_pendiente = false)
+async function pagarVentas(ventas_ids) {
+    try {
+        const query = `
+            UPDATE venta 
+            SET cuenta_pendiente = false 
+            WHERE id = ANY($1::int[]) 
+            RETURNING *;
+        `;
+        const resultado = await db.query(query, [ventas_ids]);
+        return resultado.rows;
+    } catch (error) {
+        console.error("Error al pagar ventas:", error);
+        throw error;
+    }
+}
+
+// Trae solo a los clientes que tienen al menos una venta pendiente de pago
+async function obtenerClientesConDeuda() {
+    try {
+        const query = `
+            SELECT DISTINCT c.id, c.nombre, c.apellido, c.apodo
+            FROM cliente c
+            JOIN venta v ON c.id = v.cliente_id
+            WHERE v.cuenta_pendiente = true
+            ORDER BY c.apellido ASC;
+        `;
+        const resultado = await db.query(query);
+        return resultado.rows;
+    } catch (error) {
+        console.error("Error al obtener clientes con deuda:", error);
+        throw error;
+    }
+}
+
 async function asociarCliente(venta_id, cliente_id) {
     await db.query(
         `UPDATE venta
@@ -195,6 +267,9 @@ module.exports = {
     actualizarCantidad,
     eliminarProductoDeVenta,
     finalizarVenta,
+    obtenerDeudasPorCliente,
+    pagarVentas,
+    obtenerClientesConDeuda,
     asociarCliente,
     quitarCliente
 };
