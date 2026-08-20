@@ -10,18 +10,16 @@ async function obtener_productos() {
 
 //Funcion para modificar producto
 async function modificar_producto(producto) {
-    await db.query(
-
+    const resultado = await db.query(
         `UPDATE producto
-        SET
+         SET
             nombre = $1,
             precio = $2,
             stock = $3,
             codigo_barra = $4,
             categoria = $5
-        WHERE codigo_barra = $6
-        `,
-
+         WHERE codigo_barra = $6
+         RETURNING *`,
         [
             producto.nombre,
             producto.precio,
@@ -31,6 +29,12 @@ async function modificar_producto(producto) {
             producto.codigoViejo
         ]
     );
+
+    if (resultado.rows.length === 0) {
+        throw new Error("No se encontró el producto a modificar.");
+    }
+
+    return resultado.rows[0];
 }
 
 //Funcion para crear un nuevo producto

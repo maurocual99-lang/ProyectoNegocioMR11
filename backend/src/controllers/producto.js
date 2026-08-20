@@ -57,14 +57,46 @@ async function agregarStock(req,res){
     });
 }
 
-async function modificar_producto(req,res) {
-    const producto = req.body;
+async function modificar_producto(req, res) {
+    try {
+        const producto = req.body;
 
-    await productoModel.modificar_producto(producto);
+        console.log("Producto recibido para modificar:", producto);
 
-    res.json({
-        mensaje: "Producto Modificado Correctamente"
-    });
+        const resultado = await productoModel.modificar_producto(producto);
+
+        res.json({
+            mensaje: "Producto Modificado Correctamente",
+            producto: resultado
+        });
+
+    } catch (error) {
+        console.error("ERROR AL MODIFICAR PRODUCTO:");
+        console.error(error);
+
+        if (error.code === "23505") {
+            return res.status(409).json({
+                mensaje: "Ya existe otro producto con ese código de barras."
+            });
+        }
+
+        if (error.code === "22001") {
+            return res.status(400).json({
+                mensaje: "Uno de los textos ingresados es demasiado largo."
+            });
+        }
+
+        if (error.code === "22003") {
+            return res.status(400).json({
+                mensaje: "El precio ingresado es demasiado grande."
+            });
+        }
+
+        return res.status(500).json({
+            mensaje: "Hubo un error al modificar el producto.",
+            error: error.message
+        });
+    }
 }
 async function eliminarProducto(req, res) {
     await productoModel.eliminarProducto(req.params.codigo_barra);
