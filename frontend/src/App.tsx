@@ -20,7 +20,7 @@ import EliminarProducto from "./Producto/EliminarProducto";
 import ModificarProducto from "./Producto/ModificarProducto";
 import VentaProducto from "./Producto/VentaProducto";
 import ListaDeudores from "./clienteDeudor/ListaDeudores";
-
+import Resumenes from "./Resumen/Resumenes";
 import "./App.css";
 
 function Layout({ children }) {
@@ -391,10 +391,7 @@ export default function App() {
           path="/resumenes"
           element={
             <Layout>
-              <div style={{ marginTop: "20px" }}>
-                <h2>📊 Resúmenes</h2>
-                <p>Reportes y análisis</p>
-              </div>
+              <Resumenes />
             </Layout>
           }
         />

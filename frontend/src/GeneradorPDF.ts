@@ -2,8 +2,7 @@ import { jsPDF } from "jspdf";
 import { autoTable } from "jspdf-autotable";
 
 import logoNegocio
-  from "../../imagenes/ChatGPT Image 20 jul 2026, 11_47_32.png";
-
+  from "../imagenes/ChatGPT Image 20 jul 2026, 11_47_32.png";
 
 export interface ClienteComprobantePDF {
   id: number;
