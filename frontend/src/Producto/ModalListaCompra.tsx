@@ -8,6 +8,10 @@ import Capitalizar from "../Capitalizar";
 import ModalExito from "../ModalExito";
 
 import {
+  generarListaCompraPDF,
+} from "../GeneradorPDF";
+
+import {
   CModal,
   CModalHeader,
   CModalTitle,
@@ -40,9 +44,6 @@ import {
   ShoppingBag,
   PackageCheck,
 } from "lucide-react";
-
-import { jsPDF } from "jspdf";
-import { autoTable } from "jspdf-autotable";
 
 import "../ListaDeCompras.css";
 
@@ -309,158 +310,7 @@ export default function ModalListaCompra({
     }
   }
 
-  function descargarPDF():
-    boolean {
-
-    if (
-      listaCompra.length === 0
-    ) {
-      return false;
-    }
-
-    try {
-
-      const doc =
-        new jsPDF();
-
-      const fecha =
-        new Date()
-          .toLocaleDateString(
-            "es-AR"
-          );
-
-      doc.setFontSize(18);
-
-      doc.text(
-        "Lista de Compra",
-        14,
-        18
-      );
-
-      doc.setFontSize(11);
-
-      doc.setTextColor(90);
-
-      doc.text(
-        "Mini Mercado Ruta 11",
-        14,
-        26
-      );
-
-      doc.setFontSize(9);
-
-      doc.text(
-        `Fecha: ${fecha}`,
-        14,
-        32
-      );
-
-      doc.setFontSize(10);
-
-      doc.setTextColor(30);
-
-      doc.text(
-        `Productos: ${listaCompra.length}`,
-        14,
-        39
-      );
-
-      doc.text(
-        `Unidades totales a comprar: ${cantidadTotal}`,
-        70,
-        39
-      );
-
-      autoTable(doc, {
-
-        startY: 45,
-
-        head: [
-          [
-            "Producto",
-            "Código",
-            "Stock actual",
-            "Cantidad a comprar",
-            "Categoría",
-          ],
-        ],
-
-        body:
-          listaCompra.map(
-            (producto) => [
-              producto.nombre,
-              producto.codigo_barra,
-              producto.stock.toString(),
-              producto
-                .cantidadComprar
-                .toString(),
-              producto.categoria,
-            ]
-          ),
-
-        styles: {
-          fontSize: 9,
-          cellPadding: 3,
-        },
-
-        headStyles: {
-          fillColor:
-            [37, 99, 235],
-          textColor:
-            [255, 255, 255],
-        },
-
-        alternateRowStyles: {
-          fillColor:
-            [248, 250, 252],
-        },
-
-        columnStyles: {
-
-          0: {
-            cellWidth: 42,
-          },
-
-          1: {
-            cellWidth: 38,
-          },
-
-          2: {
-            halign: "center",
-          },
-
-          3: {
-            halign: "center",
-          },
-
-          4: {
-            halign: "center",
-          },
-        },
-      });
-
-      const nombreFecha =
-        fecha.replace(
-          /\//g,
-          "-"
-        );
-
-      doc.save(
-        `lista-compra-${nombreFecha}.pdf`
-      );
-
-      return true;
-
-    } catch (error) {
-
-      console.error(
-        "Error al generar el PDF:",
-        error
-      );
-
-      return false;
-    }
-  }
+  
 
   return (
     <CModal
@@ -471,10 +321,6 @@ export default function ModalListaCompra({
       backdrop="static"
       className="modal-lista-compra"
     >
-
-      {/* =====================================
-          HEADER
-      ====================================== */}
 
       <CModalHeader closeButton>
 
@@ -1460,8 +1306,8 @@ export default function ModalListaCompra({
         </CButton>
 
         <ModalExito
-          onEnviar={
-            descargarPDF
+          onEnviar={() =>
+            generarListaCompraPDF(listaCompra)
           }
           onExito={
             onClose
