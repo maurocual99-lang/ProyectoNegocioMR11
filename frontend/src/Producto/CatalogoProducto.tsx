@@ -185,9 +185,9 @@ function Catalogo() {
       setOrdenarPor(columna);
 
       setDireccion("asc");
-
     }
 
+    setPagina(1);
   }
 
   const productosFiltrados =
@@ -219,43 +219,91 @@ function Catalogo() {
       }
     );
 
+  const comparadorTexto = new Intl.Collator("es", {
+    sensitivity: "base",
+  });
+
+  function comparadorCodigo(
+    codigoA: string,
+    codigoB: string
+  ) {
+    const a = codigoA.trim();
+    const b = codigoB.trim();
+
+    if (/^\d+$/.test(a) && /^\d+$/.test(b)) {
+      const numeroA = BigInt(a);
+      const numeroB = BigInt(b);
+
+      if (numeroA < numeroB) return -1;
+      if (numeroA > numeroB) return 1;
+
+      return 0;
+    }
+
+    return a.localeCompare(b, "es", {
+      numeric: true,
+      sensitivity: "base",
+    });
+  }
+
+
   const productosOrdenados =
-    [...productosFiltrados].sort(
-      (a, b) => {
+    [...productosFiltrados].sort((a, b) => {
 
-        if (!ordenarPor) {
-          return 0;
-        }
+    if (!ordenarPor) {
+      return 0;
+    }
 
+    let resultado = 0;
 
-        const valorA =
-          a[ordenarPor];
+    switch (ordenarPor) {
 
-        const valorB =
-          b[ordenarPor];
+      // CÓDIGO: NUMÉRICO
+      case "codigo_barra":
+        resultado = comparadorCodigo(
+          a.codigo_barra,
+          b.codigo_barra
+        );
+        break;
 
+      // NOMBRE: ALFABÉTICO
+      case "nombre":
+        resultado = comparadorTexto.compare(
+          a.nombre.trim(),
+          b.nombre.trim()
+        );
+        break;
 
-        if (valorA < valorB) {
+      // PRECIO: NUMÉRICO
+      case "precio":
+        resultado =
+          Number(a.precio) -
+          Number(b.precio);
+        break;
 
-          return direccion === "asc"
-            ? -1
-            : 1;
+      // STOCK: NUMÉRICO
+      case "stock":
+        resultado =
+          Number(a.stock) -
+          Number(b.stock);
+        break;
 
-        }
+      // CATEGORÍA: ALFABÉTICO
+      case "categoria":
+        resultado = comparadorTexto.compare(
+          a.categoria.trim(),
+          b.categoria.trim()
+        );
+        break;
 
+      default:
+        resultado = 0;
+    }
 
-        if (valorA > valorB) {
-
-          return direccion === "asc"
-            ? 1
-            : -1;
-
-        }
-
-
-        return 0;
-      }
-    );
+    return direccion === "asc"
+      ? resultado
+      : -resultado;
+  });
 
   const totalPaginas =
     Math.ceil(
@@ -671,89 +719,45 @@ function Catalogo() {
                   <CTableHead>
 
                     <CTableRow>
+                    <OrdenarTabla
+                      titulo="Código de Barras"
+                      campo="codigo_barra"
+                      ordenarPor={ordenarPor}
+                      direccion={direccion}
+                      ordenar={ordenar}
+                    />
 
-                      <OrdenarTabla
-                        titulo="
-                          Código de Barras
-                        "
-                        campo="
-                          codigo_barra
-                        "
-                        ordenarPor={
-                          ordenarPor
-                        }
-                        direccion={
-                          direccion
-                        }
-                        ordenar={
-                          ordenar
-                        }
-                      />
+                    <OrdenarTabla
+                      titulo="Nombre"
+                      campo="nombre"
+                      ordenarPor={ordenarPor}
+                      direccion={direccion}
+                      ordenar={ordenar}
+                    />
 
+                    <OrdenarTabla
+                      titulo="Precio"
+                      campo="precio"
+                      ordenarPor={ordenarPor}
+                      direccion={direccion}
+                      ordenar={ordenar}
+                    />
 
-                      <OrdenarTabla
-                        titulo="Nombre"
-                        campo="nombre"
-                        ordenarPor={
-                          ordenarPor
-                        }
-                        direccion={
-                          direccion
-                        }
-                        ordenar={
-                          ordenar
-                        }
-                      />
+                    <OrdenarTabla
+                      titulo="Stock"
+                      campo="stock"
+                      ordenarPor={ordenarPor}
+                      direccion={direccion}
+                      ordenar={ordenar}
+                    />
 
-
-                      <OrdenarTabla
-                        titulo="Precio"
-                        campo="precio"
-                        ordenarPor={
-                          ordenarPor
-                        }
-                        direccion={
-                          direccion
-                        }
-                        ordenar={
-                          ordenar
-                        }
-                      />
-
-
-                      <OrdenarTabla
-                        titulo="Stock"
-                        campo="stock"
-                        ordenarPor={
-                          ordenarPor
-                        }
-                        direccion={
-                          direccion
-                        }
-                        ordenar={
-                          ordenar
-                        }
-                      />
-
-
-                      <OrdenarTabla
-                        titulo="
-                          Categoría
-                        "
-                        campo="
-                          categoria
-                        "
-                        ordenarPor={
-                          ordenarPor
-                        }
-                        direccion={
-                          direccion
-                        }
-                        ordenar={
-                          ordenar
-                        }
-                      />
-
+                    <OrdenarTabla
+                      titulo="Categoría"
+                      campo="categoria"
+                      ordenarPor={ordenarPor}
+                      direccion={direccion}
+                      ordenar={ordenar}
+                    />
 
                       <CTableHeaderCell
                         style={{

@@ -8,7 +8,6 @@ import {
   CButton,
 } from "@coreui/react";
 
-
 const categorias = [
   "Bebidas",
   "Kiosco",
@@ -18,30 +17,21 @@ const categorias = [
   "Verduleria",
 ] as const;
 
-
 type Categoria =
   (typeof categorias)[number];
 
-
 interface Producto {
   codigo_barra: string;
-
   nombre: string;
-
   precio: number;
-
   stock: number;
-
   categoria: Categoria;
 }
 
-
 interface Props {
   productos: Producto[];
-
   abrirModal: () => void;
 }
-
 
 export default function ListaCompra({
   productos,
@@ -57,12 +47,33 @@ export default function ListaCompra({
   if (
     productosStockBajo.length === 0
   ) {
-    return null;
+    return (
+      <div
+        className="
+          d-flex
+          justify-content-end
+          align-items-center
+        "
+      >
+        <CButton
+          color="primary"
+          variant="outline"
+          onClick={abrirModal}
+          className="
+            d-flex
+            align-items-center
+            gap-2
+          "
+        >
+          <ShoppingCart size={17} />
+
+          Ver lista de compra
+        </CButton>
+      </div>
+    );
   }
 
-
   return (
-
     <CAlert
       color="warning"
       className="
@@ -73,18 +84,12 @@ export default function ListaCompra({
       "
       style={{
         background: "#fffaf0",
-
         border:
           "1px solid #f5d88b",
-
-        borderRadius:
-          "12px",
-
-        padding:
-          "14px 18px",
+        borderRadius: "12px",
+        padding: "14px 18px",
       }}
     >
-
       {/* IZQUIERDA */}
 
       <div
@@ -94,7 +99,6 @@ export default function ListaCompra({
           gap-3
         "
       >
-
         <div
           className="
             d-flex
@@ -103,103 +107,67 @@ export default function ListaCompra({
           "
           style={{
             width: "46px",
-
             height: "46px",
-
             background:
               "#fff3cd",
-
             borderRadius:
               "10px",
-
             flexShrink: 0,
           }}
         >
-
           <TriangleAlert
             size={27}
             color="#d97706"
           />
-
         </div>
 
-
         <div>
-
           <div
             style={{
-              color:
-                "#92400e",
-
-              fontWeight:
-                700,
+              color: "#92400e",
+              fontWeight: 700,
             }}
           >
             Atención: hay productos
             con stock bajo
           </div>
 
-
           <div
             style={{
-              color:
-                "#6b7280",
-
-              fontSize:
-                "0.88rem",
-
-              marginTop:
-                "2px",
+              color: "#6b7280",
+              fontSize: "0.88rem",
+              marginTop: "2px",
             }}
           >
-
             Hay{" "}
-
             {
               productosStockBajo.length
-            }
-
-            {" "}productos con 3 unidades
+            }{" "}
+            productos con 3 unidades
             o menos de stock disponible.
-
           </div>
-
         </div>
-
       </div>
-
 
       {/* DERECHA */}
 
       <CButton
         color="warning"
         variant="outline"
-
-        onClick={
-          abrirModal
-        }
-
+        onClick={abrirModal}
         className="
           d-flex
           align-items-center
           gap-2
         "
-
         style={{
-          whiteSpace:
-            "nowrap",
+          whiteSpace: "nowrap",
         }}
       >
-
-        <ShoppingCart
-          size={17}
-        />
+        <ShoppingCart size={17} />
 
         Ver lista de compra
-
       </CButton>
-
     </CAlert>
-
   );
 }
