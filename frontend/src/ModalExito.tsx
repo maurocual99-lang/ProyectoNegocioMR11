@@ -1,11 +1,11 @@
 import { CButton, CModal, CModalBody, CModalHeader, CModalTitle } from "@coreui/react";
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 
 interface ModalExitoProps {
     onEnviar: () => boolean | Promise<boolean>; 
     onExito?: () => void;
     desactivado: boolean;
-    textoBoton?: string;
+    textoBoton?: ReactNode;
     variante?: string;
     className?: string;
 }

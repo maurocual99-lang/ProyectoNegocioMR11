@@ -1,5 +1,6 @@
 import { useEffect, useState ,ChangeEvent } from "react";
-import Capitalizar from "../Capitalizar"
+import Capitalizar from "../Capitalizar";
+import ModalExito from "../ModalExito";
 import {
   CModal,
   CModalHeader,
@@ -39,10 +40,6 @@ import { autoTable } from "jspdf-autotable";
 
 import "../ListaDeCompras.css";
 
-/* ================================
-   TIPOS
-================================ */
-
 const categorias = [
   "Bebidas",
   "Kiosco",
@@ -72,10 +69,6 @@ interface Props {
   productos: Producto[];
 }
 
-/* ================================
-   COMPONENTE
-================================ */
-
 export default function ModalListaCompra({
   visible,
   onClose,
@@ -87,9 +80,6 @@ export default function ModalListaCompra({
 
   const [pestana, setPestana] = useState<"lista" | "todos">("lista");
 
-  /* ================================
-     PRODUCTOS STOCK BAJO
-  ================================ */
 
   useEffect(() => {
     if (!visible) return;
@@ -146,10 +136,6 @@ export default function ModalListaCompra({
     setPestana("lista");
   }
 
-  /* ================================
-     ELIMINAR PRODUCTO
-  ================================ */
-
   function eliminarProducto(codigoBarra: string) {
     setListaCompra((listaAnterior) =>
       listaAnterior.filter(
@@ -158,10 +144,6 @@ export default function ModalListaCompra({
       )
     );
   }
-
-  /* ================================
-     CAMBIAR CANTIDAD
-  ================================ */
 
   function cambiarCantidad(
     codigoBarra: string,
@@ -181,17 +163,9 @@ export default function ModalListaCompra({
     );
   }
 
-  /* ================================
-     VACIAR LISTA
-  ================================ */
-
   function vaciarLista() {
     setListaCompra([]);
   }
-
-  /* ================================
-     COLORES POR CATEGORÍA
-  ================================ */
 
   function colorCategoria(categoria: Categoria) {
     switch (categoria) {
@@ -232,10 +206,6 @@ export default function ModalListaCompra({
         };
     }
   }
-
-  /* ================================
-     ICONOS POR CATEGORÍA
-  ================================ */
 
   function iconoCategoria(
     categoria: Categoria,
@@ -292,49 +262,26 @@ export default function ModalListaCompra({
     }
   }
 
-  /* ================================
-     DESCARGAR PDF
-  ================================ */
 
-  function descargarPDF() {
-    if (listaCompra.length === 0) return;
+  function descargarPDF(): boolean {
+  if (listaCompra.length === 0) {
+    return false;
+  }
 
+  try {
     const doc = new jsPDF();
 
     const fecha = new Date().toLocaleDateString("es-AR");
 
-    /* Título */
-
     doc.setFontSize(18);
-
-    doc.text(
-      "Lista de Compra",
-      14,
-      18
-    );
-
-    /* Negocio */
+    doc.text("Lista de Compra", 14, 18);
 
     doc.setFontSize(11);
     doc.setTextColor(90);
-
-    doc.text(
-      "Mini Mercado Ruta 11",
-      14,
-      26
-    );
-
-    /* Fecha */
+    doc.text("Mini Mercado Ruta 11", 14, 26);
 
     doc.setFontSize(9);
-
-    doc.text(
-      `Fecha: ${fecha}`,
-      14,
-      32
-    );
-
-    /* Resumen */
+    doc.text(`Fecha: ${fecha}`, 14, 32);
 
     doc.setFontSize(10);
     doc.setTextColor(30);
@@ -350,8 +297,6 @@ export default function ModalListaCompra({
       70,
       39
     );
-
-    /* Tabla */
 
     autoTable(doc, {
       startY: 45,
@@ -392,19 +337,15 @@ export default function ModalListaCompra({
         0: {
           cellWidth: 42,
         },
-
         1: {
           cellWidth: 38,
         },
-
         2: {
           halign: "center",
         },
-
         3: {
           halign: "center",
         },
-
         4: {
           halign: "center",
         },
@@ -416,6 +357,17 @@ export default function ModalListaCompra({
     doc.save(
       `lista-compra-${nombreFecha}.pdf`
     );
+
+    return true;
+
+  } catch (error) {
+    console.error(
+      "Error al generar el PDF:",
+      error
+    );
+
+    return false;
+  }
   }
 
 
@@ -433,8 +385,6 @@ export default function ModalListaCompra({
         <div className="w-100 pe-3">
 
           <div className="d-flex justify-content-between align-items-start gap-4">
-
-            {/* IZQUIERDA */}
 
             <div className="d-flex align-items-start gap-3">
 
@@ -543,10 +493,6 @@ export default function ModalListaCompra({
         </div>
       </CModalHeader>
 
-
-        {/* =========================================
-          BODY
-        ========================================= */}
         <CModalBody className="lista-compra-body">
 
           {/* PESTAÑAS */}
@@ -1080,11 +1026,6 @@ export default function ModalListaCompra({
         )}
         </CModalBody>
 
-
-      {/* =========================================
-          FOOTER FIJO
-      ========================================= */}
-
       <CModalFooter className="footer-lista-compra">
 
         <CButton
@@ -1096,27 +1037,19 @@ export default function ModalListaCompra({
         >
           Cerrar
         </CButton>
-
-        <CButton
-          color="primary"
-          onClick={descargarPDF}
-          disabled={
-            listaCompra.length === 0
+        <ModalExito
+          onEnviar={descargarPDF}
+          onExito={onClose}
+          desactivado={listaCompra.length === 0}
+          textoBoton={
+            <div className="d-flex align-items-center justify-content-center gap-2">
+              <Download size={17} />
+              <span>Descargar lista</span>
+            </div>
           }
-          style={{
-            minWidth: "200px",
-          }}
-        >
-
-          <Download
-            size={17}
-            className="me-2"
-          />
-
-          Descargar lista
-
-        </CButton>
-
+          variante="primary"
+          className="btn-descargar-lista"
+        />
       </CModalFooter>
 
     </CModal>

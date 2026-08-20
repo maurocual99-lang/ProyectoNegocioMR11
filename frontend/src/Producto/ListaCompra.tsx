@@ -54,12 +54,6 @@ export default function ListaCompra({
         producto.stock <= 3
     );
 
-
-  /*
-   * Si no hay ningún producto
-   * con stock bajo no mostramos
-   * la alerta.
-   */
   if (
     productosStockBajo.length === 0
   ) {

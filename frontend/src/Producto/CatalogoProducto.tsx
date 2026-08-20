@@ -168,10 +168,6 @@ function Catalogo() {
 
   }
 
-
-  /*
-   * Ordenar columnas.
-   */
   function ordenar(
     columna: keyof Producto
   ) {
@@ -194,10 +190,6 @@ function Catalogo() {
 
   }
 
-
-  /*
-   * FILTRADO
-   */
   const productosFiltrados =
     productos.filter(
       (producto) => {
@@ -227,10 +219,6 @@ function Catalogo() {
       }
     );
 
-
-  /*
-   * ORDENAMIENTO
-   */
   const productosOrdenados =
     [...productosFiltrados].sort(
       (a, b) => {
@@ -269,10 +257,6 @@ function Catalogo() {
       }
     );
 
-
-  /*
-   * PAGINACIÓN
-   */
   const totalPaginas =
     Math.ceil(
       productosOrdenados.length
@@ -330,8 +314,6 @@ function Catalogo() {
             gap: "16px",
           }}
         >
-
-          {/* ================= HEADER ================= */}
 
           <header
             className="
@@ -423,9 +405,6 @@ function Catalogo() {
 
           </header>
 
-
-          {/* =============== ALERTA =============== */}
-
           <ListaCompra
 
             productos={
@@ -439,9 +418,6 @@ function Catalogo() {
             }
 
           />
-
-
-          {/* ================ MODAL ================ */}
 
           <ModalListaCompra
 
@@ -461,9 +437,6 @@ function Catalogo() {
 
           />
 
-
-          {/* ================ FILTROS ================ */}
-
           <CCard>
 
             <CCardBody>
@@ -476,8 +449,6 @@ function Catalogo() {
                     g-3
                   "
                 >
-
-                  {/* CATEGORÍA */}
 
                   <CCol md={3}>
 
@@ -969,9 +940,6 @@ function Catalogo() {
                 </CTable>
 
               </div>
-
-
-              {/* ============== PAGINACIÓN ============== */}
 
               <div
                 className="
