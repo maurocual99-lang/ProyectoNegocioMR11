@@ -1,4 +1,4 @@
-const reporteModel = require("./reporte");
+const reporteModel = require("./models/reporte");
 
 async function obtenerReporteMensual(req, res) {
   try {

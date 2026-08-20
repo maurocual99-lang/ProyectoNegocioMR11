@@ -15,6 +15,9 @@ app.get("/", (req, res) => {
   });
 });
 
+const reporteRouter =
+  require("./routes/reporte");
+
 const productosRouter =
   require("./routes/producto");
 
@@ -23,9 +26,6 @@ const ventaRouter =
 
 const deudoresRouter =
   require("./routes/clienteDeudor");
-
-const reporteRouter =
-  require("./routes/reporte");
 
 app.use(
   "/productos",
@@ -41,6 +41,7 @@ app.use(
   "/deudores",
   deudoresRouter
 );
+
 
 app.use(
   "/reportes",
