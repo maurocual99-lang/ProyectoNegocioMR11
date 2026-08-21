@@ -1,5 +1,5 @@
-const reporteModel = require("./models/reporte");
-
+const reporteModel =
+  require("../models/reporte");
 async function obtenerReporteMensual(req, res) {
   try {
     const ahora = new Date();
