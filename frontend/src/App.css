@@ -1328,3 +1328,36 @@ body,
   }
 
 }
+/* =========================================
+   ALINEAR GRÁFICO Y COLUMNA DERECHA
+========================================= */
+
+.dashboard-grid {
+  align-items: start;
+}
+
+.col-izquierda,
+.col-derecha {
+  align-self: start;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.col-derecha {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.grafico-card,
+.actividad-card,
+.accesos-card {
+  margin-top: 0 !important;
+}
+
+
+/* Actividad reciente arranca exactamente
+   a la misma altura que el gráfico */
+.actividad-card {
+  align-self: stretch;
+}
