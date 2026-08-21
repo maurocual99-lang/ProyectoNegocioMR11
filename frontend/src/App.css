@@ -1327,37 +1327,186 @@ body,
     display: none;
   }
 
-}
-/* =========================================
-   ALINEAR GRÁFICO Y COLUMNA DERECHA
-========================================= */
+}/* =====================================================
+   DASHBOARD ALINEADO REAL
+   Comenzar venta | Accesos rápidos
+   Gráfico        | Actividad reciente
+===================================================== */
 
 .dashboard-grid {
-  align-items: start;
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 2fr)
+    minmax(320px, 1fr);
+
+  grid-template-areas:
+    "venta accesos"
+    "grafico actividad";
+
+  gap: 22px;
+
+  width: 100%;
+  margin-top: 28px;
+
+  align-items: stretch;
 }
 
+
+/*
+ * IMPORTANTE:
+ * Sacamos visualmente las dos columnas intermedias.
+ *
+ * Los hijos pasan a comportarse directamente
+ * como elementos del dashboard-grid.
+ */
 .col-izquierda,
 .col-derecha {
-  align-self: start;
-  margin-top: 0 !important;
-  padding-top: 0 !important;
+  display: contents !important;
 }
 
-.col-derecha {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+
+/* =====================================================
+   POSICIONES
+===================================================== */
+
+.venta-card-destacada {
+  grid-area: venta;
+
+  width: 100%;
+  height: 100%;
+
+  margin: 0 !important;
 }
+
+
+.accesos-card {
+  grid-area: accesos;
+
+  width: 100%;
+  height: 100%;
+
+  margin: 0 !important;
+}
+
+
+.grafico-card {
+  grid-area: grafico;
+
+  width: 100%;
+  height: 100%;
+
+  margin: 0 !important;
+}
+
+
+.actividad-card {
+  grid-area: actividad;
+
+  width: 100%;
+  height: 100%;
+
+  margin: 0 !important;
+}
+
+
+/* =====================================================
+   FILA SUPERIOR
+   Hacemos que ambas cards se adapten a la misma fila.
+===================================================== */
+
+.venta-card-destacada,
+.accesos-card {
+  align-self: stretch;
+}
+
+
+/* =====================================================
+   FILA INFERIOR
+   ESTOS DOS AHORA SÍ COMIENZAN
+   EXACTAMENTE EN LA MISMA ALTURA.
+===================================================== */
 
 .grafico-card,
-.actividad-card,
-.accesos-card {
-  margin-top: 0 !important;
+.actividad-card {
+  align-self: stretch;
 }
 
 
-/* Actividad reciente arranca exactamente
-   a la misma altura que el gráfico */
+/* =====================================================
+   ACTIVIDAD
+===================================================== */
+
 .actividad-card {
-  align-self: stretch;
+  max-height: none !important;
+}
+
+.lista-contenedor {
+  height: auto !important;
+  max-height: none !important;
+
+  overflow: visible !important;
+}
+
+
+/* =====================================================
+   NOTEBOOK
+===================================================== */
+
+@media (max-width: 1250px) {
+
+  .dashboard-grid {
+    grid-template-columns:
+      minmax(0, 1.55fr)
+      minmax(290px, 1fr);
+
+    grid-template-areas:
+      "venta accesos"
+      "grafico actividad";
+  }
+
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 1024px) {
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+
+    grid-template-areas:
+      "accesos"
+      "actividad"
+      "venta"
+      "grafico";
+
+    gap: 18px;
+  }
+
+}
+
+
+/* =====================================================
+   CELULAR
+===================================================== */
+
+@media (max-width: 700px) {
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+
+    grid-template-areas:
+      "accesos"
+      "actividad"
+      "venta"
+      "grafico";
+
+    gap: 15px;
+
+    margin-top: 20px;
+  }
+
 }
