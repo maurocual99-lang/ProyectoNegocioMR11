@@ -48,6 +48,14 @@ app.use(
   reporteRouter
 );
 
+const inicioRouter =
+  require("./routes/inicio");
+
+
+  app.use(
+  "/inicio",
+  inicioRouter
+);
 const PORT =
   process.env.PORT || 3000;
 

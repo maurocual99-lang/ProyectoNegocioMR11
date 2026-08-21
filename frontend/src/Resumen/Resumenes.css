@@ -1,15 +1,29 @@
+/* =====================================================
+   PÁGINA GENERAL
+===================================================== */
+
 .pagina-reportes {
   width: 100%;
-  max-width: 1450px;
+  max-width: 1500px;
+
   margin: 0 auto;
-  padding-bottom: 28px;
+  padding: 0 0 32px;
+
+  min-width: 0;
 }
+
+
+/* =====================================================
+   HEADER
+===================================================== */
 
 .reporte-header {
   display: flex;
   align-items: center;
+
   gap: 14px;
-  margin-bottom: 18px;
+
+  margin-bottom: 20px;
 }
 
 .reporte-header-icon {
@@ -21,71 +35,156 @@
   align-items: center;
   justify-content: center;
 
+  color: #2563eb;
   background: #eef4ff;
+
   border: 1px solid #dbeafe;
-  border-radius: 12px;
+  border-radius: 13px;
 }
+
+.reporte-header h2 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: clamp(
+    1.45rem,
+    2vw,
+    2rem
+  );
+}
+
+.reporte-header p {
+  color: #64748b;
+
+  font-size: 0.9rem;
+}
+
+
+/* =====================================================
+   CARDS GENERALES
+===================================================== */
 
 .reporte-filtros-card,
 .reporte-grafico-card,
 .reporte-tabla-card {
-  border: 1px solid #e5e7eb;
+  width: 100%;
+
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
-  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+
+  box-shadow:
+    0 3px 12px
+    rgba(15, 23, 42, 0.04);
+
+  overflow: hidden;
 }
 
 .reporte-filtros-card {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
+
+.reporte-filtros-card .card-body {
+  padding: 18px 20px;
+}
+
+.reporte-filtros-titulo {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 14px;
+
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+
+/* =====================================================
+   ERROR
+===================================================== */
 
 .reporte-error {
   margin-bottom: 16px;
-  padding: 12px 14px;
+
+  padding: 12px 15px;
 
   color: #b91c1c;
   background: #fef2f2;
+
   border: 1px solid #fecaca;
   border-radius: 10px;
 }
+
+
+/* =====================================================
+   CARGANDO
+===================================================== */
 
 .reporte-cargando {
   min-height: 260px;
 
   display: flex;
   flex-direction: column;
+
   align-items: center;
   justify-content: center;
+
   gap: 12px;
 
   color: #64748b;
 }
 
+
+/* =====================================================
+   KPIs
+===================================================== */
+
 .reporte-kpis {
   display: grid;
+
   grid-template-columns:
-    repeat(5, minmax(0, 1fr));
+    repeat(
+      5,
+      minmax(0, 1fr)
+    );
 
   gap: 12px;
-  margin-bottom: 16px;
+
+  width: 100%;
+
+  margin-bottom: 18px;
 }
 
 .reporte-kpi {
   min-width: 0;
-  padding: 16px;
 
   display: flex;
   align-items: center;
+
   gap: 12px;
 
+  padding: 15px;
+
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+
+  box-shadow:
+    0 2px 7px
+    rgba(15, 23, 42, 0.025);
+}
+
+.reporte-kpi > div:last-child {
+  min-width: 0;
 }
 
 .reporte-kpi-icon {
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
+  width: 43px;
+  height: 43px;
+  min-width: 43px;
 
   display: flex;
   align-items: center;
@@ -95,13 +194,13 @@
 }
 
 .kpi-verde {
-  color: #15803d;
+  color: #16a34a;
   background: #ecfdf3;
 }
 
 .kpi-azul {
   color: #2563eb;
-  background: #eef4ff;
+  background: #eff6ff;
 }
 
 .kpi-celeste {
@@ -125,183 +224,497 @@
   margin-bottom: 3px;
 
   color: #64748b;
-  font-size: 0.76rem;
+
+  font-size: 0.72rem;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .reporte-kpi strong {
   display: block;
 
+  color: #0f172a;
+
+  font-size: clamp(
+    0.95rem,
+    1.2vw,
+    1.12rem
+  );
+
+  font-weight: 700;
+
+  white-space: nowrap;
+
   overflow: hidden;
   text-overflow: ellipsis;
-
-  color: #0f172a;
-  font-size: 1.1rem;
-  white-space: nowrap;
 }
 
 .reporte-kpi span {
   display: block;
+
   margin-top: 2px;
 
   color: #94a3b8;
-  font-size: 0.72rem;
+
+  font-size: 0.68rem;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .reporte-kpi-deuda {
   border-color: #fecaca;
 }
 
-/* ==========================
-   GRÁFICO VENTAS POR DÍA
-========================== */
 
-.grafico-barras-contenedor {
-  width: 100%;
-  min-height: 245px;
+/* =====================================================
+   GRÁFICOS - CARD
+===================================================== */
 
-  display: flex;
-  align-items: flex-end;
-  gap: 4px;
-
-  padding-top: 20px;
+.reporte-grafico-card {
+  height: 100%;
 }
 
-.grafico-columna {
+.reporte-grafico-card .card-body {
+  height: 100%;
+
+  padding: 18px;
+}
+
+
+/* =====================================================
+   NUEVO GRÁFICO VENTAS POR DÍA
+===================================================== */
+
+.ventas-dia-card {
+  width: 100%;
+  height: 100%;
+
   min-width: 0;
-  height: 225px;
-  flex: 1;
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+  padding: 18px;
 
-.grafico-valor {
-  width: 100%;
-  height: 25px;
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+
+  box-shadow:
+    0 3px 12px
+    rgba(15, 23, 42, 0.04);
 
   overflow: hidden;
-
-  color: #64748b;
-  font-size: 0.58rem;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.grafico-barra-area {
-  width: 100%;
-  max-width: 24px;
-  height: 175px;
 
+/* HEADER */
+
+.ventas-dia-header {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
+  justify-content: space-between;
 
-  background: #f8fafc;
-  border-radius: 5px 5px 0 0;
+  gap: 18px;
+
+  margin-bottom: 15px;
 }
 
-.grafico-barra {
-  width: 100%;
-  min-height: 0;
+.ventas-dia-titulo {
+  display: flex;
+  align-items: center;
 
-  background: linear-gradient(
-    180deg,
-    #60a5fa 0%,
-    #2563eb 100%
-  );
+  gap: 10px;
 
-  border-radius: 5px 5px 0 0;
-
-  transition: height 0.25s ease;
+  min-width: 0;
 }
 
-.grafico-dia {
-  margin-top: 5px;
-
-  color: #64748b;
-  font-size: 0.62rem;
-}
-
-/* ==========================
-   DONUT
-========================== */
-
-.estado-grafico-layout {
-  min-height: 245px;
+.ventas-dia-icono {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
 
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+
+  color: #2563eb;
+  background: #eff6ff;
+
+  border-radius: 10px;
+}
+
+.ventas-dia-titulo h3 {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.ventas-dia-titulo p {
+  margin: 2px 0 0;
+
+  color: #64748b;
+
+  font-size: 0.77rem;
+}
+
+
+/* TOTAL */
+
+.ventas-dia-total {
+  flex-shrink: 0;
+
+  text-align: right;
+}
+
+.ventas-dia-total small {
+  display: block;
+
+  color: #64748b;
+
+  font-size: 0.68rem;
+}
+
+.ventas-dia-total strong {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #0f172a;
+
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+
+/* MINI CARDS */
+
+.ventas-dia-resumen {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 10px;
+
+  margin-bottom: 8px;
+}
+
+.ventas-dia-resumen-item {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 9px 11px;
+
+  color: #2563eb;
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+}
+
+.ventas-dia-resumen-item > div {
+  min-width: 0;
+}
+
+.ventas-dia-resumen-item small {
+  display: block;
+
+  color: #64748b;
+
+  font-size: 0.65rem;
+}
+
+.ventas-dia-resumen-item strong {
+  display: block;
+
+  color: #334155;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* SVG */
+
+.ventas-dia-grafico-contenedor {
+  width: 100%;
+
+  min-width: 0;
+
+  overflow: hidden;
+}
+
+.ventas-dia-svg {
+  display: block;
+
+  width: 100%;
+  height: auto;
+
+  min-height: 235px;
+  max-height: 320px;
+}
+
+.ventas-dia-grid-line {
+  stroke: #e5eaf1;
+  stroke-width: 1;
+
+  stroke-dasharray:
+    5 5;
+}
+
+.ventas-dia-eje-texto {
+  fill: #64748b;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+
+/* PUNTOS */
+
+.ventas-dia-punto-grupo {
+  cursor: pointer;
+}
+
+.ventas-dia-punto {
+  fill: white;
+
+  stroke: #2563eb;
+  stroke-width: 4;
+
+  transition:
+    r 0.15s ease,
+    fill 0.15s ease;
+}
+
+.ventas-dia-punto-grupo:hover
+.ventas-dia-punto {
+  r: 8px;
+
+  fill: #2563eb;
+}
+
+
+/* TOOLTIP */
+
+.ventas-dia-tooltip {
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition:
+    opacity 0.15s ease;
+}
+
+.ventas-dia-punto-grupo:hover
+.ventas-dia-tooltip {
+  opacity: 1;
+}
+
+.ventas-dia-tooltip-fondo {
+  fill: #0f172a;
+
+  filter:
+    drop-shadow(
+      0 5px 7px
+      rgba(15, 23, 42, 0.2)
+    );
+}
+
+.ventas-dia-tooltip-dia {
+  fill: #cbd5e1;
+
+  font-size: 10px;
+}
+
+.ventas-dia-tooltip-total {
+  fill: white;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ventas-dia-tooltip-cantidad {
+  fill: #93c5fd;
+
+  font-size: 9px;
+}
+
+
+/* SIN VENTAS */
+
+.ventas-dia-vacio {
+  min-height: 230px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  text-align: center;
+}
+
+.ventas-dia-vacio-icono {
+  width: 54px;
+  height: 54px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #94a3b8;
+  background: #f1f5f9;
+
+  border-radius: 50%;
+}
+
+.ventas-dia-vacio strong {
+  color: #334155;
+
+  font-size: 0.9rem;
+}
+
+.ventas-dia-vacio span {
+  color: #94a3b8;
+
+  font-size: 0.75rem;
+}
+
+
+/* =====================================================
+   DONUT ESTADO DE IMPORTE
+===================================================== */
+
+.estado-grafico-layout {
+  min-height: 260px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 24px;
+
+  width: 100%;
 }
 
 .donut-wrapper {
   position: relative;
 
-  width: 160px;
-  min-width: 160px;
-  height: 160px;
+  width: 150px;
+  height: 150px;
+
+  min-width: 150px;
+  min-height: 150px;
+
+  flex-shrink: 0;
 }
 
 .donut-svg {
-  width: 100%;
-  height: 100%;
+  display: block;
+
+  width: 150px;
+  height: 150px;
 }
 
 .donut-centro {
   position: absolute;
+
   inset: 0;
 
   display: flex;
   flex-direction: column;
-  justify-content: center;
+
   align-items: center;
+  justify-content: center;
 
   pointer-events: none;
 }
 
 .donut-centro strong {
   color: #0f172a;
-  font-size: 1.55rem;
+
+  font-size: 1.4rem;
+  font-weight: 700;
 }
 
 .donut-centro span {
   color: #64748b;
-  font-size: 0.75rem;
+
+  font-size: 0.7rem;
 }
 
 .estado-leyenda {
+  min-width: 0;
+
   display: flex;
   flex-direction: column;
-  gap: 16px;
+
+  gap: 15px;
 }
 
 .estado-item {
+  min-width: 0;
+
   display: flex;
   align-items: center;
-  gap: 10px;
+
+  gap: 9px;
 }
 
-.estado-item div {
+.estado-item > div {
   min-width: 0;
 }
 
 .estado-item small {
   display: block;
+
   color: #64748b;
+
+  font-size: 0.7rem;
 }
 
 .estado-item strong {
   display: block;
+
   color: #0f172a;
+
+  font-size: 0.88rem;
+
   white-space: nowrap;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .estado-punto {
-  width: 11px;
-  height: 11px;
-  min-width: 11px;
+  width: 10px;
+  height: 10px;
+
+  min-width: 10px;
 
   border-radius: 50%;
 }
@@ -314,24 +727,160 @@
   background: #fb923c;
 }
 
-/* ==========================
+
+/* =====================================================
+   REGISTRO DE VENTAS
+===================================================== */
+
+.reporte-tabla-card {
+  width: 100%;
+
+  min-width: 0;
+
+  margin-top: 2px;
+
+  scroll-margin-top: 80px;
+}
+
+.reporte-tabla-card .card-body {
+  padding: 18px;
+}
+
+.registro-ventas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  margin-bottom: 17px;
+}
+
+.registro-ventas-header > div:first-child {
+  min-width: 0;
+}
+
+.registro-ventas-titulo {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+.registro-ventas-titulo h4 {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.registro-ventas-header p {
+  margin: 4px 0 0;
+
+  color: #64748b;
+
+  font-size: 0.78rem;
+}
+
+.registro-contador {
+  flex-shrink: 0;
+
+  padding: 6px 11px;
+
+  color: #2563eb;
+  background: #eff6ff;
+
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.registro-contador span {
+  font-weight: 500;
+}
+
+
+/* =====================================================
+   FILTROS REGISTRO
+===================================================== */
+
+.filtros-registro {
+  display: grid;
+
+  grid-template-columns:
+    minmax(170px, 260px)
+    minmax(260px, 1fr);
+
+  align-items: end;
+
+  gap: 14px;
+
+  width: 100%;
+
+  padding: 13px;
+
+  margin-bottom: 16px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+}
+
+.filtro-estado,
+.filtro-busqueda {
+  min-width: 0;
+
+  width: 100%;
+}
+
+.filtros-registro
+.form-label {
+  margin-bottom: 5px;
+
+  color: #334155;
+
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+
+/* =====================================================
    TABLA
-========================== */
+===================================================== */
+
+.registro-tabla-contenedor {
+  width: 100%;
+
+  min-width: 0;
+
+  overflow-x: auto;
+
+  -webkit-overflow-scrolling:
+    touch;
+}
 
 .tabla-reporte-wrapper {
   width: 100%;
+
+  min-width: 700px;
 }
 
 .badge-estado {
   display: inline-flex;
+
   align-items: center;
   justify-content: center;
 
-  padding: 5px 10px;
+  padding: 5px 9px;
 
   border-radius: 999px;
 
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 600;
 }
 
@@ -346,7 +895,8 @@
 }
 
 .detalle-venta-reporte {
-  padding: 10px 22px;
+  padding: 10px 20px;
+
   background: #f8fafc;
 }
 
@@ -354,48 +904,388 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
 
-  padding: 9px 0;
+  gap: 18px;
 
-  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 0;
+
+  border-bottom:
+    1px solid #e5e7eb;
 }
 
 .detalle-venta-item:last-child {
   border-bottom: 0;
 }
 
-/* ==========================
-   RESPONSIVE
-========================== */
 
-@media (
-  max-width: 1200px
-) {
-  .reporte-kpis {
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr));
-  }
+/* =====================================================
+   PAGINACIÓN
+===================================================== */
+
+.paginacion-reportes {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(150px, 1fr)
+    auto
+    minmax(110px, 1fr);
+
+  align-items: center;
+
+  gap: 14px;
+
+  margin-top: 15px;
+  padding-top: 15px;
+
+  border-top:
+    1px solid #e2e8f0;
 }
 
-@media (
-  max-width: 768px
+.paginacion-info {
+  color: #64748b;
+
+  font-size: 0.76rem;
+}
+
+.paginacion-info strong {
+  color: #334155;
+}
+
+.paginacion-controles {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+}
+
+.paginacion-numeros {
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+}
+
+.paginacion-boton {
+  min-height: 34px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  padding: 6px 10px;
+
+  color: #334155;
+  background: white;
+
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+
+  font-size: 0.76rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.15s ease;
+}
+
+.paginacion-boton:hover:not(
+  :disabled
 ) {
+  color: #2563eb;
+  background: #eff6ff;
+
+  border-color: #93c5fd;
+}
+
+.paginacion-boton:disabled {
+  opacity: 0.4;
+
+  cursor: not-allowed;
+}
+
+.paginacion-numero {
+  width: 34px;
+
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.paginacion-activa {
+  color: white !important;
+  background: #2563eb !important;
+
+  border-color:
+    #2563eb !important;
+}
+
+.paginacion-pagina {
+  text-align: right;
+
+  color: #64748b;
+
+  font-size: 0.76rem;
+
+  white-space: nowrap;
+}
+
+.paginacion-pagina strong {
+  color: #334155;
+}
+
+
+/* =====================================================
+   NOTEBOOK
+===================================================== */
+
+@media (
+  max-width: 1300px
+) {
+
   .reporte-kpis {
     grid-template-columns:
-      1fr;
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
   }
+
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (
+  max-width: 992px
+) {
+
+  .pagina-reportes {
+    max-width: 100%;
+  }
+
+
+  .reporte-kpis {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
 
   .estado-grafico-layout {
-    flex-direction: column;
-    gap: 8px;
+    min-height: 220px;
   }
 
-  .estado-leyenda {
+
+  .ventas-dia-svg {
+    min-height: 210px;
+  }
+
+
+  .filtros-registro {
+    grid-template-columns: 1fr;
+  }
+
+
+  .paginacion-reportes {
+    grid-template-columns: 1fr;
+
+    justify-items: center;
+  }
+
+
+  .paginacion-info,
+  .paginacion-pagina {
+    width: 100%;
+
+    text-align: center;
+  }
+
+}
+
+
+/* =====================================================
+   CELULAR
+===================================================== */
+
+@media (
+  max-width: 600px
+) {
+
+  .pagina-reportes {
     width: 100%;
   }
 
-  .grafico-valor {
+
+  .reporte-header {
+    align-items: flex-start;
+
+    gap: 10px;
+  }
+
+
+  .reporte-header-icon {
+    width: 42px;
+    height: 42px;
+
+    min-width: 42px;
+  }
+
+
+  .reporte-header h2 {
+    font-size: 1.25rem;
+  }
+
+
+  .reporte-header p {
+    font-size: 0.76rem;
+  }
+
+
+  .reporte-filtros-card
+  .card-body {
+    padding: 14px;
+  }
+
+
+  .reporte-kpis {
+    grid-template-columns: 1fr;
+  }
+
+
+  .reporte-kpi {
+    padding: 13px;
+  }
+
+
+  .ventas-dia-card {
+    padding: 13px;
+  }
+
+
+  .ventas-dia-header {
+    gap: 8px;
+  }
+
+
+  .ventas-dia-total strong {
+    font-size: 0.85rem;
+  }
+
+
+  .ventas-dia-resumen {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+
+  .ventas-dia-mejor {
+    grid-column:
+      1 / -1;
+  }
+
+
+  .ventas-dia-svg {
+    min-height: 180px;
+  }
+
+
+  .estado-grafico-layout {
+    min-height: auto;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+    padding: 10px 0;
+  }
+
+
+  .donut-wrapper,
+  .donut-svg {
+    width: 130px;
+    height: 130px;
+
+    min-width: 130px;
+    min-height: 130px;
+  }
+
+
+  .estado-leyenda {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    gap: 8px;
+  }
+
+
+  .registro-ventas-header {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 9px;
+  }
+
+
+  .registro-contador {
+    align-self: flex-start;
+  }
+
+
+  .filtros-registro {
+    padding: 10px;
+  }
+
+
+  .reporte-tabla-card
+  .card-body {
+    padding: 12px;
+  }
+
+
+  .paginacion-controles {
+    width: 100%;
+
+    justify-content:
+      space-between;
+  }
+
+
+  .paginacion-anterior span,
+  .paginacion-siguiente span {
     display: none;
   }
+
+
+  .paginacion-boton {
+    min-height: 32px;
+
+    padding: 5px 7px;
+  }
+
+
+  .paginacion-numero {
+    width: 31px;
+  }
+
 }

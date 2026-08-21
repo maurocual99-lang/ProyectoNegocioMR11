@@ -1,5 +1,4 @@
 import {
-  type ChangeEvent,
   useEffect,
   useMemo,
   useState,
@@ -20,8 +19,9 @@ import {
 
 import {
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   DollarSign,
-  Filter,
   ReceiptText,
   Search,
   TrendingUp,
@@ -50,6 +50,10 @@ import type {
 import "./Resumenes.css";
 
 
+/* ======================================================
+   MESES
+====================================================== */
+
 const meses = [
   "Enero",
   "Febrero",
@@ -66,44 +70,71 @@ const meses = [
 ];
 
 
+/* ======================================================
+   CONFIGURACIÓN DE PAGINACIÓN
+====================================================== */
+
+const VENTAS_POR_PAGINA = 8;
+
+
+/* ======================================================
+   FORMATEAR DINERO
+====================================================== */
+
 function dinero(
   valor: number
 ) {
-  return valor
-    .toLocaleString(
-      "es-AR",
-      {
-        minimumFractionDigits:
-          2,
-
-        maximumFractionDigits:
-          2,
-      }
-    );
+  return valor.toLocaleString(
+    "es-AR",
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  );
 }
 
 
+/* ======================================================
+   COMPONENTE
+====================================================== */
+
 export default function Resumenes() {
 
-  const ahora =
+  const fechaActual =
     new Date();
 
+  const mesActual =
+    fechaActual.getMonth() + 1;
+
+  const anioActual =
+    fechaActual.getFullYear();
+
+
+  /* ====================================================
+     PERÍODO
+  ==================================================== */
 
   const [
     mes,
     setMes,
-  ] = useState(
-    ahora.getMonth() + 1
-  );
+  ] =
+    useState(
+      mesActual
+    );
 
 
   const [
     anio,
     setAnio,
-  ] = useState(
-    ahora.getFullYear()
-  );
+  ] =
+    useState(
+      anioActual
+    );
 
+
+  /* ====================================================
+     FILTROS DE LA TABLA
+  ==================================================== */
 
   const [
     estado,
@@ -117,8 +148,24 @@ export default function Resumenes() {
   const [
     busqueda,
     setBusqueda,
-  ] = useState("");
+  ] =
+    useState("");
 
+
+  /* ====================================================
+     PAGINACIÓN
+  ==================================================== */
+
+  const [
+    paginaActual,
+    setPaginaActual,
+  ] =
+    useState(1);
+
+
+  /* ====================================================
+     REPORTE
+  ==================================================== */
 
   const [
     reporte,
@@ -132,7 +179,8 @@ export default function Resumenes() {
   const [
     cargando,
     setCargando,
-  ] = useState(false);
+  ] =
+    useState(false);
 
 
   const [
@@ -144,14 +192,21 @@ export default function Resumenes() {
     );
 
 
-  useEffect(() => {
+  /* ====================================================
+     CARGAR REPORTE
+  ==================================================== */
 
-    cargarReporte();
+  useEffect(
+    () => {
 
-  }, [
-    mes,
-    anio,
-  ]);
+      cargarReporte();
+
+    },
+    [
+      mes,
+      anio,
+    ]
+  );
 
 
   async function cargarReporte() {
@@ -178,6 +233,7 @@ export default function Resumenes() {
     } catch (error) {
 
       console.error(
+        "Error al cargar reporte:",
         error
       );
 
@@ -197,38 +253,56 @@ export default function Resumenes() {
   }
 
 
+  /* ====================================================
+     AÑOS DISPONIBLES
+  ==================================================== */
+
   const aniosDisponibles =
     useMemo(
       () => {
 
         const desdeBackend =
           reporte
-            ?.anios_disponibles ??
+            ?.anios_disponibles
+          ??
           [];
 
 
         const conjunto =
           new Set<number>([
-            ahora.getFullYear(),
+            anioActual,
             anio,
             ...desdeBackend,
           ]);
 
 
-        return Array.from(
-          conjunto
-        ).sort(
-          (a, b) =>
-            b - a
-        );
+        return Array
+          .from(
+            conjunto
+          )
+          .sort(
+            (
+              a,
+              b
+            ) =>
+              b - a
+          );
 
       },
       [
         reporte,
         anio,
+        anioActual,
       ]
     );
 
+
+  /* ====================================================
+     VENTAS FILTRADAS
+
+     Estado y búsqueda SOLO afectan
+     al registro de ventas.
+  ==================================================== */
 
   const ventasFiltradas =
     useMemo(
@@ -245,9 +319,14 @@ export default function Resumenes() {
             .toLowerCase();
 
 
-        return reporte.ventas
+        return reporte
+          .ventas
           .filter(
             (venta) => {
+
+              /* =========================
+                 ESTADO
+              ========================= */
 
               if (
                 estado ===
@@ -255,7 +334,9 @@ export default function Resumenes() {
                 &&
                 venta.cuenta_pendiente
               ) {
+
                 return false;
+
               }
 
 
@@ -265,14 +346,26 @@ export default function Resumenes() {
                 &&
                 !venta.cuenta_pendiente
               ) {
+
                 return false;
+
               }
 
+
+              /* =========================
+                 SIN BÚSQUEDA
+              ========================= */
 
               if (!texto) {
+
                 return true;
+
               }
 
+
+              /* =========================
+                 CLIENTE
+              ========================= */
 
               const cliente =
                 [
@@ -280,35 +373,52 @@ export default function Resumenes() {
                   venta.cliente_apellido,
                   venta.cliente_apodo,
                 ]
-                  .filter(Boolean)
+                  .filter(
+                    Boolean
+                  )
                   .join(" ")
                   .toLowerCase();
 
+
+              /* =========================
+                 PRODUCTOS
+              ========================= */
 
               const productos =
                 venta.detalles
                   .map(
                     (detalle) =>
-                      detalle.producto_nombre
+                      detalle
+                        .producto_nombre
                   )
                   .join(" ")
                   .toLowerCase();
 
 
+              /* =========================
+                 RESULTADO
+              ========================= */
+
               return (
+
                 venta.id
                   .toString()
                   .includes(
                     texto
                   )
+
                 ||
+
                 cliente.includes(
                   texto
                 )
+
                 ||
+
                 productos.includes(
                   texto
                 )
+
               );
 
             }
@@ -323,28 +433,261 @@ export default function Resumenes() {
     );
 
 
+  /* ====================================================
+     VOLVER A PÁGINA 1 SI CAMBIAN FILTROS
+  ==================================================== */
+
+  useEffect(
+    () => {
+
+      setPaginaActual(1);
+
+    },
+    [
+      mes,
+      anio,
+      estado,
+      busqueda,
+    ]
+  );
+
+
+  /* ====================================================
+     TOTAL DE PÁGINAS
+  ==================================================== */
+
+  const totalPaginas =
+    Math.max(
+      1,
+      Math.ceil(
+        ventasFiltradas.length
+        /
+        VENTAS_POR_PAGINA
+      )
+    );
+
+
+  /* ====================================================
+     CORREGIR PÁGINA SI QUEDA FUERA DE RANGO
+  ==================================================== */
+
+  useEffect(
+    () => {
+
+      if (
+        paginaActual >
+        totalPaginas
+      ) {
+
+        setPaginaActual(
+          totalPaginas
+        );
+
+      }
+
+    },
+    [
+      paginaActual,
+      totalPaginas,
+    ]
+  );
+
+
+  /* ====================================================
+     VENTAS DE LA PÁGINA ACTUAL
+  ==================================================== */
+
+  const ventasPaginadas =
+    useMemo(
+      () => {
+
+        const inicio =
+          (
+            paginaActual - 1
+          )
+          *
+          VENTAS_POR_PAGINA;
+
+
+        const fin =
+          inicio
+          +
+          VENTAS_POR_PAGINA;
+
+
+        return ventasFiltradas
+          .slice(
+            inicio,
+            fin
+          );
+
+      },
+      [
+        ventasFiltradas,
+        paginaActual,
+      ]
+    );
+
+
+  /* ====================================================
+     RANGO QUE SE ESTÁ MOSTRANDO
+  ==================================================== */
+
+  const desde =
+    ventasFiltradas.length === 0
+      ? 0
+      : (
+          paginaActual - 1
+        )
+        *
+        VENTAS_POR_PAGINA
+        +
+        1;
+
+
+  const hasta =
+    Math.min(
+      paginaActual
+        *
+        VENTAS_POR_PAGINA,
+
+      ventasFiltradas.length
+    );
+
+
+  /* ====================================================
+     PÁGINAS VISIBLES
+
+     Máximo 5 botones para no romper
+     el diseño en pantallas chicas.
+  ==================================================== */
+
+  const paginasVisibles =
+    useMemo(
+      () => {
+
+        const paginas:
+          number[] =
+          [];
+
+
+        let inicio =
+          Math.max(
+            1,
+            paginaActual - 2
+          );
+
+
+        let fin =
+          Math.min(
+            totalPaginas,
+            inicio + 4
+          );
+
+
+        if (
+          fin - inicio < 4
+        ) {
+
+          inicio =
+            Math.max(
+              1,
+              fin - 4
+            );
+
+        }
+
+
+        for (
+          let pagina = inicio;
+          pagina <= fin;
+          pagina++
+        ) {
+
+          paginas.push(
+            pagina
+          );
+
+        }
+
+
+        return paginas;
+
+      },
+      [
+        paginaActual,
+        totalPaginas,
+      ]
+    );
+
+
+  /* ====================================================
+     CAMBIAR PÁGINA
+  ==================================================== */
+
+  function cambiarPagina(
+    nuevaPagina: number
+  ) {
+
+    if (
+      nuevaPagina < 1
+      ||
+      nuevaPagina >
+        totalPaginas
+    ) {
+
+      return;
+
+    }
+
+
+    setPaginaActual(
+      nuevaPagina
+    );
+
+
+    /*
+     * Hace que al cambiar de página
+     * volvamos suavemente hacia la tabla.
+     */
+
+    setTimeout(
+      () => {
+
+        document
+          .getElementById(
+            "registro-ventas"
+          )
+          ?.scrollIntoView({
+            behavior:
+              "smooth",
+
+            block:
+              "start",
+          });
+
+      },
+      50
+    );
+  }
+
+
+  /* ====================================================
+     RENDER
+  ==================================================== */
+
   return (
-    <div
-      className="
-        pagina-reportes
-      "
-    >
 
-      {/* =====================================
+    <div className="pagina-reportes">
+
+
+      {/* ==================================================
           HEADER
-      ====================================== */}
+      ================================================== */}
 
-      <div
-        className="
-          reporte-header
-        "
-      >
+      <div className="reporte-header">
 
-        <div
-          className="
-            reporte-header-icon
-          "
-        >
+        <div className="reporte-header-icon">
 
           <TrendingUp
             size={28}
@@ -372,9 +715,9 @@ export default function Resumenes() {
               mb-0
             "
           >
-            Consultá las ventas
-            mensuales, la facturación
-            y las deudas pendientes.
+            Consultá las ventas mensuales,
+            la facturación y las deudas
+            pendientes.
           </p>
 
         </div>
@@ -382,48 +725,37 @@ export default function Resumenes() {
       </div>
 
 
-      {/* =====================================
-          FILTROS
-      ====================================== */}
+      {/* ==================================================
+          PERÍODO
+      ================================================== */}
 
-      <CCard
-        className="
-          reporte-filtros-card
-        "
-      >
+      <CCard className="reporte-filtros-card">
 
         <CCardBody>
 
-          <div
-            className="
-              d-flex
-              align-items-center
-              gap-2
-              mb-3
-            "
-          >
+          <div className="reporte-filtros-titulo">
 
-            <Filter
+            <CalendarDays
               size={18}
               color="#2563eb"
             />
 
             <strong>
-              Filtros del reporte
+              Período del reporte
             </strong>
 
           </div>
 
 
-          <CRow
-            className="
-              g-3
-              align-items-end
-            "
-          >
+          <CRow className="g-3">
+
+            {/* MES */}
 
             <CCol
-              md={2}
+              xs={12}
+              sm={6}
+              md={4}
+              lg={3}
             >
 
               <CFormLabel>
@@ -432,10 +764,8 @@ export default function Resumenes() {
 
 
               <CFormSelect
-                value={
-                  mes
-                }
-                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                value={mes}
+                onChange={(e) =>
                   setMes(
                     Number(
                       e.target.value
@@ -444,35 +774,36 @@ export default function Resumenes() {
                 }
               >
 
-                {
-                  meses.map(
-                    (
-                      nombre,
-                      indice
-                    ) => (
+                {meses.map(
+                  (
+                    nombre,
+                    indice
+                  ) => (
 
-                      <option
-                        key={
-                          nombre
-                        }
-                        value={
-                          indice + 1
-                        }
-                      >
-                        {nombre}
-                      </option>
+                    <option
+                      key={nombre}
+                      value={
+                        indice + 1
+                      }
+                    >
+                      {nombre}
+                    </option>
 
-                    )
                   )
-                }
+                )}
 
               </CFormSelect>
 
             </CCol>
 
 
+            {/* AÑO */}
+
             <CCol
-              md={2}
+              xs={12}
+              sm={6}
+              md={4}
+              lg={3}
             >
 
               <CFormLabel>
@@ -481,10 +812,8 @@ export default function Resumenes() {
 
 
               <CFormSelect
-                value={
-                  anio
-                }
-                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                value={anio}
+                onChange={(e) =>
                   setAnio(
                     Number(
                       e.target.value
@@ -493,103 +822,20 @@ export default function Resumenes() {
                 }
               >
 
-                {
-                  aniosDisponibles.map(
-                    (
-                      item
-                    ) => (
+                {aniosDisponibles.map(
+                  (item) => (
 
-                      <option
-                        key={
-                          item
-                        }
-                        value={
-                          item
-                        }
-                      >
-                        {item}
-                      </option>
+                    <option
+                      key={item}
+                      value={item}
+                    >
+                      {item}
+                    </option>
 
-                    )
                   )
-                }
+                )}
 
               </CFormSelect>
-
-            </CCol>
-
-
-            <CCol
-              md={3}
-            >
-
-              <CFormLabel>
-                Estado
-              </CFormLabel>
-
-
-              <CFormSelect
-                value={
-                  estado
-                }
-                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                  setEstado(
-                    e.target
-                      .value as EstadoFiltro
-                  )
-                }
-              >
-
-                <option value="todas">
-                  Todas las ventas
-                </option>
-
-                <option value="cobradas">
-                  Cobradas
-                </option>
-
-                <option value="pendientes">
-                  Pendientes
-                </option>
-
-              </CFormSelect>
-
-            </CCol>
-
-
-            <CCol
-              md={5}
-            >
-
-              <CFormLabel>
-                Buscar en las ventas
-              </CFormLabel>
-
-
-              <CInputGroup>
-
-                <CInputGroupText>
-
-                  <Search
-                    size={16}
-                  />
-
-                </CInputGroupText>
-
-
-                <CFormInput
-                  value={
-                    busqueda
-                  }
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                    setBusqueda(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Venta, cliente o producto..."
-                />
-
-              </CInputGroup>
 
             </CCol>
 
@@ -600,360 +846,631 @@ export default function Resumenes() {
       </CCard>
 
 
-      {/* =====================================
+      {/* ==================================================
           ERROR
-      ====================================== */}
+      ================================================== */}
 
-      {
-        error
-        &&
-        (
-          <div
-            className="
-              reporte-error
-            "
-          >
-            {error}
-          </div>
-        )
-      }
+      {error && (
+
+        <div className="reporte-error">
+
+          {error}
+
+        </div>
+
+      )}
 
 
-      {/* =====================================
+      {/* ==================================================
           CARGANDO
-      ====================================== */}
+      ================================================== */}
 
-      {
-        cargando
-        &&
-        !reporte
-        ? (
+      {cargando && !reporte ? (
 
-          <div
-            className="
-              reporte-cargando
-            "
-          >
+        <div className="reporte-cargando">
 
-            <CSpinner
-              color="primary"
-            />
+          <CSpinner
+            color="primary"
+          />
 
-            <span>
-              Cargando reporte...
-            </span>
+          <span>
+            Cargando reporte...
+          </span>
 
-          </div>
+        </div>
 
-        )
-        : reporte
-          ? (
-            <>
+      ) : reporte ? (
 
-              {/* =============================
-                  KPIs
-              ============================== */}
+        <>
+
+
+          {/* =================================================
+              KPIs
+          ================================================= */}
+
+          <div className="reporte-kpis">
+
+
+            {/* FACTURACIÓN */}
+
+            <div className="reporte-kpi">
 
               <div
                 className="
-                  reporte-kpis
+                  reporte-kpi-icon
+                  kpi-verde
                 "
               >
 
-                <div
-                  className="
-                    reporte-kpi
-                  "
-                >
+                <DollarSign
+                  size={22}
+                />
 
-                  <div
-                    className="
-                      reporte-kpi-icon
-                      kpi-verde
-                    "
-                  >
-
-                    <DollarSign
-                      size={22}
-                    />
-
-                  </div>
-
-                  <div>
-
-                    <small>
-                      Facturación del mes
-                    </small>
-
-                    <strong>
-                      $
-                      {
-                        dinero(
-                          reporte
-                            .resumen
-                            .total_vendido
-                        )
-                      }
-                    </strong>
-
-                  </div>
-
-                </div>
+              </div>
 
 
-                <div
-                  className="
-                    reporte-kpi
-                  "
-                >
+              <div>
 
-                  <div
-                    className="
-                      reporte-kpi-icon
-                      kpi-azul
-                    "
-                  >
+                <small>
+                  Facturación del mes
+                </small>
+
+                <strong>
+                  $
+                  {
+                    dinero(
+                      reporte
+                        .resumen
+                        .total_vendido
+                    )
+                  }
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            {/* VENTAS */}
+
+            <div className="reporte-kpi">
+
+              <div
+                className="
+                  reporte-kpi-icon
+                  kpi-azul
+                "
+              >
+
+                <ReceiptText
+                  size={22}
+                />
+
+              </div>
+
+
+              <div>
+
+                <small>
+                  Ventas realizadas
+                </small>
+
+                <strong>
+                  {
+                    reporte
+                      .resumen
+                      .cantidad_ventas
+                  }
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            {/* COBRADO */}
+
+            <div className="reporte-kpi">
+
+              <div
+                className="
+                  reporte-kpi-icon
+                  kpi-celeste
+                "
+              >
+
+                <WalletCards
+                  size={22}
+                />
+
+              </div>
+
+
+              <div>
+
+                <small>
+                  Total cobrado
+                </small>
+
+                <strong>
+                  $
+                  {
+                    dinero(
+                      reporte
+                        .resumen
+                        .total_cobrado
+                    )
+                  }
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            {/* PENDIENTE */}
+
+            <div className="reporte-kpi">
+
+              <div
+                className="
+                  reporte-kpi-icon
+                  kpi-naranja
+                "
+              >
+
+                <CalendarDays
+                  size={22}
+                />
+
+              </div>
+
+
+              <div>
+
+                <small>
+                  Pendiente del mes
+                </small>
+
+                <strong>
+                  $
+                  {
+                    dinero(
+                      reporte
+                        .resumen
+                        .total_pendiente_mes
+                    )
+                  }
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            {/* DEUDA TOTAL */}
+
+            <div
+              className="
+                reporte-kpi
+                reporte-kpi-deuda
+              "
+            >
+
+              <div
+                className="
+                  reporte-kpi-icon
+                  kpi-rojo
+                "
+              >
+
+                <Users
+                  size={22}
+                />
+
+              </div>
+
+
+              <div>
+
+                <small>
+                  Deuda total actual
+                </small>
+
+                <strong>
+                  $
+                  {
+                    dinero(
+                      reporte
+                        .deuda_actual
+                        .total_deuda
+                    )
+                  }
+                </strong>
+
+                <span>
+
+                  {
+                    reporte
+                      .deuda_actual
+                      .clientes_morosos
+                  }
+
+                  {" "}
+
+                  {
+                    reporte
+                      .deuda_actual
+                      .clientes_morosos === 1
+                      ? "cliente moroso"
+                      : "clientes morosos"
+                  }
+
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* =================================================
+              GRÁFICOS
+          ================================================= */}
+
+          <CRow
+            className="
+              g-3
+              mb-3
+            "
+          >
+
+            <CCol
+              xs={12}
+              lg={8}
+            >
+
+              <GraficoVentasPorDia
+                datos={
+                  reporte
+                    .ventas_por_dia
+                }
+                mes={mes}
+                anio={anio}
+              />
+
+            </CCol>
+
+
+            <CCol
+              xs={12}
+              lg={4}
+            >
+
+              <GraficoEstadoVentas
+                totalCobrado={
+                  reporte
+                    .resumen
+                    .total_cobrado
+                }
+                totalPendiente={
+                  reporte
+                    .resumen
+                    .total_pendiente_mes
+                }
+              />
+
+            </CCol>
+
+          </CRow>
+
+
+          {/* =================================================
+              REGISTRO
+          ================================================= */}
+
+          <CCard
+            id="registro-ventas"
+            className="reporte-tabla-card"
+          >
+
+            <CCardBody>
+
+
+              {/* =============================================
+                  CABECERA
+              ============================================= */}
+
+              <div className="registro-ventas-header">
+
+                <div>
+
+                  <div className="registro-ventas-titulo">
 
                     <ReceiptText
-                      size={22}
+                      size={20}
+                      color="#2563eb"
                     />
 
-                  </div>
-
-                  <div>
-
-                    <small>
-                      Ventas realizadas
-                    </small>
-
-                    <strong>
-                      {
-                        reporte
-                          .resumen
-                          .cantidad_ventas
-                      }
-                    </strong>
+                    <h4>
+                      Registro de ventas
+                    </h4>
 
                   </div>
+
+
+                  <p>
+                    Consultá y filtrá las ventas
+                    realizadas durante el período
+                    seleccionado.
+                  </p>
 
                 </div>
 
 
-                <div
-                  className="
-                    reporte-kpi
-                  "
-                >
+                <div className="registro-contador">
 
-                  <div
-                    className="
-                      reporte-kpi-icon
-                      kpi-celeste
-                    "
-                  >
+                  {ventasFiltradas.length}
 
-                    <WalletCards
-                      size={22}
-                    />
+                  <span>
 
-                  </div>
+                    {ventasFiltradas.length === 1
+                      ? " venta"
+                      : " ventas"
+                    }
 
-                  <div>
-
-                    <small>
-                      Total cobrado
-                    </small>
-
-                    <strong>
-                      $
-                      {
-                        dinero(
-                          reporte
-                            .resumen
-                            .total_cobrado
-                        )
-                      }
-                    </strong>
-
-                  </div>
-
-                </div>
-
-
-                <div
-                  className="
-                    reporte-kpi
-                  "
-                >
-
-                  <div
-                    className="
-                      reporte-kpi-icon
-                      kpi-naranja
-                    "
-                  >
-
-                    <CalendarDays
-                      size={22}
-                    />
-
-                  </div>
-
-                  <div>
-
-                    <small>
-                      Pendiente del mes
-                    </small>
-
-                    <strong>
-                      $
-                      {
-                        dinero(
-                          reporte
-                            .resumen
-                            .total_pendiente_mes
-                        )
-                      }
-                    </strong>
-
-                  </div>
-
-                </div>
-
-
-                <div
-                  className="
-                    reporte-kpi
-                    reporte-kpi-deuda
-                  "
-                >
-
-                  <div
-                    className="
-                      reporte-kpi-icon
-                      kpi-rojo
-                    "
-                  >
-
-                    <Users
-                      size={22}
-                    />
-
-                  </div>
-
-                  <div>
-
-                    <small>
-                      Deuda total actual
-                    </small>
-
-                    <strong>
-                      $
-                      {
-                        dinero(
-                          reporte
-                            .deuda_actual
-                            .total_deuda
-                        )
-                      }
-                    </strong>
-
-                    <span>
-                      {
-                        reporte
-                          .deuda_actual
-                          .clientes_morosos
-                      }
-                      {" "}
-                      clientes morosos
-                    </span>
-
-                  </div>
+                  </span>
 
                 </div>
 
               </div>
 
 
-              {/* =============================
-                  GRÁFICOS
-              ============================== */}
+              {/* =============================================
+                  FILTROS
+              ============================================= */}
 
-              <CRow
-                className="
-                  g-3
-                  mb-3
-                "
-              >
+              <div className="filtros-registro">
 
-                <CCol
-                  lg={8}
-                >
+                {/* ESTADO */}
 
-                  <GraficoVentasPorDia
-                    datos={
-                      reporte
-                        .ventas_por_dia
+                <div className="filtro-estado">
+
+                  <CFormLabel>
+                    Estado
+                  </CFormLabel>
+
+
+                  <CFormSelect
+                    value={estado}
+                    onChange={(e) =>
+                      setEstado(
+                        e.target
+                          .value as EstadoFiltro
+                      )
                     }
-                    mes={
-                      mes
-                    }
-                    anio={
-                      anio
-                    }
-                  />
+                  >
 
-                </CCol>
+                    <option value="todas">
+                      Todas las ventas
+                    </option>
 
+                    <option value="cobradas">
+                      Cobradas
+                    </option>
 
-                <CCol
-                  lg={4}
-                >
+                    <option value="pendientes">
+                      Pendientes
+                    </option>
 
-                  <GraficoEstadoVentas
-                    totalCobrado={
-                      reporte
-                        .resumen
-                        .total_cobrado
-                    }
-                    totalPendiente={
-                      reporte
-                        .resumen
-                        .total_pendiente_mes
-                    }
-                  />
+                  </CFormSelect>
 
-                </CCol>
-
-              </CRow>
+                </div>
 
 
-              {/* =============================
-                  TABLA
-              ============================== */}
+                {/* BÚSQUEDA */}
 
-              <CCard
-                className="
-                  reporte-tabla-card
-                "
-              >
+                <div className="filtro-busqueda">
 
-                <CCardBody>
+                  <CFormLabel>
+                    Buscar en el registro
+                  </CFormLabel>
 
-                  <TablaVentasMensuales
-                    ventas={
-                      ventasFiltradas
-                    }
-                  />
 
-                </CCardBody>
+                  <CInputGroup>
 
-              </CCard>
+                    <CInputGroupText>
 
-            </>
-          )
-          : null
-      }
+                      <Search
+                        size={16}
+                      />
+
+                    </CInputGroupText>
+
+
+                    <CFormInput
+                      value={busqueda}
+                      onChange={(e) =>
+                        setBusqueda(
+                          e.target.value
+                        )
+                      }
+                      placeholder="Venta, cliente o producto..."
+                    />
+
+                  </CInputGroup>
+
+                </div>
+
+              </div>
+
+
+              {/* =============================================
+                  TABLA PAGINADA
+              ============================================= */}
+
+              <div className="registro-tabla-contenedor">
+
+                <TablaVentasMensuales
+                  ventas={
+                    ventasPaginadas
+                  }
+                />
+
+              </div>
+
+
+              {/* =============================================
+                  PAGINACIÓN
+              ============================================= */}
+
+              {ventasFiltradas.length > 0 && (
+
+                <div className="paginacion-reportes">
+
+
+                  {/* INFORMACIÓN */}
+
+                  <div className="paginacion-info">
+
+                    Mostrando
+
+                    <strong>
+                      {" "}
+                      {desde}
+                      –
+                      {hasta}
+                      {" "}
+                    </strong>
+
+                    de
+
+                    <strong>
+                      {" "}
+                      {
+                        ventasFiltradas
+                          .length
+                      }
+                      {" "}
+                    </strong>
+
+                    ventas
+
+                  </div>
+
+
+                  {/* BOTONES */}
+
+                  <div className="paginacion-controles">
+
+                    <button
+                      type="button"
+                      className="paginacion-boton paginacion-anterior"
+                      disabled={
+                        paginaActual === 1
+                      }
+                      onClick={() =>
+                        cambiarPagina(
+                          paginaActual - 1
+                        )
+                      }
+                    >
+
+                      <ChevronLeft
+                        size={17}
+                      />
+
+                      <span>
+                        Anterior
+                      </span>
+
+                    </button>
+
+
+                    <div className="paginacion-numeros">
+
+                      {paginasVisibles.map(
+                        (pagina) => (
+
+                          <button
+                            key={pagina}
+                            type="button"
+                            className={`paginacion-boton paginacion-numero ${
+                              paginaActual ===
+                                pagina
+                                ? "paginacion-activa"
+                                : ""
+                            }`}
+                            onClick={() =>
+                              cambiarPagina(
+                                pagina
+                              )
+                            }
+                          >
+                            {pagina}
+                          </button>
+
+                        )
+                      )}
+
+                    </div>
+
+
+                    <button
+                      type="button"
+                      className="paginacion-boton paginacion-siguiente"
+                      disabled={
+                        paginaActual ===
+                        totalPaginas
+                      }
+                      onClick={() =>
+                        cambiarPagina(
+                          paginaActual + 1
+                        )
+                      }
+                    >
+
+                      <span>
+                        Siguiente
+                      </span>
+
+                      <ChevronRight
+                        size={17}
+                      />
+
+                    </button>
+
+                  </div>
+
+
+                  <div className="paginacion-pagina">
+
+                    Página
+                    {" "}
+                    <strong>
+                      {paginaActual}
+                    </strong>
+                    {" "}
+                    de
+                    {" "}
+                    <strong>
+                      {totalPaginas}
+                    </strong>
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </CCardBody>
+
+          </CCard>
+
+        </>
+
+      ) : null}
 
     </div>
   );
