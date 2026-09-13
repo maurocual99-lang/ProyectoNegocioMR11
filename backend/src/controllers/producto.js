@@ -6,41 +6,101 @@ async function listar_productos(req, res) {
     res.json(productos);
 
 }
+
 async function crearProducto(req, res) {
-  try {
-    //obtenemos las datos solicitados desde el front
-    const { codigo_barra, stock, categoria,precio , nombre } = req.body;
+    try {
 
-    const existe = await productoModel.buscarProducto(codigo_barra);
+        const {
+            codigo_barra,
+            stock,
+            categoria,
+            precio,
+            nombre,
+            tipo_venta
+        } = req.body;
 
-    if(!existe){
 
-      // Le paso los datos a la base de datos en orden exacto
-      const producto = await productoModel.crearProducto(
-        codigo_barra, 
-        stock, 
-        categoria,
-        precio,
-        nombre
-      );
+        if (!nombre?.trim()) {
+            return res.status(400).json({
+                mensaje: "El nombre es obligatorio."
+            });
+        }
 
-      res.status(201).json({
-        existe: false,
-        producto}); //Codigo de exito 201
 
-    } else{
-      return res.json({
-        existe: true
-      });
+        if (
+            !tipo_venta ||
+            !["UNIDAD", "PESO"].includes(tipo_venta)
+        ) {
+            return res.status(400).json({
+                mensaje: "Tipo de venta inválido."
+            });
+        }
+
+
+        /*
+         * Los productos por UNIDAD necesitan
+         * código de barras.
+         *
+         * Los productos por PESO pueden no tenerlo.
+         */
+        if (
+            tipo_venta === "UNIDAD" &&
+            !codigo_barra?.trim()
+        ) {
+            return res.status(400).json({
+                mensaje:
+                    "Los productos por unidad necesitan código de barras."
+            });
+        }
+
+
+        let existe = null;
+
+        if (codigo_barra?.trim()) {
+            existe =
+                await productoModel.buscarProducto(
+                    codigo_barra.trim()
+                );
+        }
+
+
+        if (existe) {
+            return res.json({
+                existe: true,
+                producto: existe
+            });
+        }
+
+
+        const producto =
+            await productoModel.crearProducto(
+                codigo_barra?.trim() || null,
+                stock,
+                categoria,
+                precio,
+                nombre.trim(),
+                tipo_venta
+            );
+
+
+        res.status(201).json({
+            existe: false,
+            producto
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Error al crear producto:",
+            error
+        );
+
+        res.status(500).json({
+            mensaje:
+                "Hubo un error al intentar guardar el producto."
+        });
+
     }
-      
-
-  } catch (error) {
-    console.error("Error en el controlador al crear producto:", error);//Si existe un producto creado agarramos el error
-    res.status(500).json({  //notificar al front del error
-      mensaje: "Hubo un error al intentar guardar el producto." 
-    });
-  }
 }
 
 async function agregarStock(req,res){

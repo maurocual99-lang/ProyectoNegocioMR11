@@ -38,27 +38,42 @@ async function modificar_producto(producto) {
 }
 
 //Funcion para crear un nuevo producto
-async function crearProducto(codigo_barra, stock, categoria, precio,nombre) {
-    try {
-        const query= `
-        INSERT INTO producto(codigo_barra, stock, categoria, precio, nombre) 
-        VALUES($1,$2,$3,$4,$5)
-        RETURNING *`;
-        const valores = [
+async function crearProducto(
+    codigo_barra,
+    stock,
+    categoria,
+    precio,
+    nombre,
+    tipo_venta
+) {
+    const query = `
+        INSERT INTO producto (
             codigo_barra,
             stock,
             categoria,
             precio,
-            nombre
-        ];
-        const resultado = await db.query(query, valores)
-        console.log("¡Producto creado con éxito!");
-    return resultado.rows[0]; // Devuelve el producto con su nuevo ID
+            nombre,
+            tipo_venta
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *;
+    `;
 
-    }catch (error) {
-        console.error("Error al guardar el producto en la base de datos:", error);
-    throw error;
-  }
+    const valores = [
+        codigo_barra || null,
+        Number(stock),
+        categoria,
+        Number(precio),
+        nombre,
+        tipo_venta || "UNIDAD"
+    ];
+
+    const resultado = await db.query(
+        query,
+        valores
+    );
+
+    return resultado.rows[0];
 }
 
 async function eliminarProducto(codigo_barra) {
@@ -75,11 +90,21 @@ async function eliminarProducto(codigo_barra) {
 }
 
 async function buscarProducto(codigo_barra) {
+
+    if (!codigo_barra) {
+        return null;
+    }
+
     const resultado = await db.query(
-        `SELECT * FROM producto WHERE codigo_barra = $1`,
+        `
+        SELECT *
+        FROM producto
+        WHERE codigo_barra = $1
+        `,
         [codigo_barra]
-    )
-    return resultado.rows[0];
+    );
+
+    return resultado.rows[0] || null;
 }
 
 async function agregarStock(codigo_barra, stock) {

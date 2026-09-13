@@ -28,6 +28,16 @@ import {
   TriangleAlert,
 } from "lucide-react";
 
+type TipoVenta = "UNIDAD" | "PESO";
+
+interface ProductoPendiente {
+  codigo_barra: string | null;
+  nombre: string;
+  precio: number;
+  stock: number;
+  categoria: Categoria;
+  tipo_venta: TipoVenta;
+}
 
 const categorias = [
   "Bebidas",
@@ -42,15 +52,6 @@ type Categoria =
   (typeof categorias)[number];
 
 
-interface ProductoPendiente {
-  codigo_barra: string;
-  nombre: string;
-  precio: number;
-  stock: number;
-  categoria: Categoria;
-}
-
-
 type Props = {
   recargar: () => void | Promise<void>;
 };
@@ -60,6 +61,8 @@ export default function ProductoCreate({
   recargar,
 }: Props) {
 
+  const [tipoVenta, setTipoVenta] =
+    useState<TipoVenta>("UNIDAD");
 
   const [
     mostrarFormulario,
@@ -155,6 +158,7 @@ export default function ProductoCreate({
     setMostrarPregunta(
       false
     );
+    setTipoVenta("UNIDAD");
   }
 
   function cerrarFormulario() {
@@ -184,9 +188,12 @@ export default function ProductoCreate({
     e.preventDefault();
 
 
-    if (!codigoBarra.trim()) {
+    if (
+      tipoVenta === "UNIDAD" &&
+      !codigoBarra.trim()
+    ) {
       alert(
-        "El código de barras es obligatorio."
+        "El código de barras es obligatorio para productos vendidos por unidad."
       );
 
       return;
@@ -229,11 +236,10 @@ export default function ProductoCreate({
     }
 
 
-    const nuevoProducto:
-      ProductoPendiente = {
+    const nuevoProducto: ProductoPendiente = {
 
       codigo_barra:
-        codigoBarra.trim(),
+        codigoBarra.trim() || null,
 
       nombre:
         nombre.trim(),
@@ -247,6 +253,9 @@ export default function ProductoCreate({
         Number(stock),
 
       categoria,
+
+      tipo_venta:
+        tipoVenta,
     };
 
 
@@ -629,7 +638,30 @@ export default function ProductoCreate({
                   col-md-6
                 "
               >
+            <div className="col-md-6">
 
+              <CFormLabel>
+                Forma de venta
+              </CFormLabel>
+
+              <CFormSelect
+                value={tipoVenta}
+                onChange={(e) =>
+                  setTipoVenta(
+                    e.target.value as TipoVenta
+                  )
+                }
+              >
+                <option value="UNIDAD">
+                  Por unidad
+                </option>
+
+                <option value="PESO">
+                  Por peso
+                </option>
+              </CFormSelect>
+
+            </div>
                 <CFormLabel>
                   Código de Barras
                 </CFormLabel>
@@ -659,11 +691,15 @@ export default function ProductoCreate({
                       )
                     }
 
-                    placeholder="Ej: 7791234567890"
+                    required={tipoVenta === "UNIDAD"}
 
+                    placeholder=  {
+                      tipoVenta === "PESO"
+                    ? "Opcional para productos por peso"
+                    : "Ej: 7791234567890"
+                    }
                     autoFocus
 
-                    required
                   />
 
                 </CInputGroup>
@@ -781,8 +817,11 @@ export default function ProductoCreate({
                 "
               >
 
-                <CFormLabel>
-                  Stock Inicial
+                <CFormLabel>{
+                  tipoVenta === "PESO"
+                    ? "Stock inicial (kg)"
+                    : "Stock inicial (unidades)"
+                  }
                 </CFormLabel>
 
 
@@ -802,7 +841,11 @@ export default function ProductoCreate({
 
                     min="0"
 
-                    step="1"
+                    step={
+                      tipoVenta === "PESO"
+                        ? "0.001"
+                        : "1"
+                    }
 
                     value={
                       stock
@@ -824,14 +867,14 @@ export default function ProductoCreate({
               </div>
 
 
-              <div
-                className="
-                  col-md-6
-                "
-              >
+              <div className="text-muted">
+                
 
                 <CFormLabel>
-                  Costo del Producto ($)
+                  {tipoVenta === "PESO"
+                  ? "Precio de venta por kg"
+                  : "Precio de venta por unidad"
+                }
                 </CFormLabel>
 
 
