@@ -6,6 +6,14 @@ export interface DetalleVentaReporte {
   precio_unitario: number;
   subtotal: number;
 }
+export interface DeudorReporte {
+  id: number;
+  nombre: string;
+  apellido: string;
+  apodo: string | null;
+  ventas_pendientes: number;
+  deuda_total: number;
+}
 
 export interface VentaReporte {
   id: number;
@@ -34,6 +42,7 @@ export interface ReporteMensual {
     anio: number;
   };
 
+  deudores: DeudorReporte[];
   resumen: {
     cantidad_ventas: number;
     total_vendido: number;

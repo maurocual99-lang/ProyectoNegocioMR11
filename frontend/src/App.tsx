@@ -84,71 +84,90 @@ type DatosInicio = {
    LAYOUT
 ====================================================== */
 
-function Layout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+function Layout({ children }) {
 
   const [
     sidebarOpen,
-    setSidebarOpen,
-  ] = useState(
-    () =>
-      window.innerWidth > 1024
-  );
+    setSidebarOpen
+  ] = useState(true);
+
 
   return (
-    <div className="layout-principal">
+
+    <div
+      className="
+        layout-principal
+      "
+    >
 
       <Sidebar
-        isOpen={sidebarOpen}
-        setIsOpen={setSidebarOpen}
+        isOpen={
+          sidebarOpen
+        }
+        setIsOpen={
+          setSidebarOpen
+        }
       />
 
+
       {sidebarOpen && (
+
         <div
-          className="sidebar-overlay"
+          className="
+            sidebar-overlay
+          "
           onClick={() =>
-            setSidebarOpen(false)
+            setSidebarOpen(
+              false
+            )
           }
         />
+
       )}
 
+
       <main
-        className={`contenido ${
-          sidebarOpen
-            ? "contenido-sidebar-abierto"
-            : ""
-        }`}
+        className={`
+          contenido
+          ${
+            sidebarOpen
+              ? "contenido-sidebar-abierto"
+              : "contenido-sidebar-cerrado"
+          }
+        `}
       >
 
         <button
-          className={`btn-toggle-sidebar ${
-            sidebarOpen
-              ? "toggle-sidebar-abierto"
-              : ""
-          }`}
+          className={`
+            btn-toggle-sidebar
+            ${
+              sidebarOpen
+                ? "toggle-sidebar-abierto"
+                : ""
+            }
+          `}
           onClick={() =>
             setSidebarOpen(
-              !sidebarOpen
+              actual =>
+                !actual
             )
           }
         >
 
-          {sidebarOpen ? (
-            <X size={20} />
-          ) : (
-            <Menu size={20} />
-          )}
+          {sidebarOpen
+            ? <X size={20} />
+            : <Menu size={20} />
+          }
 
         </button>
+
 
         {children}
 
       </main>
 
     </div>
+
   );
 }
 

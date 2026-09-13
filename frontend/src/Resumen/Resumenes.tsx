@@ -84,7 +84,9 @@ const VENTAS_POR_PAGINA = 8;
 function dinero(
   valor: number
 ) {
-  return valor.toLocaleString(
+  return Number(
+    valor || 0
+  ).toLocaleString(
     "es-AR",
     {
       minimumFractionDigits: 2,
@@ -199,7 +201,7 @@ export default function Resumenes() {
   useEffect(
     () => {
 
-      cargarReporte();
+      void cargarReporte();
 
     },
     [
@@ -295,6 +297,17 @@ export default function Resumenes() {
         anioActual,
       ]
     );
+
+
+  /* ====================================================
+     DEUDORES
+
+     Evita que la pantalla se rompa si el backend todavía
+     devuelve un reporte sin la propiedad "deudores".
+  ==================================================== */
+
+  const deudores =
+    reporte?.deudores ?? [];
 
 
   /* ====================================================
@@ -673,6 +686,34 @@ export default function Resumenes() {
 
 
   /* ====================================================
+     COBRADO DE LAS VENTAS DEL MES
+
+     "total_cobrado" ahora puede incluir pagos de deudas
+     de meses anteriores. Para el gráfico de estado usamos
+     solamente lo vendido este mes menos lo que queda
+     pendiente de esas ventas.
+  ==================================================== */
+
+  const cobradoDeVentasDelMes =
+    reporte
+      ? Math.max(
+          0,
+          Number(
+            reporte
+              .resumen
+              .total_vendido || 0
+          )
+          -
+          Number(
+            reporte
+              .resumen
+              .total_pendiente_mes || 0
+          )
+        )
+      : 0;
+
+
+  /* ====================================================
      RENDER
   ==================================================== */
 
@@ -989,7 +1030,7 @@ export default function Resumenes() {
               <div>
 
                 <small>
-                  Total cobrado
+                  Ingresó a caja
                 </small>
 
                 <strong>
@@ -1116,6 +1157,147 @@ export default function Resumenes() {
 
 
           {/* =================================================
+              PERSONAS CON DEUDA
+
+              IMPORTANTE:
+              Esta tarjeta va AFUERA de reporte-kpis.
+          ================================================= */}
+
+          <CCard className="mb-3">
+
+            <CCardBody>
+
+              <div
+                className="
+                  d-flex
+                  align-items-center
+                  gap-2
+                  mb-3
+                "
+              >
+
+                <Users
+                  size={20}
+                  color="#dc2626"
+                />
+
+                <h4
+                  className="mb-0"
+                >
+                  Personas con deuda
+                </h4>
+
+              </div>
+
+
+              {deudores.length === 0 ? (
+
+                <div
+                  className="
+                    text-muted
+                    text-center
+                    py-4
+                  "
+                >
+                  No hay clientes con deuda.
+                </div>
+
+              ) : (
+
+                deudores.map(
+                  (cliente) => (
+
+                    <div
+                      key={cliente.id}
+                      className="
+                        d-flex
+                        justify-content-between
+                        align-items-center
+                        py-3
+                      "
+                      style={{
+                        borderBottom:
+                          "1px solid #e5e7eb",
+                      }}
+                    >
+
+                      <div>
+
+                        <strong>
+                          {cliente.nombre}
+                          {" "}
+                          {cliente.apellido}
+                        </strong>
+
+
+                        {cliente.apodo && (
+
+                          <div
+                            className="
+                              text-muted
+                            "
+                          >
+                            {cliente.apodo}
+                          </div>
+
+                        )}
+
+
+                        <small
+                          className="
+                            text-muted
+                          "
+                        >
+                          {
+                            cliente
+                              .ventas_pendientes
+                          }
+
+                          {" "}
+
+                          {
+                            cliente
+                              .ventas_pendientes === 1
+                              ? "venta pendiente"
+                              : "ventas pendientes"
+                          }
+                        </small>
+
+                      </div>
+
+
+                      <strong
+                        style={{
+                          color:
+                            "#dc2626",
+                          fontSize:
+                            "1.1rem",
+                          whiteSpace:
+                            "nowrap",
+                        }}
+                      >
+                        $
+                        {
+                          dinero(
+                            cliente
+                              .deuda_total
+                          )
+                        }
+                      </strong>
+
+                    </div>
+
+                  )
+                )
+
+              )}
+
+            </CCardBody>
+
+          </CCard>
+
+
+          {/* =================================================
               GRÁFICOS
           ================================================= */}
 
@@ -1150,9 +1332,7 @@ export default function Resumenes() {
 
               <GraficoEstadoVentas
                 totalCobrado={
-                  reporte
-                    .resumen
-                    .total_cobrado
+                  cobradoDeVentasDelMes
                 }
                 totalPendiente={
                   reporte

@@ -440,3 +440,104 @@
   }
 
 }
+/* =====================================================
+   FIX VISUAL SIDEBAR
+===================================================== */
+
+.layout-principal .sidebar {
+  background:
+    linear-gradient(
+      180deg,
+      #168fc0 0%,
+      #11759e 100%
+    ) !important;
+
+  opacity: 1 !important;
+
+  visibility:
+    visible;
+}
+
+
+.layout-principal
+.sidebar-item {
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.92
+    )
+    !important;
+
+  opacity:
+    1
+    !important;
+}
+
+
+.layout-principal
+.sidebar-item svg {
+  color:
+    currentColor
+    !important;
+
+  opacity:
+    1
+    !important;
+}
+
+
+.layout-principal
+.sidebar-item span {
+  color:
+    currentColor
+    !important;
+
+  opacity:
+    1
+    !important;
+}
+
+
+.layout-principal
+.sidebar-item:hover {
+  color:
+    #ffffff
+    !important;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.14
+    )
+    !important;
+}
+
+
+.layout-principal
+.sidebar-item-activo {
+  color:
+    #ffffff
+    !important;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.22
+    )
+    !important;
+
+  border-color:
+    rgba(
+      255,
+      255,
+      255,
+      0.9
+    )
+    !important;
+}

@@ -75,22 +75,104 @@ async function obtenerDeudas(req, res) {
         res.status(500).json({ mensaje: "Error al obtener las deudas del cliente." });
     }
 }
+async function obtenerHistorial(
+    req,
+    res
+) {
 
-async function procesarPago(req, res) {
     try {
-        const { ventas_ids } = req.body;
-        
-        if (!ventas_ids || ventas_ids.length === 0) {
-            return res.status(400).json({ mensaje: "Debes seleccionar al menos una venta para pagar." });
+
+        const historial =
+            await ventaModel
+                .obtenerHistorialCliente(
+                    req.params.cliente_id
+                );
+
+        res.json(
+            historial
+        );
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+        res.status(500).json({
+            mensaje:
+                "No se pudo obtener el historial."
+        });
+
+    }
+}
+
+async function procesarPago(
+    req,
+    res
+) {
+
+    try {
+
+        const {
+            cliente_id,
+            aplicaciones
+        } = req.body;
+
+
+        if (!cliente_id) {
+
+            return res.status(400).json({
+                mensaje:
+                    "Falta el cliente."
+            });
+
         }
 
-        const ventasPagadas = await ventaModel.pagarVentas(ventas_ids);
-        res.status(200).json({ 
-            mensaje: "Pago registrado con Exito", 
-            ventas_actualizadas: ventasPagadas.length 
+
+        if (
+            !Array.isArray(
+                aplicaciones
+            ) ||
+            aplicaciones.length === 0
+        ) {
+
+            return res.status(400).json({
+                mensaje:
+                    "Seleccioná al menos una venta."
+            });
+
+        }
+
+
+        const pago =
+            await ventaModel
+                .registrarPago(
+                    cliente_id,
+                    aplicaciones
+                );
+
+
+        res.status(200).json({
+            mensaje:
+                "Pago registrado correctamente.",
+            pago
         });
+
+
     } catch (error) {
-        res.status(500).json({ mensaje: "Error al procesar el pago." });
+
+        console.error(
+            "Error al procesar pago:",
+            error
+        );
+
+
+        res.status(400).json({
+            mensaje:
+                error.message ||
+                "No se pudo registrar el pago."
+        });
+
     }
 }
 
@@ -137,11 +219,56 @@ async function quitarCliente(req, res) {
         });
     }
 }
+async function agregarProductoPeso(
+    req,
+    res
+) {
+    try {
+
+        const {
+            producto_id,
+            cantidad_kg
+        } = req.body;
+
+
+        const resultado =
+            await ventaModel
+                .agregarProductoPorPeso(
+                    req.params.venta_id,
+                    producto_id,
+                    cantidad_kg
+                );
+
+
+        if (resultado.error) {
+            return res
+                .status(400)
+                .json(resultado);
+        }
+
+
+        res.json(resultado);
+
+    } catch (error) {
+
+        console.error(
+            "Error al agregar producto por peso:",
+            error
+        );
+
+        res.status(500).json({
+            mensaje:
+                "No se pudo agregar el producto por peso."
+        });
+
+    }
+}
 
 module.exports = {
     crearVenta,
     obtenerResumen,
     agregarProducto,
+    agregarProductoPeso,
     actualizarCantidad,
     eliminarProducto,
     finalizarVenta,
@@ -149,5 +276,6 @@ module.exports = {
     procesarPago,
     listarClientesMorosos,
     quitarCliente,
-    asociarCliente
+    asociarCliente,
+    obtenerHistorial
 };

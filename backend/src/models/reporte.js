@@ -128,6 +128,88 @@ async function obtenerReporteMensual(
       );
 
 
+      const cajaResult =
+    await db.query(
+        `
+        SELECT
+
+            /* Ventas cobradas en el momento */
+            COALESCE(
+                (
+                    SELECT
+                        SUM(v.total)
+
+                    FROM venta v
+
+                    WHERE
+                        v.finalizada = TRUE
+
+                        AND
+                        COALESCE(
+                            v.cuenta_pendiente,
+                            FALSE
+                        ) = FALSE
+
+                        AND
+                        v.fecha_venta >=
+                            make_date(
+                                $1::int,
+                                $2::int,
+                                1
+                            )
+
+                        AND
+                        v.fecha_venta <
+                            (
+                                make_date(
+                                    $1::int,
+                                    $2::int,
+                                    1
+                                )
+                                +
+                                INTERVAL '1 month'
+                            )
+                ),
+                0
+            )
+
+            +
+
+            /* Pagos de deudas realizados durante el mes */
+            COALESCE(
+                (
+                    SELECT
+                        SUM(p.total)
+
+                    FROM pago p
+
+                    WHERE
+                        p.fecha_pago >=
+                            make_date(
+                                $1::int,
+                                $2::int,
+                                1
+                            )
+
+                        AND
+                        p.fecha_pago <
+                            (
+                                make_date(
+                                    $1::int,
+                                    $2::int,
+                                    1
+                                )
+                                +
+                                INTERVAL '1 month'
+                            )
+                ),
+                0
+            )
+
+            AS total_caja_mes
+        `,
+        parametros
+    );
     /* ==================================================
        2. VENTAS AGRUPADAS POR DÍA
        PARA EL GRÁFICO
@@ -326,46 +408,82 @@ async function obtenerReporteMensual(
        "¿Cuánto me deben actualmente todos
        los clientes morosos?"
     ================================================== */
-
-    const deudaResult =
-      await db.query(
+const deudoresResult =
+    await db.query(
         `
-          SELECT
+        SELECT
+            c.id,
+            c.nombre,
+            c.apellido,
+            c.apodo,
+
+            COUNT(v.id)::int
+                AS ventas_pendientes,
 
             COALESCE(
-              SUM(v.total),
-              0
+                SUM(
+                    v.saldo_pendiente
+                ),
+                0
             )
-              AS total_deuda,
+                AS deuda_total
 
+        FROM cliente c
 
-            COUNT(*)::int
-              AS ventas_pendientes,
+        JOIN venta v
+            ON v.cliente_id =
+               c.id
 
-
-            COUNT(
-              DISTINCT
-              v.cliente_id
-            )::int
-              AS clientes_morosos
-
-
-          FROM venta v
-
-
-          WHERE
-
+        WHERE
             v.finalizada = TRUE
-
             AND
-            v.cuenta_pendiente = TRUE
+            v.saldo_pendiente > 0
 
-            AND
-            v.cliente_id
-              IS NOT NULL;
+        GROUP BY
+            c.id,
+            c.nombre,
+            c.apellido,
+            c.apodo
 
+        ORDER BY
+            deuda_total DESC
         `
-      );
+    );
+
+const deudaResult =
+  await db.query(
+    `
+      SELECT
+
+        COALESCE(
+          SUM(v.saldo_pendiente),
+          0
+        )
+          AS total_deuda,
+
+        COUNT(*)::int
+          AS ventas_pendientes,
+
+        COUNT(
+          DISTINCT
+          v.cliente_id
+        )::int
+          AS clientes_morosos
+
+      FROM venta v
+
+      WHERE
+
+        v.finalizada = TRUE
+
+        AND
+        v.saldo_pendiente > 0
+
+        AND
+        v.cliente_id
+          IS NOT NULL;
+    `
+  );
 
 
     /* ==================================================
@@ -409,7 +527,8 @@ async function obtenerReporteMensual(
     const deuda =
       deudaResult.rows[0];
 
-
+    const caja =
+        cajaResult.rows[0];
     return {
 
       /* ==============================
@@ -449,8 +568,8 @@ async function obtenerReporteMensual(
 
         total_cobrado:
           Number(
-            resumen
-              ?.total_cobrado ||
+            caja
+              ?.total_caja_mes ||
             0
           ),
 
@@ -461,6 +580,38 @@ async function obtenerReporteMensual(
             0
           ),
 
+          deudores:
+            deudoresResult.rows.map(
+              cliente => ({
+
+                id:
+                  cliente.id,
+
+                nombre:
+                  cliente.nombre,
+
+                apellido:
+                  cliente.apellido,
+
+                apodo:
+                  cliente.apodo,
+
+                ventas_pendientes:
+                  Number(
+                    cliente
+                      .ventas_pendientes ||
+                    0
+                  ),
+
+                deuda_total:
+                  Number(
+                    cliente
+                      .deuda_total ||
+                    0
+                  ),
+
+              })
+            ),
       },
 
 

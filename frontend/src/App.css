@@ -1510,3 +1510,193 @@ body,
   }
 
 }
+/* =====================================================
+   LAYOUT DEFINITIVO SIDEBAR
+===================================================== */
+
+.layout-principal {
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+
+/* CONTENIDO */
+
+.contenido {
+  width: 100%;
+  min-width: 0;
+
+  margin-left: 0;
+
+  padding:
+    80px
+    30px
+    30px;
+
+  transition:
+    margin-left 0.3s ease,
+    width 0.3s ease;
+}
+
+
+/* SIDEBAR ABIERTO EN DESKTOP */
+
+.contenido-sidebar-abierto {
+  width:
+    calc(
+      100% - 260px
+    );
+
+  margin-left:
+    260px;
+}
+
+
+/* SIDEBAR CERRADO */
+
+.contenido-sidebar-cerrado {
+  width: 100%;
+  margin-left: 0;
+}
+
+
+/* BOTÓN */
+
+.btn-toggle-sidebar {
+  position: fixed;
+
+  top: 18px;
+  left: 20px;
+
+  z-index: 1200;
+
+  width: 44px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: white;
+
+  background:
+    #2563eb;
+
+  border:
+    1px solid
+    #1d4ed8;
+
+  border-radius:
+    9px;
+
+  box-shadow:
+    0 4px 10px
+    rgba(
+      37,
+      99,
+      235,
+      0.22
+    );
+
+  cursor: pointer;
+
+  transition:
+    left 0.3s ease;
+}
+
+
+.toggle-sidebar-abierto {
+  left: 280px;
+}
+
+
+/* OVERLAY:
+   NO APARECE EN DESKTOP */
+
+.sidebar-overlay {
+  display: none;
+}
+
+
+/* QUE LAS PÁGINAS APROVECHEN EL ANCHO */
+
+.inicio-pagina,
+.pagina-reportes {
+  width: 100% !important;
+  max-width: none !important;
+
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+
+/* =====================================================
+   TABLET / MOBILE
+===================================================== */
+
+@media (
+  max-width: 1024px
+) {
+
+  .contenido,
+  .contenido-sidebar-abierto,
+  .contenido-sidebar-cerrado {
+    width: 100%;
+    margin-left: 0;
+  }
+
+
+  .toggle-sidebar-abierto {
+    left: 280px;
+  }
+
+
+  .sidebar-overlay {
+    display: block;
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1040;
+
+    background:
+      rgba(
+        15,
+        23,
+        42,
+        0.50
+      );
+  }
+
+}
+
+
+/* =====================================================
+   CELULAR
+===================================================== */
+
+@media (
+  max-width: 700px
+) {
+
+  .contenido {
+    padding:
+      72px
+      12px
+      20px;
+  }
+
+
+  .toggle-sidebar-abierto {
+    left:
+      min(
+        calc(82vw + 14px),
+        274px
+      );
+  }
+
+}

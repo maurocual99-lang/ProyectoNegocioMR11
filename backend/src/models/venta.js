@@ -34,51 +34,237 @@ async function crearVentaVacia(
 
 // Trae la venta con su detalle, para armar el resumen
 async function obtenerResumen(venta_id) {
-  const detalleResult = await db.query(
-    `
-      SELECT
-        dv.producto_id,
-        dv.cantidad,
-        dv.precio_unitario,
-        dv.subtotal,
-        p.nombre
-      FROM detalle_venta dv
-      JOIN producto p
-        ON p.id = dv.producto_id
-      WHERE dv.venta_id = $1
-      ORDER BY dv.id
-    `,
-    [venta_id]
-  );
 
-  const detalle =
-    detalleResult.rows;
+    const detalleResult = await db.query(
+        `
+        SELECT
+            dv.producto_id,
+            dv.cantidad,
+            dv.precio_unitario,
+            dv.subtotal,
+            p.nombre,
+            p.tipo_venta
 
-  const total =
-    detalle.reduce(
-      (acc, item) =>
-        acc + Number(item.subtotal),
-      0
+        FROM detalle_venta dv
+
+        JOIN producto p
+            ON p.id = dv.producto_id
+
+        WHERE dv.venta_id = $1
+
+        ORDER BY dv.id
+        `,
+        [venta_id]
     );
 
-  const cantidadProductos =
-    detalle.length;
 
-  const cantidadUnidades =
-    detalle.reduce(
-      (acc, item) =>
-        acc + item.cantidad,
-      0
-    );
+    const detalle =
+        detalleResult.rows.map(item => ({
+            ...item,
+            cantidad: Number(item.cantidad),
+            precio_unitario:
+                Number(item.precio_unitario),
+            subtotal:
+                Number(item.subtotal)
+        }));
 
-  return {
-    detalle,
-    total,
-    cantidadProductos,
-    cantidadUnidades,
-  };
+
+    const total =
+        detalle.reduce(
+            (acc, item) =>
+                acc + item.subtotal,
+            0
+        );
+
+
+    const cantidadProductos =
+        detalle.length;
+
+
+    const cantidadUnidades =
+        detalle
+            .filter(
+                item =>
+                    item.tipo_venta ===
+                    "UNIDAD"
+            )
+            .reduce(
+                (acc, item) =>
+                    acc + item.cantidad,
+                0
+            );
+
+
+    const pesoTotalKg =
+        detalle
+            .filter(
+                item =>
+                    item.tipo_venta ===
+                    "PESO"
+            )
+            .reduce(
+                (acc, item) =>
+                    acc + item.cantidad,
+                0
+            );
+
+
+    return {
+        detalle,
+        total,
+        cantidadProductos,
+        cantidadUnidades,
+        pesoTotalKg
+    };
 }
 
+async function agregarProductoPorPeso(
+    venta_id,
+    producto_id,
+    cantidad_kg
+) {
+
+    const cantidad =
+        Number(cantidad_kg);
+
+
+    if (
+        !Number.isFinite(cantidad) ||
+        cantidad <= 0
+    ) {
+        return {
+            error:
+                "El peso ingresado no es válido.",
+            ...(await obtenerResumen(venta_id))
+        };
+    }
+
+
+    const productoResult =
+        await db.query(
+            `
+            SELECT *
+            FROM producto
+            WHERE id = $1
+              AND activo = TRUE
+            `,
+            [producto_id]
+        );
+
+
+    const producto =
+        productoResult.rows[0];
+
+
+    if (!producto) {
+        return {
+            error:
+                "No se encontró el producto."
+        };
+    }
+
+
+    if (
+        producto.tipo_venta !==
+        "PESO"
+    ) {
+        return {
+            error:
+                "Este producto no se vende por peso."
+        };
+    }
+
+
+    if (
+        cantidad >
+        Number(producto.stock)
+    ) {
+        return {
+            error:
+                `Stock insuficiente de "${producto.nombre}".`,
+            ...(await obtenerResumen(venta_id))
+        };
+    }
+
+
+    const existente =
+        await db.query(
+            `
+            SELECT *
+            FROM detalle_venta
+            WHERE venta_id = $1
+              AND producto_id = $2
+            `,
+            [
+                venta_id,
+                producto_id
+            ]
+        );
+
+
+    if (
+        existente.rows.length > 0
+    ) {
+
+        await db.query(
+            `
+            UPDATE detalle_venta
+            SET
+                cantidad = $1,
+                subtotal =
+                    ROUND(
+                        ($1 * precio_unitario)::numeric,
+                        2
+                    )
+            WHERE venta_id = $2
+              AND producto_id = $3
+            `,
+            [
+                cantidad,
+                venta_id,
+                producto_id
+            ]
+        );
+
+    } else {
+
+        await db.query(
+            `
+            INSERT INTO detalle_venta (
+                venta_id,
+                producto_id,
+                cantidad,
+                precio_unitario,
+                subtotal
+            )
+            VALUES (
+                $1,
+                $2,
+                $3,
+                $4,
+                ROUND(($3 * $4)::numeric, 2)
+            )
+            `,
+            [
+                venta_id,
+                producto_id,
+                cantidad,
+                producto.precio
+            ]
+        );
+
+    }
+
+
+    await actualizarTotalVenta(
+        venta_id
+    );
+
+
+    return await obtenerResumen(
+        venta_id
+    );
+}
 
 // Recalcula y actualiza el total
 async function actualizarTotalVenta(
@@ -121,6 +307,16 @@ async function agregarProductoAVenta(
   const producto =
     productoResult.rows[0];
 
+  if (
+      producto.tipo_venta === "PESO"
+  ) {
+      return {
+          existe: true,
+          error:
+              `"${producto.nombre}" se vende por peso. Ingresá el peso manualmente.`,
+          ...(await obtenerResumen(venta_id))
+      };
+  }
   if (!producto) {
     return {
       existe: false,
@@ -499,104 +695,339 @@ async function finalizarVenta(
 
 // Buscar deudas de un cliente
 async function obtenerDeudasPorCliente(
-  cliente_id
+    cliente_id
 ) {
-  try {
-    const queryVentas = `
-      SELECT
-        id,
-        fecha_venta,
-        total
-      FROM venta
-      WHERE cliente_id = $1
-        AND cuenta_pendiente = true
-        AND finalizada = true
-      ORDER BY fecha_venta ASC;
-    `;
-
-    const resultadoVentas =
-      await db.query(
-        queryVentas,
-        [cliente_id]
-      );
-
-    const ventas =
-      resultadoVentas.rows;
-
-    for (
-      let venta of ventas
-    ) {
-      const queryDetalles = `
-        SELECT
-          dv.id,
-          dv.producto_id,
-          p.nombre
-            AS producto_nombre,
-          dv.cantidad,
-          dv.precio_unitario,
-          dv.subtotal
-        FROM detalle_venta dv
-        JOIN producto p
-          ON p.id =
-            dv.producto_id
-        WHERE dv.venta_id = $1
-        ORDER BY dv.id ASC;
-      `;
-
-      const resultadoDetalles =
-        await db.query(
-          queryDetalles,
-          [venta.id]
-        );
-
-      venta.detalles =
-        resultadoDetalles.rows;
-    }
-
-    return ventas;
-
-  } catch (error) {
-
-    console.error(
-      "Error al obtener deudas:",
-      error
-    );
-
-    throw error;
-  }
-}
-
-
-// Marca ventas como pagadas
-async function pagarVentas(
-  ventas_ids
-) {
-  try {
-    const query = `
-      UPDATE venta
-      SET cuenta_pendiente = false
-      WHERE id = ANY($1::int[])
-        AND finalizada = true
-      RETURNING *;
-    `;
 
     const resultado =
-      await db.query(
-        query,
-        [ventas_ids]
-      );
+        await db.query(
+            `
+            SELECT
+                v.id,
+                v.fecha_venta,
+                v.total,
+                v.saldo_pendiente,
 
-    return resultado.rows;
+                (
+                    v.total -
+                    v.saldo_pendiente
+                ) AS total_pagado
 
-  } catch (error) {
+            FROM venta v
 
-    console.error(
-      "Error al pagar ventas:",
-      error
-    );
+            WHERE
+                v.cliente_id = $1
 
-    throw error;
-  }
+                AND
+                v.saldo_pendiente > 0
+
+            ORDER BY
+                v.fecha_venta ASC
+            `,
+            [cliente_id]
+        );
+
+
+    const ventas =
+        resultado.rows;
+
+
+    for (
+        const venta of ventas
+    ) {
+
+        const detalles =
+            await db.query(
+                `
+                SELECT
+                    dv.id,
+                    dv.producto_id,
+                    p.nombre
+                        AS producto_nombre,
+                    p.tipo_venta,
+                    dv.cantidad,
+                    dv.precio_unitario,
+                    dv.subtotal
+
+                FROM detalle_venta dv
+
+                JOIN producto p
+                    ON p.id =
+                       dv.producto_id
+
+                WHERE
+                    dv.venta_id = $1
+
+                ORDER BY
+                    dv.id ASC
+                `,
+                [venta.id]
+            );
+
+
+        venta.total =
+            Number(
+                venta.total
+            );
+
+        venta.saldo_pendiente =
+            Number(
+                venta.saldo_pendiente
+            );
+
+        venta.total_pagado =
+            Number(
+                venta.total_pagado
+            );
+
+        venta.detalles =
+            detalles.rows;
+
+    }
+
+
+    return ventas;
+}
+
+// Marca ventas como pagadas
+async function registrarPago(
+    cliente_id,
+    aplicaciones
+) {
+
+    const client =
+        await db.connect();
+
+
+    try {
+
+        await client.query(
+            "BEGIN"
+        );
+
+
+        if (
+            !Array.isArray(
+                aplicaciones
+            ) ||
+            aplicaciones.length === 0
+        ) {
+            throw new Error(
+                "No se seleccionaron ventas."
+            );
+        }
+
+
+        let totalPago = 0;
+
+
+        /*
+         * Primero validamos absolutamente todo
+         * antes de guardar el pago.
+         */
+        const ventasValidadas =
+            [];
+
+
+        for (
+            const aplicacion
+            of aplicaciones
+        ) {
+
+            const ventaResult =
+                await client.query(
+                    `
+                    SELECT
+                        id,
+                        cliente_id,
+                        total,
+                        saldo_pendiente
+
+                    FROM venta
+
+                    WHERE id = $1
+
+                    FOR UPDATE
+                    `,
+                    [
+                        aplicacion
+                            .venta_id
+                    ]
+                );
+
+
+            const venta =
+                ventaResult.rows[0];
+
+
+            if (!venta) {
+                throw new Error(
+                    "Una de las ventas no existe."
+                );
+            }
+
+
+            if (
+                Number(
+                    venta.cliente_id
+                )
+                !==
+                Number(cliente_id)
+            ) {
+                throw new Error(
+                    "La venta no pertenece al cliente."
+                );
+            }
+
+
+            const saldo =
+                Number(
+                    venta
+                        .saldo_pendiente
+                );
+
+
+            const monto =
+                Number(
+                    aplicacion.monto
+                );
+
+
+            if (
+                !Number.isFinite(
+                    monto
+                ) ||
+                monto <= 0
+            ) {
+                throw new Error(
+                    "El monto del pago no es válido."
+                );
+            }
+
+
+            if (
+                monto >
+                saldo
+            ) {
+                throw new Error(
+                    `El pago de la venta #${venta.id} supera su saldo pendiente.`
+                );
+            }
+
+
+            totalPago +=
+                monto;
+
+
+            ventasValidadas.push({
+                venta,
+                monto
+            });
+
+        }
+
+
+        const pagoResult =
+            await client.query(
+                `
+                INSERT INTO pago (
+                    cliente_id,
+                    total
+                )
+                VALUES ($1, $2)
+                RETURNING *
+                `,
+                [
+                    cliente_id,
+                    totalPago
+                ]
+            );
+
+
+        const pago =
+            pagoResult.rows[0];
+
+
+        for (
+            const item
+            of ventasValidadas
+        ) {
+
+            await client.query(
+                `
+                INSERT INTO pago_venta (
+                    pago_id,
+                    venta_id,
+                    importe
+                )
+                VALUES ($1, $2, $3)
+                `,
+                [
+                    pago.id,
+                    item.venta.id,
+                    item.monto
+                ]
+            );
+
+
+            await client.query(
+                `
+                UPDATE venta
+
+                SET
+                    saldo_pendiente =
+                        saldo_pendiente
+                        -
+                        $1,
+
+                    cuenta_pendiente =
+                        (
+                            saldo_pendiente
+                            -
+                            $1
+                        ) > 0
+
+                WHERE id = $2
+                `,
+                [
+                    item.monto,
+                    item.venta.id
+                ]
+            );
+
+        }
+
+
+        await client.query(
+            "COMMIT"
+        );
+
+
+        return {
+            pago_id:
+                pago.id,
+
+            total:
+                totalPago,
+
+            fecha_pago:
+                pago.fecha_pago
+        };
+
+
+    } catch (error) {
+
+        await client.query(
+            "ROLLBACK"
+        );
+
+        throw error;
+
+
+    } finally {
+
+        client.release();
+
+    }
 }
 
 
@@ -679,17 +1110,109 @@ async function quitarCliente(
   );
 }
 
+async function obtenerHistorialCliente(
+    cliente_id
+) {
 
+    const movimientos =
+        await db.query(
+            `
+            SELECT *
+            FROM (
+
+                SELECT
+                    v.fecha_venta
+                        AS fecha,
+
+                    'VENTA'
+                        AS tipo,
+
+                    v.id
+                        AS referencia_id,
+
+                    v.total
+                        AS importe,
+
+                    v.saldo_pendiente
+                        AS saldo_pendiente
+
+                FROM venta v
+
+                WHERE
+                    v.cliente_id = $1
+
+                    AND
+                    v.cuenta_pendiente
+                    IS NOT NULL
+
+
+                UNION ALL
+
+
+                SELECT
+                    p.fecha_pago
+                        AS fecha,
+
+                    'PAGO'
+                        AS tipo,
+
+                    p.id
+                        AS referencia_id,
+
+                    p.total
+                        AS importe,
+
+                    NULL
+                        AS saldo_pendiente
+
+                FROM pago p
+
+                WHERE
+                    p.cliente_id = $1
+
+            ) movimientos
+
+            ORDER BY
+                fecha DESC,
+                referencia_id DESC
+            `,
+            [cliente_id]
+        );
+
+
+    return movimientos.rows.map(
+        movimiento => ({
+            ...movimiento,
+
+            importe:
+                Number(
+                    movimiento.importe
+                ),
+
+            saldo_pendiente:
+                movimiento
+                    .saldo_pendiente ===
+                    null
+                    ? null
+                    : Number(
+                        movimiento
+                            .saldo_pendiente
+                    )
+        })
+    );
+}
 module.exports = {
-  crearVentaVacia,
-  obtenerResumen,
-  agregarProductoAVenta,
-  actualizarCantidad,
-  eliminarProductoDeVenta,
-  finalizarVenta,
-  obtenerDeudasPorCliente,
-  pagarVentas,
-  obtenerClientesConDeuda,
-  asociarCliente,
-  quitarCliente,
+    crearVentaVacia,
+    obtenerResumen,
+    agregarProductoAVenta,
+    agregarProductoPorPeso,
+    actualizarCantidad,
+    eliminarProductoDeVenta,
+    finalizarVenta,
+    obtenerDeudasPorCliente,
+    registrarPago,
+    obtenerClientesConDeuda,
+    asociarCliente,
+    quitarCliente,
+    obtenerHistorialCliente
 };

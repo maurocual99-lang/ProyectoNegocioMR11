@@ -17,5 +17,6 @@ router.delete("/:venta_id/productos/:producto_id", ventaController.eliminarProdu
 router.post("/:venta_id/finalizar", ventaController.finalizarVenta);                // finalizar venta
 router.put("/:venta_id/cliente",ventaController.asociarCliente);
 router.delete("/:venta_id/cliente",ventaController.quitarCliente);
-
+router.post("/:venta_id/productos-peso",ventaController.agregarProductoPeso);
+router.get("/historial/:cliente_id",ventaController.obtenerHistorial);
 module.exports = router;
