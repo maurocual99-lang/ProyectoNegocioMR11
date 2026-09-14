@@ -1,29 +1,41 @@
-import { useEffect, useState, type ChangeEvent } from "react";
-import ModalExito from "../ModalExito";
 import {
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
-  CButton,
-  CForm,
-  CFormSelect,
-  CFormInput,
-  CFormLabel,
-  CInputGroup,
-  CInputGroupText,
-} from "@coreui/react";
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+} from "react";
 
 import {
-  Pencil,
   Barcode,
-  Package,
-  DollarSign,
-  Percent,
   Boxes,
+  DollarSign,
+  Package,
+  Pencil,
+  Percent,
+  Scale,
   Tag,
 } from "lucide-react";
+
+import {
+  CAlert,
+  CButton,
+  CForm,
+  CFormInput,
+  CFormLabel,
+  CFormSelect,
+  CInputGroup,
+  CInputGroupText,
+  CModal,
+  CModalBody,
+  CModalFooter,
+  CModalHeader,
+  CModalTitle,
+} from "@coreui/react";
+
+
+const API_URL =
+  "http://localhost:3000";
+
 
 const categorias = [
   "Bebidas",
@@ -34,394 +46,1014 @@ const categorias = [
   "Verduleria",
 ] as const;
 
-type Categoria = (typeof categorias)[number];
+
+type Categoria =
+  (typeof categorias)[number];
+
+
+type TipoVenta =
+  | "UNIDAD"
+  | "PESO";
+
 
 interface Producto {
-  codigo_barra: string;
+  id: number;
+
+  codigo_barra:
+    | string
+    | null;
+
   nombre: string;
+
   precio: number;
+
   stock: number;
-  categoria: Categoria;
+
+  categoria:
+    Categoria;
+
+  tipo_venta:
+    TipoVenta;
 }
 
+
 type Props = {
-  producto: Producto;
-  recargar: () => void | Promise<void>;
+  producto:
+    Producto;
+
+  recargar:
+    () =>
+      void
+      | Promise<void>;
 };
+
 
 function ModificarProducto({
   producto,
   recargar,
 }: Props) {
-  const [mostrarConfirmacion, setMostrarConfirmacion] =
-    useState(false);
 
-  const [codigoViejo, setCodigoViejo] = useState("");
-  const [codigoNuevo, setCodigoNuevo] = useState("");
+  const [
+    visible,
+    setVisible,
+  ] =
+    useState(
+      false
+    );
 
-  const [nombre, setNombre] = useState("");
 
-  // Ahora diferenciamos costo del precio final
-  const [costo, setCosto] = useState<number>(0);
+  const [
+    codigo,
+    setCodigo,
+  ] =
+    useState(
+      ""
+    );
 
-  const [ganancia, setGanancia] =
-    useState<number>(63);
 
-  const [stock, setStock] =
-    useState<number>(0);
+  const [
+    nombre,
+    setNombre,
+  ] =
+    useState(
+      ""
+    );
 
-  const [categoria, setCategoria] =
-    useState<Categoria>("Bebidas");
 
-  const [guardando, setGuardando] =
-    useState(false);
+  const [
+    costo,
+    setCosto,
+  ] =
+    useState(
+      0
+    );
+
+
+  const [
+    ganancia,
+    setGanancia,
+  ] =
+    useState(
+      63
+    );
+
+
+  const [
+    stock,
+    setStock,
+  ] =
+    useState(
+      0
+    );
+
+
+  const [
+    categoria,
+    setCategoria,
+  ] =
+    useState<
+      Categoria
+    >(
+      "Bebidas"
+    );
+
+
+  const [
+    tipoVenta,
+    setTipoVenta,
+  ] =
+    useState<
+      TipoVenta
+    >(
+      "UNIDAD"
+    );
+
+
+  const [
+    guardando,
+    setGuardando,
+  ] =
+    useState(
+      false
+    );
+
+
+  const [
+    mensaje,
+    setMensaje,
+  ] =
+    useState<{
+      tipo:
+        "success"
+        | "danger";
+
+      texto:
+        string;
+    } | null>(
+      null
+    );
+
 
   const precioFinal =
-    Number(costo || 0) *
-    (1 + Number(ganancia || 0) / 100);
+    useMemo(
+      () => {
 
-  useEffect(() => {
-    cargarDatosProducto();
-  }, [producto]);
+        return Number(
+          (
+            Number(
+              costo ||
+              0
+            )
+            *
+            (
+              1
+              +
+              Number(
+                ganancia ||
+                0
+              )
+              /
+              100
+            )
+          )
+            .toFixed(
+              2
+            )
+        );
 
-  function cargarDatosProducto() {
-    const gananciaInicial = 63;
+      },
+      [
+        costo,
+        ganancia,
+      ]
+    );
+
+
+  function cargarDatos() {
+
+    const gananciaInicial =
+      63;
+
 
     const precioGuardado =
-      Number(producto.precio);
+      Number(
+        producto.precio ||
+        0
+      );
+
 
     const costoEstimado =
       precioGuardado /
-      (1 + gananciaInicial / 100);
-
-    setCodigoViejo(producto.codigo_barra);
-
-    setCodigoNuevo(producto.codigo_barra);
-
-    setNombre(producto.nombre);
-
-    setGanancia(gananciaInicial);
-
-    setCosto(
-      Number(costoEstimado.toFixed(2))
-    );
-
-    setStock(Number(producto.stock));
-
-    setCategoria(producto.categoria);
-  }
-
-  function abrirModal() {
-    cargarDatosProducto();
-    setMostrarConfirmacion(true);
-  }
-
-  function cerrarModal() {
-    cargarDatosProducto();
-    setMostrarConfirmacion(false);
-  }
-
-  async function guardarCambios(): Promise<boolean> {
-    if (!codigoNuevo.trim()) {
-      alert("El código de barras es obligatorio.");
-      return false;
-    }
-
-    if (!nombre.trim()) {
-      alert("El nombre es obligatorio.");
-      return false;
-    }
-
-    if (costo < 0) {
-      alert("El costo no puede ser negativo.");
-      return false;
-    }
-
-    if (ganancia < 0) {
-      alert("La ganancia no puede ser negativa.");
-      return false;
-    }
-
-    if (stock < 0) {
-      alert("El stock no puede ser negativo.");
-      return false;
-    }
-
-    const productoEditado = {
-      codigoViejo: codigoViejo.trim(),
-      codigoNuevo: codigoNuevo.trim(),
-      nombre: nombre.trim(),
-
-      precio: Number(
-        precioFinal.toFixed(2)
-      ),
-
-      stock: Number(stock),
-      categoria,
-    };
-
-    try {
-      const res = await fetch(
-        "http://localhost:3000/productos",
-        {
-          method: "PUT",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify(
-            productoEditado
-          ),
-        }
+      (
+        1
+        +
+        gananciaInicial /
+        100
       );
 
-      let data: any = {};
+
+    setCodigo(
+      producto.codigo_barra ??
+      ""
+    );
+
+
+    setNombre(
+      producto.nombre ??
+      ""
+    );
+
+
+    setGanancia(
+      gananciaInicial
+    );
+
+
+    setCosto(
+      Number(
+        costoEstimado
+          .toFixed(
+            2
+          )
+      )
+    );
+
+
+    setStock(
+      Number(
+        producto.stock ||
+        0
+      )
+    );
+
+
+    setCategoria(
+      producto.categoria
+    );
+
+
+    setTipoVenta(
+      producto.tipo_venta ===
+      "PESO"
+        ? "PESO"
+        : "UNIDAD"
+    );
+
+
+    setMensaje(
+      null
+    );
+
+  }
+
+
+  useEffect(
+    () => {
+
+      cargarDatos();
+
+    },
+    [
+      producto
+    ]
+  );
+
+
+  function abrirModal() {
+
+    cargarDatos();
+
+    setVisible(
+      true
+    );
+
+  }
+
+
+  function cerrarModal() {
+
+    if (
+      guardando
+    ) {
+      return;
+    }
+
+
+    setVisible(
+      false
+    );
+
+    setMensaje(
+      null
+    );
+
+  }
+
+
+  async function guardarCambios() {
+
+    setMensaje(
+      null
+    );
+
+
+    const nombreLimpio =
+      nombre.trim();
+
+
+    const codigoLimpio =
+      codigo.trim();
+
+
+    if (
+      !nombreLimpio
+    ) {
+
+      setMensaje({
+        tipo:
+          "danger",
+
+        texto:
+          "El nombre es obligatorio.",
+      });
+
+      return;
+
+    }
+
+
+    if (
+      tipoVenta ===
+      "UNIDAD"
+      &&
+      !codigoLimpio
+    ) {
+
+      setMensaje({
+        tipo:
+          "danger",
+
+        texto:
+          "Los productos por unidad necesitan código de barras.",
+      });
+
+      return;
+
+    }
+
+
+    if (
+      costo < 0
+      ||
+      ganancia < 0
+      ||
+      stock < 0
+    ) {
+
+      setMensaje({
+        tipo:
+          "danger",
+
+        texto:
+          "Costo, ganancia y stock no pueden ser negativos.",
+      });
+
+      return;
+
+    }
+
+
+    try {
+
+      setGuardando(
+        true
+      );
+
+
+      const respuesta =
+        await fetch(
+          `${API_URL}/productos/id/${producto.id}`,
+          {
+            method:
+              "PUT",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+                codigo_barra:
+                  codigoLimpio ||
+                  null,
+
+                nombre:
+                  nombreLimpio,
+
+                precio:
+                  precioFinal,
+
+                stock:
+                  Number(
+                    stock
+                  ),
+
+                categoria,
+
+                tipo_venta:
+                  tipoVenta,
+              }),
+          }
+        );
+
+
+      let data:
+        any =
+        {};
+
 
       const contentType =
-        res.headers.get("content-type");
+        respuesta.headers
+          .get(
+            "content-type"
+          );
+
 
       if (
         contentType?.includes(
           "application/json"
         )
       ) {
-        data = await res.json();
+
+        data =
+          await respuesta.json();
+
       }
 
-      console.log(
-        "RESPUESTA MODIFICAR:",
-        data
-      );
 
-      if (!res.ok) {
-        alert(
-          data.mensaje ||
-            `Error ${res.status} al modificar el producto`
+      if (
+        !respuesta.ok
+      ) {
+
+        throw new Error(
+          data?.mensaje ||
+          `Error ${respuesta.status} al modificar el producto.`
         );
 
-        return false;
       }
+
 
       await recargar();
 
-      // NO cerramos acá el modal
-      // ModalExito lo va a cerrar después.
-      return true;
 
-    } catch (error) {
+      setMensaje({
+        tipo:
+          "success",
+
+        texto:
+          "Producto actualizado correctamente.",
+      });
+
+
+      window.setTimeout(
+        () => {
+
+          setVisible(
+            false
+          );
+
+          setMensaje(
+            null
+          );
+
+        },
+        500
+      );
+
+    } catch (
+      error
+    ) {
+
       console.error(
         "Error al modificar producto:",
         error
       );
 
-      alert(
-        "No se pudo conectar con el servidor."
+
+      setMensaje({
+        tipo:
+          "danger",
+
+        texto:
+          error instanceof Error
+            ? error.message
+            : "No se pudo modificar el producto.",
+      });
+
+    } finally {
+
+      setGuardando(
+        false
       );
 
-      return false;
     }
+
   }
 
-  return (
-    <>
-      <CButton
-        className="border-secondary"
-        style={{
-          color: "#2563eb",
-        }}
-        onClick={abrirModal}
-      >
-        <div className="d-flex justify-content-center align-items-center gap-2">
-          <Pencil size={16} />
 
-          <span>Editar</span>
-        </div>
+  return (
+
+    <>
+
+      <CButton
+        type="button"
+        className="
+          border-secondary
+        "
+        style={{
+          color:
+            "#2563eb",
+        }}
+        onClick={
+          abrirModal
+        }
+      >
+
+        <span
+          className="
+            d-flex
+            justify-content-center
+            align-items-center
+            gap-2
+          "
+        >
+
+          <Pencil
+            size={
+              16
+            }
+          />
+
+          Editar
+
+        </span>
+
       </CButton>
 
+
       <CModal
-        visible={mostrarConfirmacion}
-        onClose={cerrarModal}
+        visible={
+          visible
+        }
+        onClose={
+          cerrarModal
+        }
         alignment="center"
         size="lg"
         backdrop="static"
       >
 
         <CModalHeader>
-          <div className="d-flex align-items-center gap-3">
+
+          <div
+            className="
+              d-flex
+              align-items-center
+              gap-3
+            "
+          >
 
             <div
-              className="d-flex justify-content-center align-items-center"
+              className="
+                d-flex
+                justify-content-center
+                align-items-center
+              "
               style={{
-                width: "46px",
-                height: "46px",
+                width:
+                  "46px",
 
-                background: "#eef4ff",
+                height:
+                  "46px",
+
+                background:
+                  "#eef4ff",
 
                 border:
                   "1px solid #dbeafe",
 
-                borderRadius: "10px",
+                borderRadius:
+                  "10px",
               }}
             >
+
               <Pencil
-                size={22}
+                size={
+                  22
+                }
                 color="#2563eb"
               />
+
             </div>
 
+
             <div>
+
               <CModalTitle
                 style={{
-                  fontWeight: 700,
+                  fontWeight:
+                    700,
                 }}
               >
                 Modificar Producto
               </CModalTitle>
 
               <div
-                className="text-muted"
+                className="
+                  text-muted
+                "
                 style={{
-                  fontSize: "0.85rem",
-                  marginTop: "2px",
+                  fontSize:
+                    "0.85rem",
                 }}
               >
-                Actualizá la información
-                del producto
+                Actualizá la información del producto.
               </div>
+
             </div>
 
           </div>
+
         </CModalHeader>
+
 
         <CModalBody
           style={{
-            padding: "24px",
+            padding:
+              "24px",
           }}
         >
+
+          {
+            mensaje &&
+            (
+
+              <CAlert
+                color={
+                  mensaje.tipo
+                }
+              >
+                {
+                  mensaje.texto
+                }
+              </CAlert>
+
+            )
+          }
+
+
           <CForm
-              onSubmit={(e) => e.preventDefault()}
+            onSubmit={(
+              event
+            ) =>
+              event.preventDefault()
+            }
+          >
+
+            <div
+              className="
+                row
+                g-3
+              "
             >
-            <div className="row g-3">
 
-              {/* CÓDIGO DE BARRAS */}
+              <div
+                className="
+                  col-12
+                  col-md-6
+                "
+              >
 
-              <div className="col-md-6">
                 <CFormLabel>
-                  Código de Barras
+                  Tipo de venta
                 </CFormLabel>
 
                 <CInputGroup>
+
                   <CInputGroupText>
-                    <Barcode size={16} />
+
+                    <Scale
+                      size={
+                        16
+                      }
+                    />
+
+                  </CInputGroupText>
+
+                  <CFormSelect
+                    value={
+                      tipoVenta
+                    }
+                    onChange={(
+                      event:
+                        ChangeEvent<HTMLSelectElement>
+                    ) =>
+                      setTipoVenta(
+                        event.target.value as TipoVenta
+                      )
+                    }
+                  >
+
+                    <option
+                      value="UNIDAD"
+                    >
+                      Por unidad
+                    </option>
+
+                    <option
+                      value="PESO"
+                    >
+                      Por peso
+                    </option>
+
+                  </CFormSelect>
+
+                </CInputGroup>
+
+              </div>
+
+
+              <div
+                className="
+                  col-12
+                  col-md-6
+                "
+              >
+
+                <CFormLabel>
+                  Código de Barras
+                  {
+                    tipoVenta ===
+                    "PESO"
+                      ? " (opcional)"
+                      : ""
+                  }
+                </CFormLabel>
+
+                <CInputGroup>
+
+                  <CInputGroupText>
+
+                    <Barcode
+                      size={
+                        16
+                      }
+                    />
+
                   </CInputGroupText>
 
                   <CFormInput
                     type="text"
-                    value={codigoNuevo}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setCodigoNuevo(
-                        e.target.value
+                    value={
+                      codigo
+                    }
+                    onChange={(
+                      event:
+                        ChangeEvent<HTMLInputElement>
+                    ) =>
+                      setCodigo(
+                        event.target.value
                       )
                     }
-                    required
+                    placeholder={
+                      tipoVenta ===
+                      "PESO"
+                        ? "Puede quedar vacío"
+                        : "Código obligatorio"
+                    }
                   />
+
                 </CInputGroup>
+
               </div>
 
-              {/* NOMBRE */}
 
-              <div className="col-md-6">
+              <div
+                className="
+                  col-12
+                  col-md-6
+                "
+              >
+
                 <CFormLabel>
                   Nombre
                 </CFormLabel>
 
                 <CInputGroup>
+
                   <CInputGroupText>
-                    <Package size={16} />
+
+                    <Package
+                      size={
+                        16
+                      }
+                    />
+
                   </CInputGroupText>
 
                   <CFormInput
-                    value={nombre}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    value={
+                      nombre
+                    }
+                    onChange={(
+                      event:
+                        ChangeEvent<HTMLInputElement>
+                    ) =>
                       setNombre(
-                        e.target.value
+                        event.target.value
                       )
                     }
-                    required
                   />
+
                 </CInputGroup>
+
               </div>
 
-              {/* COSTO */}
 
-              <div className="col-md-6">
+              <div
+                className="
+                  col-12
+                  col-md-6
+                "
+              >
+
+                <CFormLabel>
+                  Stock
+                  {
+                    tipoVenta ===
+                    "PESO"
+                      ? " (kg)"
+                      : ""
+                  }
+                </CFormLabel>
+
+                <CInputGroup>
+
+                  <CInputGroupText>
+
+                    <Boxes
+                      size={
+                        16
+                      }
+                    />
+
+                  </CInputGroupText>
+
+                  <CFormInput
+                    type="number"
+                    min="0"
+                    step={
+                      tipoVenta ===
+                      "PESO"
+                        ? "0.001"
+                        : "1"
+                    }
+                    value={
+                      stock
+                    }
+                    onChange={(
+                      event:
+                        ChangeEvent<HTMLInputElement>
+                    ) =>
+                      setStock(
+                        Number(
+                          event.target.value
+                        )
+                      )
+                    }
+                  />
+
+                </CInputGroup>
+
+              </div>
+
+
+              <div
+                className="
+                  col-12
+                  col-md-6
+                "
+              >
+
                 <CFormLabel>
                   Costo del Producto ($)
                 </CFormLabel>
 
                 <CInputGroup>
+
                   <CInputGroupText>
-                    <DollarSign size={16} />
+
+                    <DollarSign
+                      size={
+                        16
+                      }
+                    />
+
                   </CInputGroupText>
 
                   <CFormInput
                     type="number"
                     min="0"
                     step="0.01"
-                    value={costo}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    value={
+                      costo
+                    }
+                    onChange={(
+                      event:
+                        ChangeEvent<HTMLInputElement>
+                    ) =>
                       setCosto(
                         Number(
-                          e.target.value
+                          event.target.value
                         )
                       )
                     }
-                    required
                   />
+
                 </CInputGroup>
+
               </div>
 
-              {/* GANANCIA */}
 
-              <div className="col-md-6">
+              <div
+                className="
+                  col-12
+                  col-md-6
+                "
+              >
+
                 <CFormLabel>
                   Ganancia (%)
                 </CFormLabel>
 
                 <CInputGroup>
+
                   <CInputGroupText>
-                    <Percent size={16} />
+
+                    <Percent
+                      size={
+                        16
+                      }
+                    />
+
                   </CInputGroupText>
 
                   <CFormInput
                     type="number"
                     min="0"
                     step="0.1"
-                    value={ganancia}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    value={
+                      ganancia
+                    }
+                    onChange={(
+                      event:
+                        ChangeEvent<HTMLInputElement>
+                    ) =>
                       setGanancia(
                         Number(
-                          e.target.value
+                          event.target.value
                         )
                       )
                     }
-                    required
                   />
+
                 </CInputGroup>
+
               </div>
 
-              <div className="col-12">
+
+              <div
+                className="
+                  col-12
+                "
+              >
 
                 <div
-                  className="d-flex justify-content-between align-items-center"
+                  className="
+                    d-flex
+                    justify-content-between
+                    align-items-center
+                  "
                   style={{
-                    background: "#eef4ff",
+                    background:
+                      "#eef4ff",
 
                     border:
                       "1px solid #dbeafe",
 
-                    borderRadius: "12px",
+                    borderRadius:
+                      "12px",
 
                     padding:
                       "14px 18px",
@@ -429,8 +1061,11 @@ function ModificarProducto({
                 >
 
                   <div>
+
                     <div
-                      className="text-muted"
+                      className="
+                        text-muted
+                      "
                       style={{
                         fontSize:
                           "0.82rem",
@@ -452,25 +1087,36 @@ function ModificarProducto({
                       }}
                     >
                       $
-                      {precioFinal.toLocaleString(
-                        "es-AR",
-                        {
-                          minimumFractionDigits:
-                            2,
+                      {
+                        precioFinal
+                          .toLocaleString(
+                            "es-AR",
+                            {
+                              minimumFractionDigits:
+                                2,
 
-                          maximumFractionDigits:
-                            2,
-                        }
-                      )}
+                              maximumFractionDigits:
+                                2,
+                            }
+                          )
+                      }
                     </div>
+
                   </div>
 
-                  <div
-                    className="d-flex justify-content-center align-items-center"
-                    style={{
-                      width: "48px",
 
-                      height: "48px",
+                  <div
+                    className="
+                      d-flex
+                      justify-content-center
+                      align-items-center
+                    "
+                    style={{
+                      width:
+                        "48px",
+
+                      height:
+                        "48px",
 
                       background:
                         "#dbeafe",
@@ -479,126 +1125,153 @@ function ModificarProducto({
                         "50%",
                     }}
                   >
+
                     <DollarSign
-                      size={23}
+                      size={
+                        23
+                      }
                       color="#2563eb"
                     />
+
                   </div>
 
                 </div>
 
               </div>
 
-              {/* STOCK */}
 
-              <div className="col-md-6">
-                <CFormLabel>
-                  Stock
-                </CFormLabel>
+              <div
+                className="
+                  col-12
+                "
+              >
 
-                <CInputGroup>
-                  <CInputGroupText>
-                    <Boxes size={16} />
-                  </CInputGroupText>
-
-                  <CFormInput
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={stock}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setStock(
-                        Number(
-                          e.target.value
-                        )
-                      )
-                    }
-                    required
-                  />
-                </CInputGroup>
-              </div>
-
-              {/* CATEGORÍA */}
-
-              <div className="col-md-6">
                 <CFormLabel>
                   Categoría
                 </CFormLabel>
 
                 <CInputGroup>
+
                   <CInputGroupText>
-                    <Tag size={16} />
+
+                    <Tag
+                      size={
+                        16
+                      }
+                    />
+
                   </CInputGroupText>
 
                   <CFormSelect
-                    value={categoria}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                    value={
+                      categoria
+                    }
+                    onChange={(
+                      event:
+                        ChangeEvent<HTMLSelectElement>
+                    ) =>
                       setCategoria(
-                        e.target
-                          .value as Categoria
+                        event.target.value as Categoria
                       )
                     }
-                    required
                   >
-                    {categorias.map(
-                      (cat) => (
-                        <option
-                          key={cat}
-                          value={cat}
-                        >
-                          {cat}
-                        </option>
+
+                    {
+                      categorias.map(
+                        (
+                          item
+                        ) => (
+
+                          <option
+                            key={
+                              item
+                            }
+                            value={
+                              item
+                            }
+                          >
+                            {
+                              item
+                            }
+                          </option>
+
+                        )
                       )
-                    )}
+                    }
+
                   </CFormSelect>
+
                 </CInputGroup>
+
               </div>
 
             </div>
 
-            <CModalFooter
-              style={{
-                paddingLeft: 0,
-                paddingRight: 0,
-                paddingBottom: 0,
+          </CForm>
 
-                marginTop: "22px",
-              }}
+        </CModalBody>
+
+
+        <CModalFooter>
+
+          <CButton
+            type="button"
+            color="light"
+            onClick={
+              cerrarModal
+            }
+            disabled={
+              guardando
+            }
+          >
+            Cancelar
+          </CButton>
+
+
+          <CButton
+            type="button"
+            color="primary"
+            onClick={() =>
+              void guardarCambios()
+            }
+            disabled={
+              guardando
+            }
+          >
+
+            <span
+              className="
+                d-flex
+                align-items-center
+                gap-2
+              "
             >
-              <CButton
-                type="button"
-                color="light"
-                onClick={cerrarModal}
-                disabled={guardando}
-                style={{
-                  minWidth: "110px",
-                }}
-              >
-                Cancelar
-              </CButton>
 
-              <ModalExito
-                onEnviar={guardarCambios}
-                onExito={() => {
-                  setMostrarConfirmacion(false);
-                }}
-                desactivado={false}
-                variante="primary"
-                className="btn-guardar-producto"
-                textoBoton={
-                  <div className="d-flex align-items-center justify-content-center gap-2">
-                    <Pencil size={16} />
-                    <span>Guardar cambios</span>
-                  </div>
+              <Pencil
+                size={
+                  16
                 }
               />
-            </CModalFooter>
 
-          </CForm>
-        </CModalBody>
+              {
+                guardando
+                  ? "Guardando..."
+                  : "Guardar cambios"
+              }
+
+            </span>
+
+          </CButton>
+
+        </CModalFooter>
+
       </CModal>
+
     </>
+
   );
+
 }
+
 
 export default ModificarProducto;

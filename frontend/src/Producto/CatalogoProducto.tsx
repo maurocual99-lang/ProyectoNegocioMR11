@@ -1,24 +1,14 @@
 import {
-  ChangeEvent,
   useEffect,
-  useLayoutEffect,
-  useRef,
+  useMemo,
   useState,
+  type ChangeEvent,
 } from "react";
 
-import { useNavigate } from "react-router-dom";
-
-import EliminarProducto from "./EliminarProducto";
-import ModificarProducto from "./ModificarProducto";
-import ProductoCreate from "./ProductoCreate";
-
-import OrdenarTabla from "../OrdenarTabla";
-import Capitalizar from "../Capitalizar";
-
-import ListaCompra from "./ListaCompra";
-import ModalListaCompra from "./ModalListaCompra";
-
 import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   Barcode,
   Box,
   MoveLeft,
@@ -27,24 +17,45 @@ import {
 } from "lucide-react";
 
 import {
-  CRow,
-  CCol,
+  CButton,
+  CCard,
+  CCardBody,
+  CForm,
   CFormInput,
   CFormLabel,
   CFormSelect,
-  CTable,
-  CTableDataCell,
-  CTableHead,
-  CTableBody,
-  CTableRow,
-  CTableHeaderCell,
-  CButton,
-  CForm,
   CInputGroup,
   CInputGroupText,
-  CCard,
-  CCardBody,
+  CTable,
+  CTableBody,
+  CTableDataCell,
+  CTableHead,
+  CTableHeaderCell,
+  CTableRow,
 } from "@coreui/react";
+
+import {
+  useNavigate,
+} from "react-router-dom";
+
+import EliminarProducto
+  from "./EliminarProducto";
+
+import ModificarProducto
+  from "./ModificarProducto";
+
+import ProductoCreate
+  from "./ProductoCreate";
+
+import ListaCompra
+  from "./ListaCompra";
+
+import ModalListaCompra
+  from "./ModalListaCompra";
+
+
+const API_URL =
+  "http://localhost:3000";
 
 
 const categorias = [
@@ -61,342 +72,440 @@ type Categoria =
   (typeof categorias)[number];
 
 
-interface Producto {
-  codigo_barra: string;
+type TipoVenta =
+  | "UNIDAD"
+  | "PESO";
+
+
+export interface ProductoCatalogo {
+  id: number;
+
+  codigo_barra:
+    | string
+    | null;
+
   nombre: string;
+
   precio: number;
+
   stock: number;
-  categoria: Categoria;
+
+  categoria:
+    Categoria;
+
+  tipo_venta:
+    TipoVenta;
+
+  activo?:
+    boolean;
 }
+
+
+type CampoOrden =
+  | "codigo_barra"
+  | "nombre"
+  | "precio"
+  | "stock"
+  | "categoria";
+
+
+type DireccionOrden =
+  | "asc"
+  | "desc";
 
 
 const comparadorTexto =
   new Intl.Collator(
     "es",
     {
-      sensitivity: "base",
+      sensitivity:
+        "base",
+
+      numeric:
+        true,
     }
   );
 
-function compararCodigoBarras(
-  codigoA: string,
-  codigoB: string
+
+function textoSeguro(
+  valor:
+    string
+    | null
+    | undefined
 ) {
-  const a = codigoA.trim();
-  const b = codigoB.trim();
+
+  return String(
+    valor ??
+    ""
+  ).trim();
+
+}
+
+
+function capitalizar(
+  texto:
+    string
+) {
+
+  const limpio =
+    textoSeguro(
+      texto
+    );
 
   if (
-    /^\d+$/.test(a) &&
-    /^\d+$/.test(b)
+    !limpio
+  ) {
+    return "";
+  }
+
+
+  return limpio
+    .charAt(
+      0
+    )
+    .toUpperCase()
+    +
+    limpio
+      .slice(
+        1
+      )
+      .toLowerCase();
+
+}
+
+
+function compararCodigosNoVacios(
+  codigoA:
+    string,
+  codigoB:
+    string
+) {
+
+  const a =
+    codigoA.trim();
+
+  const b =
+    codigoB.trim();
+
+
+  const aNumerico =
+    /^\d+$/.test(
+      a
+    );
+
+  const bNumerico =
+    /^\d+$/.test(
+      b
+    );
+
+
+  if (
+    aNumerico &&
+    bNumerico
   ) {
 
-    const numeroA =
-      a.replace(/^0+/, "") || "0";
+    const normalizadoA =
+      a.replace(
+        /^0+/,
+        ""
+      ) ||
+      "0";
 
-    const numeroB =
-      b.replace(/^0+/, "") || "0";
+    const normalizadoB =
+      b.replace(
+        /^0+/,
+        ""
+      ) ||
+      "0";
+
 
     if (
-      numeroA.length !==
-      numeroB.length
+      normalizadoA.length !==
+      normalizadoB.length
     ) {
+
       return (
-        numeroA.length -
-        numeroB.length
+        normalizadoA.length -
+        normalizadoB.length
       );
+
     }
 
+
     const resultado =
-      numeroA.localeCompare(
-        numeroB
+      normalizadoA.localeCompare(
+        normalizadoB
       );
 
 
-    if (resultado !== 0) {
+    if (
+      resultado !==
+      0
+    ) {
       return resultado;
     }
 
-    return a.localeCompare(b);
+
+    return a.localeCompare(
+      b
+    );
+
   }
 
-  return a.localeCompare(
-    b,
-    "es",
-    {
-      numeric: true,
-      sensitivity: "base",
-    }
+
+  return comparadorTexto.compare(
+    a,
+    b
   );
+
 }
+
 
 function Catalogo() {
 
   const navigate =
     useNavigate();
 
-  const catalogoRef =
-    useRef<HTMLDivElement | null>(
-      null
-    );
-
-  const tablaDisponibleRef =
-    useRef<HTMLDivElement | null>(
-      null
-    );
-
-  const [
-    alturaCatalogo,
-    setAlturaCatalogo,
-  ] = useState<number | null>(
-    null
-  );
-
 
   const [
     productos,
     setProductos,
-  ] = useState<Producto[]>([]);
+  ] =
+    useState<
+      ProductoCatalogo[]
+    >(
+      []
+    );
+
+
+  const [
+    cargando,
+    setCargando,
+  ] =
+    useState(
+      true
+    );
+
+
+  const [
+    error,
+    setError,
+  ] =
+    useState(
+      ""
+    );
+
 
   const [
     busqueda,
     setBusqueda,
-  ] = useState("");
+  ] =
+    useState(
+      ""
+    );
 
 
   const [
     categoriaFiltro,
     setCategoriaFiltro,
-  ] = useState("");
-
-
-  const [
-    pagina,
-    setPagina,
-  ] = useState(1);
-
-
-  const [
-    productosPorPagina,
-    setProductosPorPagina,
-  ] = useState(4);
+  ] =
+    useState(
+      ""
+    );
 
 
   const [
     ordenarPor,
     setOrdenarPor,
-  ] = useState<
-    keyof Producto | ""
-  >("");
+  ] =
+    useState<
+      CampoOrden
+      | ""
+    >(
+      ""
+    );
 
 
   const [
     direccion,
     setDireccion,
-  ] = useState<
-    "asc" | "desc"
-  >("asc");
+  ] =
+    useState<
+      DireccionOrden
+    >(
+      "asc"
+    );
+
+
+  const [
+    pagina,
+    setPagina,
+  ] =
+    useState(
+      1
+    );
+
+
+  const productosPorPagina =
+    6;
+
 
   const [
     mostrarListaCompra,
     setMostrarListaCompra,
-  ] = useState(false);
-
-  useEffect(() => {
-
-    cargarProductos();
-
-  }, []);
+  ] =
+    useState(
+      false
+    );
 
 
   async function cargarProductos() {
 
     try {
 
-      const res =
+      setCargando(
+        true
+      );
+
+      setError(
+        ""
+      );
+
+
+      const respuesta =
         await fetch(
-          "http://localhost:3000/productos"
+          `${API_URL}/productos`
         );
 
 
-      if (!res.ok) {
+      const data =
+        await respuesta.json();
+
+
+      if (
+        !respuesta.ok
+      ) {
 
         throw new Error(
-          "Error al buscar productos"
+          data?.mensaje ||
+          "No se pudo cargar el catálogo."
         );
 
       }
 
 
-      const datos =
-        await res.json();
+      const lista:
+        ProductoCatalogo[] =
+        Array.isArray(
+          data
+        )
+          ? data
+          : [];
 
 
       setProductos(
-        datos
+        lista.map(
+          (
+            producto
+          ) => ({
+            ...producto,
+
+            id:
+              Number(
+                producto.id
+              ),
+
+            codigo_barra:
+              textoSeguro(
+                producto.codigo_barra
+              ) ||
+              null,
+
+            nombre:
+              textoSeguro(
+                producto.nombre
+              ),
+
+            precio:
+              Number(
+                producto.precio
+              ),
+
+            stock:
+              Number(
+                producto.stock
+              ),
+
+            tipo_venta:
+              producto.tipo_venta ===
+              "PESO"
+                ? "PESO"
+                : "UNIDAD",
+          })
+        )
       );
 
-    } catch (error) {
+    } catch (
+      errorCarga
+    ) {
 
       console.error(
         "Error al cargar productos:",
-        error
+        errorCarga
+      );
+
+
+      setError(
+        errorCarga instanceof Error
+          ? errorCarga.message
+          : "No se pudo cargar el catálogo."
+      );
+
+    } finally {
+
+      setCargando(
+        false
       );
 
     }
+
   }
 
-  useLayoutEffect(() => {
 
-    function calcularAltura() {
+  useEffect(
+    () => {
 
-      if (!catalogoRef.current) {
-        return;
-      }
+      void cargarProductos();
 
+    },
+    []
+  );
 
-      const posicionSuperior =
-        catalogoRef.current
-          .getBoundingClientRect()
-          .top;
-
-
-      const alturaDisponible =
-        window.innerHeight -
-        posicionSuperior;
-
-
-      setAlturaCatalogo(
-        Math.max(
-          0,
-          alturaDisponible
-        )
-      );
-    }
-
-
-    calcularAltura();
-
-
-    window.addEventListener(
-      "resize",
-      calcularAltura
-    );
-
-
-    return () => {
-
-      window.removeEventListener(
-        "resize",
-        calcularAltura
-      );
-
-    };
-
-  }, []);
-
-  useEffect(() => {
-
-    const elemento =
-      tablaDisponibleRef.current;
-
-
-    if (!elemento) {
-      return;
-    }
-
-    const tabla = elemento;
-
-
-    function calcularCantidadFilas() {
-
-      const alturaDisponible =
-        tabla.clientHeight;
-
-      const altoEncabezado = 45;
-
-      const altoFila = 59;
-
-
-      const espacioParaFilas =
-        alturaDisponible -
-        altoEncabezado;
-
-
-      let cantidad =
-        Math.floor(
-          espacioParaFilas /
-          altoFila
-        );
-
-      cantidad =
-        Math.max(
-          1,
-          cantidad
-        );
-
-      cantidad =
-        Math.min(
-          12,
-          cantidad
-        );
-
-
-      setProductosPorPagina(
-        (cantidadActual) => {
-
-          if (
-            cantidadActual ===
-            cantidad
-          ) {
-            return cantidadActual;
-          }
-
-
-          return cantidad;
-        }
-      );
-    }
-
-    const observer =
-      new ResizeObserver(
-        calcularCantidadFilas
-      );
-
-
-    observer.observe(
-      elemento
-    );
-
-
-    calcularCantidadFilas();
-
-
-    return () => {
-
-      observer.disconnect();
-
-    };
-
-  }, []);
 
   function ordenar(
-    columna: keyof Producto
+    campo:
+      CampoOrden
   ) {
 
     if (
-      ordenarPor === columna
+      ordenarPor ===
+      campo
     ) {
 
       setDireccion(
-        direccion === "asc"
-          ? "desc"
-          : "asc"
+        (
+          actual
+        ) =>
+          actual ===
+          "asc"
+            ? "desc"
+            : "asc"
       );
 
     } else {
 
       setOrdenarPor(
-        columna
+        campo
       );
 
       setDireccion(
@@ -406,12 +515,57 @@ function Catalogo() {
     }
 
 
-    setPagina(1);
+    setPagina(
+      1
+    );
+
   }
 
+
+  function iconoOrden(
+    campo:
+      CampoOrden
+  ) {
+
+    if (
+      ordenarPor !==
+      campo
+    ) {
+
+      return (
+        <ArrowUpDown
+          size={
+            15
+          }
+        />
+      );
+
+    }
+
+
+    return direccion ===
+      "asc"
+      ? (
+        <ArrowUp
+          size={
+            15
+          }
+        />
+      )
+      : (
+        <ArrowDown
+          size={
+            15
+          }
+        />
+      );
+
+  }
+
+
   const productosFiltrados =
-    productos.filter(
-      (producto) => {
+    useMemo(
+      () => {
 
         const textoBusqueda =
           busqueda
@@ -419,1280 +573,1249 @@ function Catalogo() {
             .toLowerCase();
 
 
-        const coincideBusqueda =
-          producto.nombre
-            .toLowerCase()
-            .includes(
-              textoBusqueda
-            )
-          ||
-          producto.codigo_barra
-            .includes(
-              busqueda.trim()
+        return productos.filter(
+          (
+            producto
+          ) => {
+
+            const nombre =
+              textoSeguro(
+                producto.nombre
+              )
+                .toLowerCase();
+
+
+            const codigo =
+              textoSeguro(
+                producto.codigo_barra
+              )
+                .toLowerCase();
+
+
+            const coincideBusqueda =
+              !textoBusqueda
+              ||
+              nombre.includes(
+                textoBusqueda
+              )
+              ||
+              codigo.includes(
+                textoBusqueda
+              );
+
+
+            const coincideCategoria =
+              !categoriaFiltro
+              ||
+              producto.categoria ===
+                categoriaFiltro;
+
+
+            return (
+              coincideBusqueda &&
+              coincideCategoria
             );
 
-
-        const coincideCategoria =
-          categoriaFiltro === ""
-          ||
-          producto.categoria ===
-            categoriaFiltro;
-
-
-        return (
-          coincideBusqueda &&
-          coincideCategoria
+          }
         );
-      }
+
+      },
+      [
+        productos,
+        busqueda,
+        categoriaFiltro,
+      ]
     );
 
 
   const productosOrdenados =
-    [...productosFiltrados]
-      .sort(
-        (a, b) => {
+    useMemo(
+      () => {
 
-          if (!ordenarPor) {
-            return 0;
-          }
-
-
-          let resultado = 0;
+        const copia =
+          [
+            ...productosFiltrados,
+          ];
 
 
-          switch (
-            ordenarPor
-          ) {
+        if (
+          !ordenarPor
+        ) {
 
-            case "codigo_barra":
+          return copia;
 
-              resultado =
-                compararCodigoBarras(
-                  a.codigo_barra,
+        }
+
+
+        copia.sort(
+          (
+            a,
+            b
+          ) => {
+
+            /*
+             * Para código de barras:
+             * los productos sin código SIEMPRE van al final.
+             * Así tampoco intentamos hacer trim/includes sobre null.
+             */
+            if (
+              ordenarPor ===
+              "codigo_barra"
+            ) {
+
+              const codigoA =
+                textoSeguro(
+                  a.codigo_barra
+                );
+
+              const codigoB =
+                textoSeguro(
                   b.codigo_barra
                 );
 
-              break;
-
-            case "nombre":
-
-              resultado =
-                comparadorTexto.compare(
-                  a.nombre.trim(),
-                  b.nombre.trim()
-                );
-
-              break;
-
-            case "precio":
-
-              resultado =
-                Number(
-                  a.precio
-                )
-                -
-                Number(
-                  b.precio
-                );
-
-              break;
-
-            case "stock":
-
-              resultado =
-                Number(
-                  a.stock
-                )
-                -
-                Number(
-                  b.stock
-                );
-
-              break;
-
-            case "categoria":
-
-              resultado =
-                comparadorTexto.compare(
-                  a.categoria.trim(),
-                  b.categoria.trim()
-                );
 
               if (
-                resultado === 0
+                !codigoA &&
+                !codigoB
               ) {
 
-                resultado =
-                  comparadorTexto.compare(
-                    a.nombre.trim(),
-                    b.nombre.trim()
-                  );
+                return comparadorTexto.compare(
+                  a.nombre,
+                  b.nombre
+                );
 
               }
 
-              break;
+
+              if (
+                !codigoA
+              ) {
+                return 1;
+              }
 
 
-            default:
+              if (
+                !codigoB
+              ) {
+                return -1;
+              }
 
-              resultado = 0;
-          }
+
+              const resultado =
+                compararCodigosNoVacios(
+                  codigoA,
+                  codigoB
+                );
 
 
-          return (
-            direccion === "asc"
+              return direccion ===
+                "asc"
+                ? resultado
+                : -resultado;
+
+            }
+
+
+            let resultado =
+              0;
+
+
+            switch (
+              ordenarPor
+            ) {
+
+              case "nombre":
+
+                resultado =
+                  comparadorTexto.compare(
+                    a.nombre,
+                    b.nombre
+                  );
+
+                break;
+
+
+              case "precio":
+
+                resultado =
+                  Number(
+                    a.precio
+                  )
+                  -
+                  Number(
+                    b.precio
+                  );
+
+                break;
+
+
+              case "stock":
+
+                resultado =
+                  Number(
+                    a.stock
+                  )
+                  -
+                  Number(
+                    b.stock
+                  );
+
+                break;
+
+
+              case "categoria":
+
+                resultado =
+                  comparadorTexto.compare(
+                    a.categoria,
+                    b.categoria
+                  );
+
+
+                if (
+                  resultado ===
+                  0
+                ) {
+
+                  resultado =
+                    comparadorTexto.compare(
+                      a.nombre,
+                      b.nombre
+                    );
+
+                }
+
+                break;
+
+            }
+
+
+            return direccion ===
+              "asc"
               ? resultado
-              : -resultado
-          );
-        }
-      );
+              : -resultado;
+
+          }
+        );
+
+
+        return copia;
+
+      },
+      [
+        productosFiltrados,
+        ordenarPor,
+        direccion,
+      ]
+    );
 
 
   const totalPaginas =
-    Math.ceil(
-      productosOrdenados.length
-      /
-      productosPorPagina
+    Math.max(
+      1,
+      Math.ceil(
+        productosOrdenados.length /
+        productosPorPagina
+      )
     );
 
-  useEffect(() => {
 
-    if (
-      totalPaginas === 0
-    ) {
+  useEffect(
+    () => {
 
       if (
-        pagina !== 1
+        pagina >
+        totalPaginas
       ) {
-        setPagina(1);
+
+        setPagina(
+          totalPaginas
+        );
+
       }
 
-      return;
-    }
-
-
-    if (
-      pagina > totalPaginas
-    ) {
-
-      setPagina(
-        totalPaginas
-      );
-
-    }
-
-  }, [
-    totalPaginas,
-    pagina,
-  ]);
+    },
+    [
+      pagina,
+      totalPaginas,
+    ]
+  );
 
 
   const indiceInicial =
-    (pagina - 1)
+    (
+      pagina -
+      1
+    )
     *
-    productosPorPagina;
-
-
-  const indiceFinal =
-    indiceInicial
-    +
     productosPorPagina;
 
 
   const productosPagina =
     productosOrdenados.slice(
       indiceInicial,
-      indiceFinal
+      indiceInicial +
+      productosPorPagina
     );
 
 
+  const headerStyle = {
+    background:
+      "#2563eb",
+
+    color:
+      "#ffffff",
+
+    textAlign:
+      "center" as const,
+
+    verticalAlign:
+      "middle" as const,
+
+    whiteSpace:
+      "nowrap" as const,
+
+    cursor:
+      "pointer",
+  };
+
+
+  function encabezado(
+    titulo:
+      string,
+    campo:
+      CampoOrden
+  ) {
+
+    return (
+
+      <CTableHeaderCell
+        style={
+          headerStyle
+        }
+        onClick={() =>
+          ordenar(
+            campo
+          )
+        }
+      >
+
+        <span
+          className="
+            d-inline-flex
+            align-items-center
+            gap-2
+          "
+        >
+
+          {
+            titulo
+          }
+
+          {
+            iconoOrden(
+              campo
+            )
+          }
+
+        </span>
+
+      </CTableHeaderCell>
+
+    );
+
+  }
+
+
   return (
-    <>
+
+    <div
+      style={{
+        width:
+          "100%",
+
+        minWidth:
+          0,
+
+        padding:
+          "12px 18px 24px",
+      }}
+    >
 
       <div
-        ref={catalogoRef}
-
         style={{
+          width:
+            "100%",
 
-          height:
-            alturaCatalogo !== null
-              ? `${alturaCatalogo}px`
-              : "100%",
+          maxWidth:
+            "1600px",
 
-          maxHeight:
-            alturaCatalogo !== null
-              ? `${alturaCatalogo}px`
-              : "100%",
-
-          overflow:
-            "hidden",
-
-          display:
-            "flex",
-
-          justifyContent:
-            "center",
-
-          padding:
-            "12px 24px",
-
-          boxSizing:
-            "border-box",
+          margin:
+            "0 auto",
         }}
       >
 
-        <div
-          style={{
-            width:
-              "100%",
-
-            maxWidth:
-              "1400px",
-
-            height:
-              "100%",
-
-            minHeight:
-              0,
-
-            display:
-              "flex",
-
-            flexDirection:
-              "column",
-
-            gap:
-              "12px",
-
-            overflow:
-              "hidden",
-          }}
+        <header
+          className="
+            d-flex
+            justify-content-between
+            align-items-center
+            gap-3
+            flex-wrap
+            mb-3
+          "
         >
 
-
-          <header
+          <div
             className="
               d-flex
-              justify-content-between
               align-items-center
               gap-3
             "
-
-            style={{
-              flex:
-                "0 0 auto",
-            }}
           >
-
-            {/* IZQUIERDA */}
 
             <div
               className="
                 d-flex
+                justify-content-center
                 align-items-center
-                gap-3
               "
+              style={{
+                width:
+                  "48px",
+
+                height:
+                  "48px",
+
+                background:
+                  "#eef4ff",
+
+                border:
+                  "1px solid #dbeafe",
+
+                borderRadius:
+                  "10px",
+              }}
             >
 
-              <div
-                className="
-                  d-flex
-                  justify-content-center
-                  align-items-center
-                "
-
-                style={{
-                  width:
-                    "48px",
-
-                  height:
-                    "48px",
-
-                  background:
-                    "#eef4ff",
-
-                  border:
-                    "1px solid #dbeafe",
-
-                  borderRadius:
-                    "8px",
-
-                  flexShrink:
-                    0,
-                }}
-              >
-
-                <Box
-                  size={30}
-                  color="#2563eb"
-                />
-
-              </div>
-
-
-              <div>
-
-                <h2
-                  className="
-                    mb-1
-                    fw-bold
-                  "
-
-                  style={{
-                    fontSize:
-                      "1.8rem",
-                  }}
-                >
-                  Catálogo de Productos
-                </h2>
-
-
-                <p
-                  className="
-                    mb-0
-                    text-muted
-                  "
-
-                  style={{
-                    fontSize:
-                      "0.95rem",
-                  }}
-                >
-                  Gestioná y mantené
-                  tu inventario de productos
-                </p>
-
-              </div>
+              <Box
+                size={
+                  28
+                }
+                color="#2563eb"
+              />
 
             </div>
 
 
-            {/* NUEVO PRODUCTO */}
+            <div>
 
-            <ProductoCreate
-              recargar={
-                cargarProductos
-              }
-            />
+              <h2
+                className="
+                  mb-1
+                  fw-bold
+                "
+              >
+                Catálogo de Productos
+              </h2>
 
-          </header>
+              <p
+                className="
+                  mb-0
+                  text-muted
+                "
+              >
+                Gestioná y mantené tu inventario.
+              </p>
 
-          <div
-            style={{
-              flex:
-                "0 0 auto",
-            }}
-          >
-
-            <ListaCompra
-              productos={
-                productos
-              }
-
-              abrirModal={() =>
-                setMostrarListaCompra(
-                  true
-                )
-              }
-            />
+            </div>
 
           </div>
 
 
-          <ModalListaCompra
-            visible={
-              mostrarListaCompra
-            }
-
-            onClose={() =>
-              setMostrarListaCompra(
-                false
-              )
-            }
-
-            productos={
-              productos
+          <ProductoCreate
+            recargar={
+              cargarProductos
             }
           />
 
-          <CCard
-            style={{
-              flex:
-                "0 0 auto",
-            }}
-          >
+        </header>
 
-            <CCardBody>
 
-              <CForm>
+        <div
+          className="
+            mb-3
+          "
+        >
 
-                <CRow
+          <ListaCompra
+            productos={
+              productos as any
+            }
+            abrirModal={() =>
+              setMostrarListaCompra(
+                true
+              )
+            }
+          />
+
+        </div>
+
+
+        <ModalListaCompra
+          visible={
+            mostrarListaCompra
+          }
+          onClose={() =>
+            setMostrarListaCompra(
+              false
+            )
+          }
+          productos={
+            productos as any
+          }
+        />
+
+
+        <CCard
+          className="
+            mb-3
+          "
+        >
+
+          <CCardBody>
+
+            <CForm>
+
+              <div
+                className="
+                  row
+                  g-3
+                  align-items-end
+                "
+              >
+
+                <div
                   className="
-                    align-items-end
-                    g-3
+                    col-12
+                    col-md-3
                   "
                 >
-                <CCol
-                    xs={12}
-                    md={3}
+
+                  <CFormLabel>
+                    Categoría
+                  </CFormLabel>
+
+                  <CFormSelect
+                    value={
+                      categoriaFiltro
+                    }
+                    onChange={(
+                      event:
+                        ChangeEvent<HTMLSelectElement>
+                    ) => {
+
+                      setCategoriaFiltro(
+                        event.target.value
+                      );
+
+                      setPagina(
+                        1
+                      );
+
+                    }}
                   >
 
-                    <CFormLabel>
-                      Categoría
-                    </CFormLabel>
-
-
-                    <CFormSelect
-                      value={
-                        categoriaFiltro
-                      }
-
-                      onChange={(
-                        e:
-                          ChangeEvent<HTMLSelectElement>
-                      ) => {
-
-                        setCategoriaFiltro(
-                          e.target.value
-                        );
-
-                        setPagina(1);
-
-                      }}
+                    <option
+                      value=""
                     >
+                      Todas las categorías
+                    </option>
 
-                      <option value="">
-                        Todas las categorías
-                      </option>
-
-
-                      {categorias.map(
-                        (categoria) => (
+                    {
+                      categorias.map(
+                        (
+                          categoria
+                        ) => (
 
                           <option
                             key={
                               categoria
                             }
-
                             value={
                               categoria
                             }
                           >
-                            {categoria}
+                            {
+                              categoria
+                            }
                           </option>
 
                         )
-                      )}
-
-                    </CFormSelect>
-
-                  </CCol>
-
-                  <CCol
-                    xs={12}
-                    md={5}
-                  >
-
-                    <CFormLabel>
-                      Buscar Producto
-                    </CFormLabel>
-
-
-                    <CInputGroup>
-
-                      <CInputGroupText>
-
-                        <Search
-                          size={16}
-                        />
-
-                      </CInputGroupText>
-
-
-                      <CFormInput
-                        value={
-                          busqueda
-                        }
-
-                        onChange={(
-                          e:
-                            ChangeEvent<HTMLInputElement>
-                        ) => {
-
-                          setBusqueda(
-                            e.target.value
-                          );
-
-                          setPagina(1);
-
-                        }}
-
-                        placeholder="Buscar por nombre o código..."
-                      />
-
-                    </CInputGroup>
-
-                  </CCol>
-
-
-                  <CCol
-                    xs={12}
-                    md={4}
-                  >
-
-                    <div
-                      className="
-                        d-flex
-                        justify-content-between
-                        align-items-center
-                        p-3
-                      "
-
-                      style={{
-                        background:
-                          "#eef4ff",
-
-                        border:
-                          "1px solid #dbeafe",
-
-                        borderRadius:
-                          "12px",
-                      }}
-                    >
-
-                      <div>
-
-                        <p
-                          className="
-                            mb-1
-                            text-muted
-                          "
-
-                          style={{
-                            fontSize:
-                              "0.85rem",
-                          }}
-                        >
-                          Total de Productos
-                        </p>
-
-
-                        <h4
-                          className="
-                            mb-0
-                            fw-bold
-                          "
-
-                          style={{
-                            color:
-                              "#2563eb",
-                          }}
-                        >
-                          {
-                            productos.length
-                          }
-                        </h4>
-
-                      </div>
-
-
-                      <div
-                        className="
-                          d-flex
-                          justify-content-center
-                          align-items-center
-                        "
-
-                        style={{
-                          width:
-                            "52px",
-
-                          height:
-                            "52px",
-
-                          background:
-                            "#dbeafe",
-
-                          borderRadius:
-                            "50%",
-                        }}
-                      >
-
-                        <Box
-                          size={26}
-                          color="#2563eb"
-                        />
-
-                      </div>
-
-                    </div>
-
-                  </CCol>
-
-                </CRow>
-
-              </CForm>
-
-            </CCardBody>
-
-          </CCard>
-
-          <CCard
-            style={{
-              flex:
-                "1 1 0",
-
-              minHeight:
-                0,
-
-              overflow:
-                "hidden",
-            }}
-          >
-
-            <CCardBody
-              style={{
-                height:
-                  "100%",
-
-                minHeight:
-                  0,
-
-                display:
-                  "flex",
-
-                flexDirection:
-                  "column",
-
-                overflow:
-                  "hidden",
-
-                padding:
-                  "16px",
-              }}
-            >
-
-              <div
-                ref={
-                  tablaDisponibleRef
-                }
-
-                style={{
-                  flex:
-                    "1 1 0",
-
-                  minHeight:
-                    0,
-
-                  overflow:
-                    "hidden",
-
-                  border:
-                    "1px solid #d8dbe0",
-
-                  borderRadius:
-                    "6px",
-                }}
-              >
-
-                <CTable
-                  align="middle"
-                  hover
-                  striped
-                  responsive
-
-                  className="mb-0"
-
-                  style={{
-                    width:
-                      "100%",
-                  }}
-                >
-
-                  <CTableHead>
-
-                    <CTableRow
-                      style={{
-                        height:
-                          "45px",
-                      }}
-                    >
-
-                      <OrdenarTabla
-                        titulo="Código de Barras"
-                        campo="codigo_barra"
-
-                        ordenarPor={
-                          ordenarPor
-                        }
-
-                        direccion={
-                          direccion
-                        }
-
-                        ordenar={
-                          ordenar
-                        }
-                      />
-
-
-                      <OrdenarTabla
-                        titulo="Nombre"
-                        campo="nombre"
-
-                        ordenarPor={
-                          ordenarPor
-                        }
-
-                        direccion={
-                          direccion
-                        }
-
-                        ordenar={
-                          ordenar
-                        }
-                      />
-
-
-                      <OrdenarTabla
-                        titulo="Precio"
-                        campo="precio"
-
-                        ordenarPor={
-                          ordenarPor
-                        }
-
-                        direccion={
-                          direccion
-                        }
-
-                        ordenar={
-                          ordenar
-                        }
-                      />
-
-
-                      <OrdenarTabla
-                        titulo="Stock"
-                        campo="stock"
-
-                        ordenarPor={
-                          ordenarPor
-                        }
-
-                        direccion={
-                          direccion
-                        }
-
-                        ordenar={
-                          ordenar
-                        }
-                      />
-
-
-                      <OrdenarTabla
-                        titulo="Categoría"
-                        campo="categoria"
-
-                        ordenarPor={
-                          ordenarPor
-                        }
-
-                        direccion={
-                          direccion
-                        }
-
-                        ordenar={
-                          ordenar
-                        }
-                      />
-
-
-                      <CTableHeaderCell
-                        style={{
-                          textAlign:
-                            "center",
-
-                          background:
-                            "#2563eb",
-
-                          color:
-                            "white",
-
-                          verticalAlign:
-                            "middle",
-
-                          whiteSpace:
-                            "nowrap",
-                        }}
-                      >
-                        Acción
-                      </CTableHeaderCell>
-
-                    </CTableRow>
-
-                  </CTableHead>
-
-
-                  <CTableBody>
-
-                    {productosPagina.length ===
-                    0 ? (
-
-                      <CTableRow>
-
-                        <CTableDataCell
-                          colSpan={6}
-
-                          className="
-                            text-center
-                            text-muted
-                          "
-
-                          style={{
-                            height:
-                              "59px",
-
-                            verticalAlign:
-                              "middle",
-                          }}
-                        >
-                          No hay productos
-                          para mostrar.
-                        </CTableDataCell>
-
-                      </CTableRow>
-
-                    ) : (
-
-                      productosPagina.map(
-                        (producto) => (
-
-                          <CTableRow
-                            key={
-                              producto.codigo_barra
-                            }
-
-                            style={{
-                              height:
-                                "59px",
-                            }}
-                          >
-
-                            <CTableDataCell>
-
-                              <div
-                                className="
-                                  d-flex
-                                  justify-content-center
-                                  align-items-center
-                                  gap-2
-                                "
-                              >
-
-                                <Barcode
-                                  size={20}
-                                  color="#2563eb"
-                                />
-
-
-                                <span>
-                                  {
-                                    producto.codigo_barra
-                                  }
-                                </span>
-
-                              </div>
-
-                            </CTableDataCell>
-
-
-                            <CTableDataCell
-                              className="
-                                text-center
-                              "
-                            >
-                              {
-                                Capitalizar(
-                                  producto.nombre
-                                )
-                              }
-                            </CTableDataCell>
-
-
-                            <CTableDataCell
-                              className="
-                                text-center
-                              "
-                            >
-
-                              $
-
-                              {Number(
-                                producto.precio
-                              ).toLocaleString(
-                                "es-AR",
-                                {
-                                  minimumFractionDigits:
-                                    2,
-
-                                  maximumFractionDigits:
-                                    2,
-                                }
-                              )}
-
-                            </CTableDataCell>
-
-
-                            <CTableDataCell
-                              className="
-                                text-center
-                              "
-                            >
-
-                              {producto.stock <=
-                              3 ? (
-
-                                <span
-                                  style={{
-                                    color:
-                                      "#ea580c",
-
-                                    fontWeight:
-                                      600,
-                                  }}
-                                >
-
-                                  {
-                                    producto.stock
-                                  }
-
-                                  {" "}
-
-                                  ¡Stock bajo!
-
-                                </span>
-
-                              ) : (
-
-                                producto.stock
-
-                              )}
-
-                            </CTableDataCell>
-
-
-                            {/* =================
-                                CATEGORÍA
-                            ================== */}
-
-                            <CTableDataCell
-                              className="
-                                text-center
-                              "
-                            >
-                              {
-                                producto.categoria
-                              }
-                            </CTableDataCell>
-
-
-                            <CTableDataCell>
-
-                              <div
-                                className="
-                                  d-flex
-                                  justify-content-center
-                                  align-items-center
-                                  gap-3
-                                "
-                              >
-
-                                <ModificarProducto
-                                  producto={
-                                    producto
-                                  }
-
-                                  recargar={
-                                    cargarProductos
-                                  }
-                                />
-
-
-                                <EliminarProducto
-                                  producto={
-                                    producto.codigo_barra
-                                  }
-
-                                  recargar={
-                                    cargarProductos
-                                  }
-                                />
-
-                              </div>
-
-                            </CTableDataCell>
-
-                          </CTableRow>
-
-                        )
                       )
+                    }
 
-                    )}
+                  </CFormSelect>
 
-                  </CTableBody>
+                </div>
 
-                </CTable>
-
-              </div>
-
-              <div
-                className="
-                  d-flex
-                  justify-content-between
-                  align-items-center
-                  gap-3
-                  flex-wrap
-                "
-
-                style={{
-                  flex:
-                    "0 0 auto",
-
-                  paddingTop:
-                    "12px",
-                }}
-              >
-
-                {/* MOSTRANDO */}
-
-                <span
-                  className="
-                    text-muted
-                  "
-
-                  style={{
-                    fontSize:
-                      "0.9rem",
-                  }}
-                >
-
-                  {productosFiltrados.length ===
-                  0
-                    ? "No hay productos"
-
-                    : (
-                      <>
-
-                        Mostrando{" "}
-
-                        {
-                          indiceInicial +
-                          1
-                        }
-
-                        -
-
-                        {
-                          Math.min(
-                            indiceFinal,
-                            productosFiltrados.length
-                          )
-                        }
-
-                        {" "}de{" "}
-
-                        {
-                          productosFiltrados.length
-                        }
-
-                        {" "}productos
-
-                      </>
-                    )
-                  }
-
-                </span>
-
-
-                {/* DERECHA */}
 
                 <div
                   className="
-                    d-flex
-                    align-items-center
-                    gap-3
+                    col-12
+                    col-md-6
                   "
                 >
 
-                  {/* PAGINACIÓN */}
+                  <CFormLabel>
+                    Buscar producto
+                  </CFormLabel>
 
-                  <div
-                    className="
-                      d-flex
-                      align-items-center
-                      gap-2
-                    "
-                  >
+                  <CInputGroup>
 
-                    {/* ANTERIOR */}
+                    <CInputGroupText>
 
-                    <CButton
-                      color="light"
-
-                      size="sm"
-
-                      disabled={
-                        pagina === 1
-                      }
-
-                      onClick={() =>
-                        setPagina(
-                          (
-                            paginaActual
-                          ) =>
-                            Math.max(
-                              1,
-                              paginaActual -
-                              1
-                            )
-                        )
-                      }
-                    >
-
-                      <MoveLeft
-                        size={18}
+                      <Search
+                        size={
+                          16
+                        }
                       />
 
-                    </CButton>
+                    </CInputGroupText>
 
+                    <CFormInput
+                      value={
+                        busqueda
+                      }
+                      onChange={(
+                        event:
+                          ChangeEvent<HTMLInputElement>
+                      ) => {
 
-                    {/* NÚMEROS */}
-
-                    {Array.from(
-                      {
-                        length:
-                          totalPaginas,
-                      },
-
-                      (_, index) => {
-
-                        const numeroPagina =
-                          index + 1;
-
-
-                        return (
-
-                          <CButton
-                            key={
-                              numeroPagina
-                            }
-
-                            size="sm"
-
-                            color={
-                              pagina ===
-                              numeroPagina
-                                ? "primary"
-                                : "light"
-                            }
-
-                            onClick={() =>
-                              setPagina(
-                                numeroPagina
-                              )
-                            }
-                          >
-                            {
-                              numeroPagina
-                            }
-                          </CButton>
-
+                        setBusqueda(
+                          event.target.value
                         );
-                      }
-                    )}
 
-
-                    {/* SIGUIENTE */}
-
-                    <CButton
-                      color="light"
-
-                      size="sm"
-
-                      disabled={
-                        totalPaginas ===
-                          0
-                        ||
-                        pagina ===
-                          totalPaginas
-                      }
-
-                      onClick={() =>
                         setPagina(
-                          (
-                            paginaActual
-                          ) =>
-                            Math.min(
-                              totalPaginas,
-                              paginaActual +
-                              1
-                            )
-                        )
-                      }
-                    >
+                          1
+                        );
 
-                      <MoveRight
-                        size={18}
-                      />
-
-                    </CButton>
-
-                  </div>
-
-
-                  {/* VOLVER */}
-
-                  <CButton
-                    color="light"
-
-                    size="sm"
-
-                    className="
-                      d-flex
-                      align-items-center
-                      gap-2
-                    "
-
-                    type="button"
-
-                    onClick={() =>
-                      navigate("/")
-                    }
-                  >
-
-                    <MoveLeft
-                      size={17}
+                      }}
+                      placeholder="Buscar por nombre o código..."
                     />
 
-                    Volver al inicio
+                  </CInputGroup>
 
-                  </CButton>
+                </div>
+
+
+                <div
+                  className="
+                    col-12
+                    col-md-3
+                  "
+                >
+
+                  <div
+                    style={{
+                      padding:
+                        "12px 14px",
+
+                      background:
+                        "#eef4ff",
+
+                      border:
+                        "1px solid #dbeafe",
+
+                      borderRadius:
+                        "10px",
+                    }}
+                  >
+
+                    <small
+                      className="
+                        text-muted
+                        d-block
+                      "
+                    >
+                      Total de productos
+                    </small>
+
+                    <strong
+                      style={{
+                        color:
+                          "#2563eb",
+
+                        fontSize:
+                          "1.45rem",
+                      }}
+                    >
+                      {
+                        productos.length
+                      }
+                    </strong>
+
+                  </div>
 
                 </div>
 
               </div>
 
-            </CCardBody>
+            </CForm>
 
-          </CCard>
+          </CCardBody>
 
-        </div>
+        </CCard>
+
+
+        <CCard>
+
+          <CCardBody>
+
+            {
+              error &&
+              (
+                <div
+                  className="
+                    alert
+                    alert-danger
+                  "
+                >
+                  {
+                    error
+                  }
+                </div>
+              )
+            }
+
+
+            <div
+              style={{
+                width:
+                  "100%",
+
+                overflowX:
+                  "auto",
+
+                border:
+                  "1px solid #d8dbe0",
+
+                borderRadius:
+                  "8px",
+              }}
+            >
+
+              <CTable
+                align="middle"
+                hover
+                striped
+                responsive
+                className="
+                  mb-0
+                "
+              >
+
+                <CTableHead>
+
+                  <CTableRow>
+
+                    {
+                      encabezado(
+                        "Código de Barras",
+                        "codigo_barra"
+                      )
+                    }
+
+                    {
+                      encabezado(
+                        "Nombre",
+                        "nombre"
+                      )
+                    }
+
+                    {
+                      encabezado(
+                        "Precio",
+                        "precio"
+                      )
+                    }
+
+                    {
+                      encabezado(
+                        "Stock",
+                        "stock"
+                      )
+                    }
+
+                    {
+                      encabezado(
+                        "Categoría",
+                        "categoria"
+                      )
+                    }
+
+                    <CTableHeaderCell
+                      style={{
+                        ...headerStyle,
+
+                        cursor:
+                          "default",
+                      }}
+                    >
+                      Acción
+                    </CTableHeaderCell>
+
+                  </CTableRow>
+
+                </CTableHead>
+
+
+                <CTableBody>
+
+                  {
+                    cargando
+                      ? (
+
+                        <CTableRow>
+
+                          <CTableDataCell
+                            colSpan={
+                              6
+                            }
+                            className="
+                              text-center
+                              text-muted
+                            "
+                            style={{
+                              height:
+                                "90px",
+                            }}
+                          >
+                            Cargando productos...
+                          </CTableDataCell>
+
+                        </CTableRow>
+
+                      )
+                      :
+                      productosPagina.length ===
+                      0
+                        ? (
+
+                          <CTableRow>
+
+                            <CTableDataCell
+                              colSpan={
+                                6
+                              }
+                              className="
+                                text-center
+                                text-muted
+                              "
+                              style={{
+                                height:
+                                  "90px",
+                              }}
+                            >
+                              No hay productos para mostrar.
+                            </CTableDataCell>
+
+                          </CTableRow>
+
+                        )
+                        :
+                        productosPagina.map(
+                          (
+                            producto
+                          ) => {
+
+                            const codigo =
+                              textoSeguro(
+                                producto.codigo_barra
+                              );
+
+
+                            return (
+
+                              <CTableRow
+                                key={
+                                  producto.id
+                                }
+                              >
+
+                                <CTableDataCell
+                                  className="
+                                    text-center
+                                  "
+                                >
+
+                                  {
+                                    codigo
+                                      ? (
+
+                                        <div
+                                          className="
+                                            d-inline-flex
+                                            align-items-center
+                                            gap-2
+                                          "
+                                        >
+
+                                          <Barcode
+                                            size={
+                                              18
+                                            }
+                                            color="#2563eb"
+                                          />
+
+                                          <span>
+                                            {
+                                              codigo
+                                            }
+                                          </span>
+
+                                        </div>
+
+                                      )
+                                      : (
+
+                                        <span
+                                          className="
+                                            text-muted
+                                          "
+                                          style={{
+                                            fontStyle:
+                                              "italic",
+                                          }}
+                                        >
+                                          Sin código
+                                        </span>
+
+                                      )
+                                  }
+
+                                </CTableDataCell>
+
+
+                                <CTableDataCell
+                                  className="
+                                    text-center
+                                  "
+                                >
+                                  {
+                                    capitalizar(
+                                      producto.nombre
+                                    )
+                                  }
+                                </CTableDataCell>
+
+
+                                <CTableDataCell
+                                  className="
+                                    text-center
+                                  "
+                                >
+                                  $
+                                  {
+                                    Number(
+                                      producto.precio
+                                    )
+                                      .toLocaleString(
+                                        "es-AR",
+                                        {
+                                          minimumFractionDigits:
+                                            2,
+
+                                          maximumFractionDigits:
+                                            2,
+                                        }
+                                      )
+                                  }
+                                </CTableDataCell>
+
+
+                                <CTableDataCell
+                                  className="
+                                    text-center
+                                  "
+                                >
+                                  {
+                                    Number(
+                                      producto.stock
+                                    )
+                                      .toLocaleString(
+                                        "es-AR",
+                                        {
+                                          maximumFractionDigits:
+                                            3,
+                                        }
+                                      )
+                                  }
+
+                                  {
+                                    producto.tipo_venta ===
+                                    "PESO"
+                                      ? " kg"
+                                      : ""
+                                  }
+                                </CTableDataCell>
+
+
+                                <CTableDataCell
+                                  className="
+                                    text-center
+                                  "
+                                >
+                                  {
+                                    producto.categoria
+                                  }
+                                </CTableDataCell>
+
+
+                                <CTableDataCell>
+
+                                  <div
+                                    className="
+                                      d-flex
+                                      justify-content-center
+                                      align-items-center
+                                      gap-2
+                                      flex-wrap
+                                    "
+                                  >
+
+                                    <ModificarProducto
+                                      producto={
+                                        producto
+                                      }
+                                      recargar={
+                                        cargarProductos
+                                      }
+                                    />
+
+
+                                    <EliminarProducto
+                                      producto={{
+                                        id:
+                                          producto.id,
+
+                                        nombre:
+                                          producto.nombre,
+                                      }}
+                                      recargar={
+                                        cargarProductos
+                                      }
+                                    />
+
+                                  </div>
+
+                                </CTableDataCell>
+
+                              </CTableRow>
+
+                            );
+
+                          }
+                        )
+                  }
+
+                </CTableBody>
+
+              </CTable>
+
+            </div>
+
+
+            <div
+              className="
+                d-flex
+                justify-content-between
+                align-items-center
+                gap-3
+                flex-wrap
+                mt-3
+              "
+            >
+
+              <span
+                className="
+                  text-muted
+                "
+              >
+
+                {
+                  productosOrdenados.length ===
+                  0
+                    ? "No hay productos"
+                    : (
+                      `Mostrando ${
+                        indiceInicial +
+                        1
+                      }-${
+                        Math.min(
+                          indiceInicial +
+                          productosPorPagina,
+                          productosOrdenados.length
+                        )
+                      } de ${
+                        productosOrdenados.length
+                      } productos`
+                    )
+                }
+
+              </span>
+
+
+              <div
+                className="
+                  d-flex
+                  align-items-center
+                  gap-2
+                  flex-wrap
+                "
+              >
+
+                <CButton
+                  color="light"
+                  size="sm"
+                  disabled={
+                    pagina <=
+                    1
+                  }
+                  onClick={() =>
+                    setPagina(
+                      (
+                        actual
+                      ) =>
+                        Math.max(
+                          1,
+                          actual -
+                          1
+                        )
+                    )
+                  }
+                >
+                  <MoveLeft
+                    size={
+                      18
+                    }
+                  />
+                </CButton>
+
+
+                {
+                  Array.from(
+                    {
+                      length:
+                        totalPaginas,
+                    },
+                    (
+                      _,
+                      index
+                    ) => {
+
+                      const numero =
+                        index +
+                        1;
+
+
+                      return (
+
+                        <CButton
+                          key={
+                            numero
+                          }
+                          size="sm"
+                          color={
+                            pagina ===
+                            numero
+                              ? "primary"
+                              : "light"
+                          }
+                          onClick={() =>
+                            setPagina(
+                              numero
+                            )
+                          }
+                        >
+                          {
+                            numero
+                          }
+                        </CButton>
+
+                      );
+
+                    }
+                  )
+                }
+
+
+                <CButton
+                  color="light"
+                  size="sm"
+                  disabled={
+                    pagina >=
+                    totalPaginas
+                  }
+                  onClick={() =>
+                    setPagina(
+                      (
+                        actual
+                      ) =>
+                        Math.min(
+                          totalPaginas,
+                          actual +
+                          1
+                        )
+                    )
+                  }
+                >
+                  <MoveRight
+                    size={
+                      18
+                    }
+                  />
+                </CButton>
+
+
+                <CButton
+                  color="light"
+                  size="sm"
+                  type="button"
+                  className="
+                    d-flex
+                    align-items-center
+                    gap-2
+                  "
+                  onClick={() =>
+                    navigate(
+                      "/"
+                    )
+                  }
+                >
+                  <MoveLeft
+                    size={
+                      17
+                    }
+                  />
+
+                  Volver al inicio
+                </CButton>
+
+              </div>
+
+            </div>
+
+          </CCardBody>
+
+        </CCard>
 
       </div>
 
-    </>
+    </div>
+
   );
+
 }
 
 

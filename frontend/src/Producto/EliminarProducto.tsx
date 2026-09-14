@@ -1,57 +1,310 @@
-import { useState } from "react";
-import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton  } from '@coreui/react'
-import { Trash } from "lucide-react";
+import {
+  useState,
+} from "react";
+
+import {
+  Trash,
+} from "lucide-react";
+
+import {
+  CAlert,
+  CButton,
+  CModal,
+  CModalBody,
+  CModalFooter,
+  CModalHeader,
+  CModalTitle,
+} from "@coreui/react";
+
+
+const API_URL =
+  "http://localhost:3000";
+
 
 type Props = {
-  producto: string;        
-  recargar: () => void;
-};
 
-function EliminarProducto({producto, recargar}: Props) {
-  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
-
-  const eliminarProducto = async () => {
-    try {
-      const respuesta = await fetch(`http://localhost:3000/productos/${producto}`, {
-        method: "PUT",
-      });
-
-      if (!respuesta.ok) {
-        throw new Error("El servidor falló al intentar eliminar el producto");
-      }
-
-      recargar();
-      setMostrarConfirmacion(false);
-
-    } catch (error) {
-      console.error("Error en la eliminación:", error);
-    }
+  producto: {
+    id: number;
+    nombre: string;
   };
 
-  return (
-    <>
-        <CButton  style={{color: "#fe0000"}} className="border-secondary" onClick={() => setMostrarConfirmacion(true)}>
-            <div className="d-flex justify-content-center align-items-center gap-2">
-              <Trash size={16}/>Eliminar
-            </div>
-        </CButton >
+  recargar:
+    () =>
+      void
+      | Promise<void>;
 
-        <CModal visible={mostrarConfirmacion} onClose={() => setMostrarConfirmacion(false)}>
-          <CModalHeader closeButton>
-                <CModalTitle>Confirmar eliminación</CModalTitle>
-            </CModalHeader>
-                <CModalBody>¿Seguro que querés eliminar este producto?</CModalBody>
-            <CModalFooter>
-                <CButton  color="secondary" onClick={() => setMostrarConfirmacion(false)}>
-                    Cancelar
-                </CButton >
-                <CButton  color="danger" onClick={eliminarProducto}>
-                    Eliminar
-                </CButton >
-            </CModalFooter>
-        </CModal>
+};
+
+
+function EliminarProducto({
+  producto,
+  recargar,
+}: Props) {
+
+  const [
+    visible,
+    setVisible,
+  ] =
+    useState(
+      false
+    );
+
+
+  const [
+    eliminando,
+    setEliminando,
+  ] =
+    useState(
+      false
+    );
+
+
+  const [
+    error,
+    setError,
+  ] =
+    useState(
+      ""
+    );
+
+
+  async function eliminarProducto() {
+
+    try {
+
+      setEliminando(
+        true
+      );
+
+      setError(
+        ""
+      );
+
+
+      const respuesta =
+        await fetch(
+          `${API_URL}/productos/id/${producto.id}`,
+          {
+            method:
+              "DELETE",
+          }
+        );
+
+
+      let data:
+        any =
+        {};
+
+
+      const contentType =
+        respuesta.headers
+          .get(
+            "content-type"
+          );
+
+
+      if (
+        contentType?.includes(
+          "application/json"
+        )
+      ) {
+
+        data =
+          await respuesta.json();
+
+      }
+
+
+      if (
+        !respuesta.ok
+      ) {
+
+        throw new Error(
+          data?.mensaje ||
+          "No se pudo eliminar el producto."
+        );
+
+      }
+
+
+      await recargar();
+
+
+      setVisible(
+        false
+      );
+
+    } catch (
+      errorEliminar
+    ) {
+
+      console.error(
+        "Error en la eliminación:",
+        errorEliminar
+      );
+
+
+      setError(
+        errorEliminar instanceof Error
+          ? errorEliminar.message
+          : "No se pudo eliminar el producto."
+      );
+
+    } finally {
+
+      setEliminando(
+        false
+      );
+
+    }
+
+  }
+
+
+  return (
+
+    <>
+
+      <CButton
+        type="button"
+        className="
+          border-secondary
+        "
+        style={{
+          color:
+            "#dc2626",
+        }}
+        onClick={() => {
+
+          setError(
+            ""
+          );
+
+          setVisible(
+            true
+          );
+
+        }}
+      >
+
+        <span
+          className="
+            d-flex
+            justify-content-center
+            align-items-center
+            gap-2
+          "
+        >
+
+          <Trash
+            size={
+              16
+            }
+          />
+
+          Eliminar
+
+        </span>
+
+      </CButton>
+
+
+      <CModal
+        visible={
+          visible
+        }
+        onClose={() =>
+          !eliminando &&
+          setVisible(
+            false
+          )
+        }
+        alignment="center"
+      >
+
+        <CModalHeader>
+
+          <CModalTitle>
+            Confirmar eliminación
+          </CModalTitle>
+
+        </CModalHeader>
+
+
+        <CModalBody>
+
+          {
+            error &&
+            (
+
+              <CAlert
+                color="danger"
+              >
+                {
+                  error
+                }
+              </CAlert>
+
+            )
+          }
+
+
+          ¿Seguro que querés eliminar
+          {" "}
+          <strong>
+            {
+              producto.nombre
+            }
+          </strong>
+          ?
+
+        </CModalBody>
+
+
+        <CModalFooter>
+
+          <CButton
+            type="button"
+            color="secondary"
+            disabled={
+              eliminando
+            }
+            onClick={() =>
+              setVisible(
+                false
+              )
+            }
+          >
+            Cancelar
+          </CButton>
+
+
+          <CButton
+            type="button"
+            color="danger"
+            disabled={
+              eliminando
+            }
+            onClick={() =>
+              void eliminarProducto()
+            }
+          >
+            {
+              eliminando
+                ? "Eliminando..."
+                : "Eliminar"
+            }
+          </CButton>
+
+        </CModalFooter>
+
+      </CModal>
+
     </>
+
   );
+
 }
+
 
 export default EliminarProducto;
