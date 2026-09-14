@@ -10,8 +10,13 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@coreui/coreui": "^5.9.0",
+    "@coreui/react": "^5.13.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
+    "lucide-react": "^1.44.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.18.1"

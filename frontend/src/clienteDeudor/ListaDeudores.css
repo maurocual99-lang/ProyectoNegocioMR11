@@ -1,0 +1,548 @@
+.deudores-page {
+  width: 100%;
+  min-width: 0;
+}
+
+.deudores-card-principal,
+.deudores-ventas-card,
+.deudores-pago-card > .card {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05);
+}
+
+.deudores-card-principal > .card-body {
+  padding: clamp(16px, 2vw, 24px);
+}
+
+.deudores-header,
+.deudores-detalle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.deudores-header {
+  margin-bottom: 16px;
+}
+
+.deudores-header-titulo,
+.deudores-detalle-identidad {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.deudores-header h2,
+.deudores-detalle-header h2 {
+  margin: 0 0 2px;
+  color: #253047;
+  font-size: clamp(1.15rem, 1.7vw, 1.55rem);
+  font-weight: 800;
+}
+
+.deudores-header p,
+.deudores-detalle-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.84rem;
+}
+
+.deudores-volver {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.deudores-icono,
+.deudores-cliente-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+  background: #eef4ff;
+  border: 1px solid #dbeafe;
+  border-radius: 11px;
+}
+
+.deudores-icono {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+}
+
+.deudores-contador {
+  flex: 0 0 auto;
+  min-width: 130px;
+  padding: 12px 16px;
+  color: #2563eb;
+  background: #eef4ff;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.deudores-clientes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 10px;
+}
+
+.deudores-cliente {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  color: #172033;
+  background: #fff;
+  border: 1px solid #dbe3ee;
+  border-radius: 11px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.deudores-cliente:hover {
+  background: #f8fbff;
+  border-color: #93c5fd;
+  transform: translateY(-1px);
+}
+
+.deudores-cliente-icono {
+  width: 42px;
+  height: 42px;
+}
+
+.deudores-cliente-datos {
+  min-width: 0;
+}
+
+.deudores-cliente-datos strong,
+.deudores-cliente-datos span {
+  display: block;
+}
+
+.deudores-cliente-datos span {
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.deudores-cliente-resumen {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.deudores-cliente-resumen strong {
+  color: #dc2626;
+}
+
+.deudores-cliente-resumen span {
+  color: #2563eb;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.deudores-cargando,
+.deudores-vacio {
+  min-height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #64748b;
+}
+
+.deudores-vacio {
+  flex-direction: column;
+  text-align: center;
+}
+
+.deudores-vacio svg {
+  color: #16a34a;
+}
+
+.deudores-vacio strong {
+  color: #334155;
+}
+
+.deudores-error {
+  margin: 10px 0;
+  padding: 9px 11px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 9px;
+  font-size: 0.84rem;
+}
+
+.deudores-detalle-header {
+  margin-bottom: 12px;
+  padding: 13px 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 13px;
+}
+
+.deudores-deuda-total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 8px 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+}
+
+.deudores-deuda-total span {
+  color: #9a3412;
+  font-size: 0.74rem;
+}
+
+.deudores-deuda-total strong {
+  color: #c2410c;
+  font-size: 1.18rem;
+}
+
+.deudores-workspace {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(290px, 0.75fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.deudores-ventas-card > .card-body {
+  padding: 13px;
+}
+
+.deudores-seccion-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 2px 10px;
+}
+
+.deudores-seccion-titulo > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deudores-seccion-titulo svg {
+  color: #2563eb;
+}
+
+.deudores-seccion-titulo > span {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.deudores-ventas-scroll {
+  max-height: calc(100dvh - 225px);
+  min-height: 300px;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+
+.deudores-venta {
+  margin-bottom: 9px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.deudores-venta-activa {
+  background: #f8fbff;
+  border-color: #93c5fd;
+}
+
+.deudores-venta-cabecera {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.deudores-venta-info strong,
+.deudores-venta-info span,
+.deudores-venta-saldo span,
+.deudores-venta-saldo strong {
+  display: block;
+}
+
+.deudores-venta-info span,
+.deudores-venta-saldo span {
+  color: #64748b;
+  font-size: 0.74rem;
+}
+
+.deudores-venta-saldo {
+  text-align: right;
+}
+
+.deudores-venta-saldo strong {
+  color: #dc2626;
+}
+
+.deudores-venta-montos {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.deudores-venta-montos > div {
+  padding: 7px 9px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.deudores-venta-montos span,
+.deudores-venta-montos strong {
+  display: block;
+}
+
+.deudores-venta-montos span {
+  color: #64748b;
+  font-size: 0.7rem;
+}
+
+.deudores-venta-montos strong {
+  margin-top: 2px;
+  font-size: 0.84rem;
+}
+
+.texto-verde {
+  color: #16a34a;
+}
+
+.texto-rojo {
+  color: #dc2626;
+}
+
+.deudores-detalles-productos {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.deudores-detalles-productos span {
+  padding: 3px 7px;
+  color: #475569;
+  background: #f1f5f9;
+  border-radius: 999px;
+  font-size: 0.69rem;
+}
+
+.deudores-pago-venta {
+  margin-top: 10px;
+  padding-top: 10px;
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.deudores-saldo-despues-venta {
+  min-width: 125px;
+  text-align: right;
+}
+
+.deudores-saldo-despues-venta span,
+.deudores-saldo-despues-venta strong {
+  display: block;
+}
+
+.deudores-saldo-despues-venta span {
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.deudores-saldo-despues-venta strong {
+  color: #dc2626;
+}
+
+.deudores-pago-card {
+  position: sticky;
+  top: 78px;
+}
+
+.deudores-pago-card .card-body {
+  padding: 16px;
+}
+
+.deudores-pago-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.deudores-pago-titulo svg {
+  color: #2563eb;
+}
+
+.deudores-pago-titulo h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.deudores-resumen-pago {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.deudores-resumen-pago > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 9px;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 0.82rem;
+}
+
+.deudores-resumen-pago-destacado {
+  color: #1d4ed8 !important;
+  background: #eef4ff !important;
+  border: 1px solid #dbeafe;
+}
+
+.deudores-resumen-pago-destacado strong {
+  font-size: 1.05rem;
+}
+
+.deudores-pdf-ayuda {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.deudores-exito {
+  padding: 14px 4px;
+  text-align: center;
+}
+
+.deudores-exito-icono {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #16a34a;
+  background: #ecfdf3;
+  border-radius: 50%;
+}
+
+.deudores-exito h5 {
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+
+.deudores-exito > span {
+  display: block;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.deudores-exito > strong {
+  display: block;
+  margin-top: 2px;
+  color: #16a34a;
+  font-size: 1.55rem;
+}
+
+.deudores-exito p {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+@media (min-width: 901px) {
+  .deudores-page {
+    min-height: calc(100dvh - 112px);
+  }
+}
+
+@media (max-width: 900px) {
+  .deudores-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .deudores-pago-card {
+    position: static;
+  }
+
+  .deudores-ventas-scroll {
+    max-height: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .deudores-header,
+  .deudores-detalle-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .deudores-header-titulo,
+  .deudores-detalle-identidad {
+    width: 100%;
+  }
+
+  .deudores-contador,
+  .deudores-deuda-total {
+    width: 100%;
+  }
+
+  .deudores-deuda-total {
+    align-items: flex-start;
+  }
+
+  .deudores-clientes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deudores-cliente {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .deudores-cliente-resumen {
+    grid-column: 2;
+    align-items: flex-start;
+  }
+
+  .deudores-venta-montos,
+  .deudores-pago-venta {
+    grid-template-columns: 1fr;
+  }
+
+  .deudores-saldo-despues-venta {
+    text-align: left;
+  }
+}

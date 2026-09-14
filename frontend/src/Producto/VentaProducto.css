@@ -1,0 +1,435 @@
+.venta-page {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.venta-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.venta-page-header h1 {
+  margin: 0 0 2px;
+  font-size: clamp(1.45rem, 2vw, 1.9rem);
+  font-weight: 800;
+  color: #172033;
+}
+
+.venta-page-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.venta-agregar-card,
+.venta-productos-card,
+.venta-resumen-card {
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.venta-agregar-card .card-header,
+.venta-productos-card .card-header,
+.venta-resumen-card .card-header {
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  background: #fff;
+}
+
+.venta-agregar-card .card-body {
+  padding: 12px 14px;
+}
+
+.venta-agregar-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(260px, 1.25fr)
+    minmax(240px, 1fr)
+    minmax(190px, 0.65fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.venta-info-escaner {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+  color: #1d4ed8;
+  background: #eef4ff;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.venta-boton-peso {
+  min-height: 38px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.venta-error {
+  margin-top: 8px;
+  padding: 8px 10px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.82rem;
+}
+
+.venta-workspace {
+  min-width: 0;
+  display: grid;
+  grid-template-columns:
+    minmax(0, 2.15fr)
+    minmax(300px, 0.85fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.venta-productos-card {
+  min-width: 0;
+}
+
+.venta-productos-body {
+  min-height: 300px;
+  height: min(50dvh, 470px);
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.venta-tabla-scroll {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.venta-tabla-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
+  white-space: nowrap;
+}
+
+.venta-tabla-scroll td,
+.venta-tabla-scroll th {
+  vertical-align: middle;
+  font-size: 0.84rem;
+}
+
+.venta-tipo-peso {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+}
+
+.venta-vacia {
+  height: 100%;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #94a3b8;
+  text-align: center;
+  padding: 20px;
+}
+
+.venta-vacia strong {
+  color: #475569;
+}
+
+.venta-cantidad-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.venta-cantidad-control strong {
+  min-width: 32px;
+  text-align: center;
+}
+
+.venta-peso-badge {
+  width: max-content;
+  max-width: 100%;
+  margin: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  color: #1d4ed8;
+  background: #eef4ff;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.venta-lateral {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.venta-resumen-card .card-body {
+  padding: 13px;
+}
+
+.venta-resumen-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 4px;
+  font-size: 0.88rem;
+}
+
+.venta-total {
+  margin: 9px 0 12px;
+  padding: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+}
+
+.venta-total > span {
+  font-weight: 800;
+}
+
+.venta-total strong {
+  display: inline-flex;
+  align-items: center;
+  color: #2563eb;
+  font-size: 1.35rem;
+}
+
+.venta-deuda-panel {
+  min-width: 0;
+}
+
+.venta-deuda-panel > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.venta-peso-sin-resultados {
+  padding: 28px 15px;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.venta-peso-productos {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(205px, 1fr));
+  gap: 9px;
+  max-height: 245px;
+  overflow-y: auto;
+  padding: 1px 3px 3px 1px;
+}
+
+.venta-peso-producto {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 11px;
+  text-align: left;
+  color: #172033;
+  background: #fff;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.venta-peso-producto:hover {
+  border-color: #93c5fd;
+  background: #f8fbff;
+}
+
+.venta-peso-producto-activo {
+  border: 2px solid #2563eb;
+  background: #eef4ff;
+}
+
+.venta-peso-producto-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.venta-peso-producto-cabecera strong,
+.venta-peso-producto-cabecera small {
+  display: block;
+}
+
+.venta-peso-producto-cabecera small,
+.venta-peso-producto > small {
+  color: #64748b;
+}
+
+.venta-peso-precio {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+.venta-peso-carga {
+  margin-top: 16px;
+  padding-top: 15px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.venta-peso-seleccion {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+}
+
+.venta-peso-seleccion strong,
+.venta-peso-seleccion span {
+  display: block;
+}
+
+.venta-peso-seleccion span {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.venta-peso-atajos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.venta-peso-calculo {
+  margin-top: 12px;
+  padding: 11px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #1d4ed8;
+  background: #eef4ff;
+  border: 1px solid #dbeafe;
+  border-radius: 9px;
+}
+
+.venta-peso-calculo strong {
+  font-size: 1.25rem;
+}
+
+.venta-peso-calculo-error {
+  color: #be123c;
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+@media (max-width: 1180px) {
+  .venta-agregar-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .venta-boton-peso {
+    grid-column: span 2;
+  }
+
+  .venta-workspace {
+    grid-template-columns:
+      minmax(0, 1.55fr)
+      minmax(280px, 0.8fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .venta-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .venta-productos-body {
+    height: 390px;
+  }
+
+  .venta-lateral {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+@media (max-width: 650px) {
+  .venta-page {
+    gap: 9px;
+  }
+
+  .venta-page-header p {
+    font-size: 0.82rem;
+  }
+
+  .venta-agregar-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .venta-boton-peso {
+    grid-column: auto;
+  }
+
+  .venta-info-escaner {
+    display: none;
+  }
+
+  .venta-productos-body {
+    height: auto;
+    min-height: 260px;
+    max-height: 430px;
+  }
+
+  .venta-lateral {
+    display: flex;
+  }
+
+  .venta-peso-productos {
+    grid-template-columns: 1fr;
+  }
+
+  .venta-peso-seleccion,
+  .venta-peso-calculo {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 901px) and (min-height: 700px) {
+  .venta-page {
+    min-height: calc(100dvh - 112px);
+  }
+}
