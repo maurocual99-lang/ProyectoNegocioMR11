@@ -53,15 +53,20 @@ body {
 
 .layout-principal {
   /*
-   * IMPORTANTE PARA TAURI / WEBVIEW2:
-   * No dependemos de 100vh. El contenedor queda anclado
-   * directamente a los cuatro bordes de la ventana.
+   * NO usamos position: fixed acá.
+   *
+   * Un contenedor fixed crea un stacking context propio.
+   * CoreUI monta el backdrop del modal por encima de ese
+   * stacking context, haciendo que el modal también quede
+   * "debajo" de la capa oscura y no pueda recibir clicks.
+   *
+   * Con relative + height:100% seguimos ocupando toda la
+   * ventana de Tauri sin romper el z-index de los modales.
    */
-  position: fixed;
-  inset: 0;
+  position: relative;
 
-  width: auto;
-  height: auto;
+  width: 100%;
+  height: 100%;
   min-width: 0;
   min-height: 0;
 
@@ -156,7 +161,7 @@ body {
   top: 18px;
   left: 18px;
 
-  z-index: 1300;
+  z-index: 1040;
 
   width: 44px;
   height: 40px;
@@ -199,6 +204,22 @@ body {
 
 .sidebar-overlay {
   display: none;
+}
+
+
+/* =========================================================
+   COREUI MODALS - ORDEN DE CAPAS
+
+   backdrop: tapa la app y el sidebar
+   modal: queda por encima del backdrop y recibe clicks
+========================================================= */
+
+.modal-backdrop {
+  z-index: 1050 !important;
+}
+
+.modal {
+  z-index: 1055 !important;
 }
 
 /* =========================================================
@@ -976,7 +997,7 @@ body {
 
     inset: 0;
 
-    z-index: 1080;
+    z-index: 1020;
 
     display: block;
 

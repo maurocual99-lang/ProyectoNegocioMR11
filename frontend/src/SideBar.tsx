@@ -1,8 +1,4 @@
 import {
-  useEffect,
-} from "react";
-
-import {
   Home,
   Package,
   Users,
@@ -42,74 +38,6 @@ export default function Sidebar({
     useLocation();
 
 
-  /* =========================================
-     SINCRONIZAR CON EL TAMAÑO DE LA VENTANA
-
-     Tauri arranca normalmente con una ventana
-     menor a 1024px. Si el padre inicializa el
-     sidebar cerrado y después se maximiza, el
-     estado puede seguir en false.
-
-     Este efecto corrige eso:
-     - desktop: sidebar abierto
-     - mobile/tablet: sidebar cerrado inicialmente
-     - al maximizar/restaurar se sincroniza
-  ========================================= */
-
-  useEffect(
-    () => {
-
-      function sincronizarSidebar() {
-
-        if (
-          window.innerWidth >
-          1024
-        ) {
-
-          setIsOpen(
-            true
-          );
-
-        } else {
-
-          setIsOpen(
-            false
-          );
-
-        }
-
-      }
-
-
-      sincronizarSidebar();
-
-
-      window.addEventListener(
-        "resize",
-        sincronizarSidebar
-      );
-
-
-      return () => {
-
-        window.removeEventListener(
-          "resize",
-          sincronizarSidebar
-        );
-
-      };
-
-    },
-    [
-      setIsOpen,
-    ]
-  );
-
-
-  /* =========================================
-     NAVEGAR
-  ========================================= */
-
   function irA(
     ruta: string
   ) {
@@ -119,10 +47,6 @@ export default function Sidebar({
     );
 
 
-    /*
-     * En pantallas chicas cerramos
-     * el menú después de navegar.
-     */
     if (
       window.innerWidth <=
       1024
@@ -136,10 +60,6 @@ export default function Sidebar({
 
   }
 
-
-  /* =========================================
-     SABER SI ESTÁ ACTIVO
-  ========================================= */
 
   function estaActivo(
     ruta: string
@@ -165,10 +85,6 @@ export default function Sidebar({
 
   }
 
-
-  /* =========================================
-     OPCIONES
-  ========================================= */
 
   const opciones = [
 
@@ -233,21 +149,16 @@ export default function Sidebar({
   return (
 
     <aside
-      className={`sidebar ${
+      className={`mr11-sidebar ${
         isOpen
-          ? "sidebar-abierto"
-          : "sidebar-cerrado"
+          ? "mr11-sidebar-abierto"
+          : "mr11-sidebar-cerrado"
       }`}
     >
 
-
-      {/* =====================================
-          LOGO
-      ====================================== */}
-
       <div
         className="
-          sidebar-logo-contenedor
+          mr11-sidebar-logo-contenedor
         "
       >
 
@@ -257,20 +168,16 @@ export default function Sidebar({
           }
           alt="Mini Mercado Ruta 11"
           className="
-            sidebar-logo
+            mr11-sidebar-logo
           "
         />
 
       </div>
 
 
-      {/* =====================================
-          MENÚ
-      ====================================== */}
-
       <nav
         className="
-          sidebar-menu
+          mr11-sidebar-menu
         "
       >
 
@@ -296,9 +203,9 @@ export default function Sidebar({
                   opcion.ruta
                 }
                 type="button"
-                className={`sidebar-item ${
+                className={`mr11-sidebar-item ${
                   activo
-                    ? "sidebar-item-activo"
+                    ? "mr11-sidebar-item-activo"
                     : ""
                 }`}
                 onClick={() =>
@@ -310,7 +217,7 @@ export default function Sidebar({
 
                 <div
                   className="
-                    sidebar-item-contenido
+                    mr11-sidebar-item-contenido
                   "
                 >
 
@@ -341,13 +248,9 @@ export default function Sidebar({
       </nav>
 
 
-      {/* =====================================
-          FOOTER
-      ====================================== */}
-
       <div
         className="
-          sidebar-footer
+          mr11-sidebar-footer
         "
       >
 
