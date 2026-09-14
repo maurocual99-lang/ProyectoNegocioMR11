@@ -1,5 +1,5 @@
 /* =========================================================
-   MR11 - SIDEBAR.CSS LIMPIO
+   MR11 - SIDEBAR.CSS
    Reemplazar COMPLETO frontend/src/SideBar.css
 ========================================================= */
 
@@ -13,13 +13,12 @@
   z-index: 1100;
 
   width: 260px;
-  height: 100vh;
   min-height: 0;
 
   display: flex;
   flex-direction: column;
 
-  color: #fff;
+  color: #ffffff;
 
   background:
     linear-gradient(
@@ -39,22 +38,43 @@
 
   box-shadow:
     6px 0 22px
-    rgba(15, 23, 42, 0.10);
+    rgba(
+      15,
+      23,
+      42,
+      0.10
+    );
 
   overflow: hidden;
+
+  transform:
+    translateX(
+      0
+    );
 
   transition:
     transform 0.25s ease;
 }
 
+
 .sidebar-abierto {
-  transform: translateX(0);
+  transform:
+    translateX(
+      0
+    );
 }
 
+
 .sidebar-cerrado {
-  transform: translateX(-100%);
-  pointer-events: none;
+  transform:
+    translateX(
+      -100%
+    );
+
+  pointer-events:
+    none;
 }
+
 
 /* =========================================================
    LOGO
@@ -84,6 +104,7 @@
     );
 }
 
+
 .sidebar-logo {
   display: block;
 
@@ -93,9 +114,11 @@
       72%
     );
 
-  max-height: 138px;
+  max-height:
+    138px;
 
-  object-fit: contain;
+  object-fit:
+    contain;
 
   filter:
     drop-shadow(
@@ -108,6 +131,7 @@
       )
     );
 }
+
 
 /* =========================================================
    MENÚ
@@ -124,12 +148,19 @@
 
   gap: 7px;
 
-  padding: 18px 10px;
+  padding:
+    18px
+    10px;
 
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow-x:
+    hidden;
 
-  scrollbar-width: thin;
+  overflow-y:
+    auto;
+
+  scrollbar-width:
+    thin;
+
   scrollbar-color:
     rgba(
       255,
@@ -140,6 +171,7 @@
     transparent;
 }
 
+
 .sidebar-item {
   width: 100%;
   min-height: 50px;
@@ -147,7 +179,9 @@
   display: flex;
   align-items: center;
 
-  padding: 0 14px;
+  padding:
+    0
+    14px;
 
   color:
     rgba(
@@ -157,14 +191,21 @@
       0.92
     );
 
-  background: transparent;
+  background:
+    transparent;
 
-  border: 1px solid transparent;
-  border-radius: 12px;
+  border:
+    1px solid
+    transparent;
 
-  cursor: pointer;
+  border-radius:
+    12px;
 
-  font-family: inherit;
+  cursor:
+    pointer;
+
+  font-family:
+    inherit;
 
   transition:
     background 0.18s ease,
@@ -172,8 +213,10 @@
     transform 0.18s ease;
 }
 
+
 .sidebar-item:hover {
-  color: #fff;
+  color:
+    #ffffff;
 
   background:
     rgba(
@@ -191,11 +234,16 @@
       0.15
     );
 
-  transform: translateX(2px);
+  transform:
+    translateX(
+      2px
+    );
 }
 
+
 .sidebar-item-activo {
-  color: #fff;
+  color:
+    #ffffff;
 
   background:
     rgba(
@@ -214,13 +262,20 @@
     );
 
   box-shadow:
-    inset 3px 0 0 #fff;
+    inset
+    3px
+    0
+    0
+    #ffffff;
 }
 
-.sidebar-item-contenido {
-  width: 100%;
 
-  display: grid;
+.sidebar-item-contenido {
+  width:
+    100%;
+
+  display:
+    grid;
 
   grid-template-columns:
     28px
@@ -229,50 +284,76 @@
       1fr
     );
 
-  align-items: center;
+  align-items:
+    center;
 
-  gap: 10px;
+  gap:
+    10px;
 
-  text-align: left;
+  text-align:
+    left;
 }
+
 
 .sidebar-item-contenido svg,
 .sidebar-item-contenido span {
-  color: currentColor;
-  opacity: 1;
+  color:
+    currentColor;
+
+  opacity:
+    1;
 }
+
 
 .sidebar-item-contenido svg {
-  justify-self: center;
+  justify-self:
+    center;
 }
+
 
 .sidebar-item-contenido span {
-  overflow: hidden;
+  overflow:
+    hidden;
 
-  font-size: 0.88rem;
-  font-weight: 700;
+  font-size:
+    0.88rem;
 
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight:
+    700;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
 }
+
 
 /* =========================================================
    FOOTER
 ========================================================= */
 
 .sidebar-footer {
-  width: 100%;
+  width:
+    100%;
 
   flex:
     0 0
     auto;
 
-  display: flex;
-  flex-direction: column;
+  display:
+    flex;
 
-  gap: 3px;
+  flex-direction:
+    column;
 
-  padding: 15px 18px 17px;
+  gap:
+    3px;
+
+  padding:
+    15px
+    18px
+    17px;
 
   color:
     rgba(
@@ -292,15 +373,21 @@
     );
 }
 
-.sidebar-footer strong {
-  color: #fff;
 
-  font-size: 0.78rem;
+.sidebar-footer strong {
+  color:
+    #ffffff;
+
+  font-size:
+    0.78rem;
 }
+
 
 .sidebar-footer span {
-  font-size: 0.68rem;
+  font-size:
+    0.68rem;
 }
+
 
 /* =========================================================
    VENTANAS BAJAS
@@ -309,10 +396,15 @@
 @media (
   max-height: 700px
 ) {
+
   .sidebar-logo-contenedor {
-    min-height: 125px;
-    padding: 8px;
+    min-height:
+      125px;
+
+    padding:
+      8px;
   }
+
 
   .sidebar-logo {
     width:
@@ -321,23 +413,37 @@
         60%
       );
 
-    max-height: 104px;
+    max-height:
+      104px;
   }
+
 
   .sidebar-menu {
-    gap: 4px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    gap:
+      4px;
+
+    padding-top:
+      10px;
+
+    padding-bottom:
+      10px;
   }
+
 
   .sidebar-item {
-    min-height: 43px;
+    min-height:
+      43px;
   }
 
+
   .sidebar-footer {
-    padding: 9px 14px;
+    padding:
+      9px
+      14px;
   }
+
 }
+
 
 /* =========================================================
    TABLET / MOBILE
@@ -346,6 +452,7 @@
 @media (
   max-width: 1024px
 ) {
+
   .sidebar {
     width:
       min(
@@ -362,4 +469,5 @@
         0.22
       );
   }
+
 }

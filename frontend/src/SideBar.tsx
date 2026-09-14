@@ -1,4 +1,8 @@
 import {
+  useEffect,
+} from "react";
+
+import {
   Home,
   Package,
   Users,
@@ -39,6 +43,70 @@ export default function Sidebar({
 
 
   /* =========================================
+     SINCRONIZAR CON EL TAMAÑO DE LA VENTANA
+
+     Tauri arranca normalmente con una ventana
+     menor a 1024px. Si el padre inicializa el
+     sidebar cerrado y después se maximiza, el
+     estado puede seguir en false.
+
+     Este efecto corrige eso:
+     - desktop: sidebar abierto
+     - mobile/tablet: sidebar cerrado inicialmente
+     - al maximizar/restaurar se sincroniza
+  ========================================= */
+
+  useEffect(
+    () => {
+
+      function sincronizarSidebar() {
+
+        if (
+          window.innerWidth >
+          1024
+        ) {
+
+          setIsOpen(
+            true
+          );
+
+        } else {
+
+          setIsOpen(
+            false
+          );
+
+        }
+
+      }
+
+
+      sincronizarSidebar();
+
+
+      window.addEventListener(
+        "resize",
+        sincronizarSidebar
+      );
+
+
+      return () => {
+
+        window.removeEventListener(
+          "resize",
+          sincronizarSidebar
+        );
+
+      };
+
+    },
+    [
+      setIsOpen,
+    ]
+  );
+
+
+  /* =========================================
      NAVEGAR
   ========================================= */
 
@@ -46,19 +114,26 @@ export default function Sidebar({
     ruta: string
   ) {
 
-    navigate(ruta);
+    navigate(
+      ruta
+    );
+
 
     /*
      * En pantallas chicas cerramos
      * el menú después de navegar.
      */
     if (
-      window.innerWidth <= 1024
+      window.innerWidth <=
+      1024
     ) {
 
-      setIsOpen(false);
+      setIsOpen(
+        false
+      );
 
     }
+
   }
 
 
@@ -75,7 +150,8 @@ export default function Sidebar({
     ) {
 
       return (
-        location.pathname === "/"
+        location.pathname ===
+        "/"
       );
 
     }
@@ -86,6 +162,7 @@ export default function Sidebar({
       .startsWith(
         ruta
       );
+
   }
 
 
@@ -175,7 +252,9 @@ export default function Sidebar({
       >
 
         <img
-          src={logoNegocio}
+          src={
+            logoNegocio
+          }
           alt="Mini Mercado Ruta 11"
           className="
             sidebar-logo
@@ -236,8 +315,12 @@ export default function Sidebar({
                 >
 
                   <Icono
-                    size={22}
-                    strokeWidth={2}
+                    size={
+                      22
+                    }
+                    strokeWidth={
+                      2
+                    }
                   />
 
                   <span>
@@ -279,5 +362,7 @@ export default function Sidebar({
       </div>
 
     </aside>
+
   );
+
 }

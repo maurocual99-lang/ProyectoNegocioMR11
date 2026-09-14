@@ -52,18 +52,35 @@ body {
 ========================================================= */
 
 .layout-principal {
-  position: relative;
-  width: 100%;
-  height: 100vh;
+  /*
+   * IMPORTANTE PARA TAURI / WEBVIEW2:
+   * No dependemos de 100vh. El contenedor queda anclado
+   * directamente a los cuatro bordes de la ventana.
+   */
+  position: fixed;
+  inset: 0;
+
+  width: auto;
+  height: auto;
   min-width: 0;
   min-height: 0;
+
   overflow: hidden;
   background: #f8fafc;
 }
 
 .contenido {
-  width: 100%;
-  height: 100vh;
+  /*
+   * También lo anclamos a la ventana.
+   * Esto evita que al maximizar Tauri un 100vh transitorio
+   * deje el área principal sin altura mientras el botón fixed
+   * del menú sigue visible.
+   */
+  position: absolute;
+  inset: 0;
+
+  width: auto !important;
+  height: auto !important;
   min-width: 0;
   min-height: 0;
 
@@ -76,11 +93,22 @@ body {
 
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
 
   background: #f8fafc;
 
   transition:
     padding-left 0.25s ease;
+}
+
+.contenido-interior {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+
+  margin: 0;
 }
 
 /*
@@ -89,7 +117,6 @@ body {
  * Sólo agregamos espacio interno para el sidebar.
  */
 .contenido-sidebar-abierto {
-  width: 100% !important;
   margin-left: 0 !important;
 
   padding-left:
@@ -101,7 +128,6 @@ body {
 }
 
 .contenido-sidebar-cerrado {
-  width: 100% !important;
   margin-left: 0 !important;
   padding-left: var(--mr11-page-gap);
 }
@@ -927,8 +953,6 @@ body {
   .contenido,
   .contenido-sidebar-abierto,
   .contenido-sidebar-cerrado {
-    width: 100% !important;
-
     margin-left: 0 !important;
 
     padding-left: var(--mr11-page-gap);
