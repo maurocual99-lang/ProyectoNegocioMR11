@@ -1,11 +1,19 @@
 /* =========================================================
-   RESET / VIEWPORT
+   MR11 - APP.CSS LIMPIO
+   Reemplazar COMPLETO frontend/src/App.css
+
+   Objetivo:
+   - No mover el <main> con margin-left.
+   - El contenido siempre ocupa el viewport.
+   - El sidebar solamente reserva espacio con padding-left.
+   - Un solo scroll: el del contenido.
+   - Sin reglas duplicadas que cambien al maximizar la ventana.
 ========================================================= */
 
 :root {
-  --sidebar-width: 260px;
-  --page-gap: 24px;
-  --page-top: 74px;
+  --mr11-sidebar-width: 260px;
+  --mr11-page-gap: 26px;
+  --mr11-top-gap: 76px;
 }
 
 * {
@@ -17,7 +25,9 @@ body,
 #root {
   width: 100%;
   height: 100%;
+  min-width: 0;
   margin: 0;
+  padding: 0;
 }
 
 html,
@@ -26,11 +36,10 @@ body {
 }
 
 body {
-  color: #172033;
+  color: #0f172a;
   background: #f8fafc;
   font-family:
     Inter,
-    ui-sans-serif,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
@@ -39,13 +48,14 @@ body {
 }
 
 /* =========================================================
-   LAYOUT GENERAL
+   LAYOUT
 ========================================================= */
 
 .layout-principal {
   position: relative;
   width: 100%;
-  height: 100dvh;
+  height: 100vh;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
   background: #f8fafc;
@@ -53,46 +63,73 @@ body {
 
 .contenido {
   width: 100%;
-  height: 100dvh;
+  height: 100vh;
   min-width: 0;
   min-height: 0;
+
+  margin: 0 !important;
+
+  padding:
+    var(--mr11-top-gap)
+    var(--mr11-page-gap)
+    24px;
 
   overflow-x: hidden;
   overflow-y: auto;
 
-  padding:
-    var(--page-top)
-    var(--page-gap)
-    24px;
+  background: #f8fafc;
 
   transition:
     padding-left 0.25s ease;
 }
 
+/*
+ * CLAVE:
+ * El main NO cambia de width y NO usa margin-left.
+ * Sólo agregamos espacio interno para el sidebar.
+ */
 .contenido-sidebar-abierto {
+  width: 100% !important;
+  margin-left: 0 !important;
+
   padding-left:
     calc(
-      var(--sidebar-width)
+      var(--mr11-sidebar-width)
       +
-      var(--page-gap)
+      var(--mr11-page-gap)
     );
 }
 
 .contenido-sidebar-cerrado {
-  padding-left:
-    var(--page-gap);
+  width: 100% !important;
+  margin-left: 0 !important;
+  padding-left: var(--mr11-page-gap);
 }
 
-.contenido-interior {
-  width: 100%;
-  min-width: 0;
-  margin: 0;
+/* Todas las pantallas usan el ancho disponible. */
+.inicio-pagina,
+.pagina-reportes,
+.venta-page,
+.deudores-page {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
+
+/* =========================================================
+   BOTÓN SIDEBAR
+========================================================= */
 
 .btn-toggle-sidebar {
   position: fixed;
+
   top: 18px;
   left: 18px;
+
   z-index: 1300;
 
   width: 44px;
@@ -128,7 +165,7 @@ body {
 .toggle-sidebar-abierto {
   left:
     calc(
-      var(--sidebar-width)
+      var(--mr11-sidebar-width)
       +
       18px
     );
@@ -136,23 +173,6 @@ body {
 
 .sidebar-overlay {
   display: none;
-}
-
-/* =========================================================
-   PÁGINAS
-========================================================= */
-
-.inicio-pagina,
-.pagina-reportes,
-.deudores-page,
-.venta-page {
-  width: 100% !important;
-  max-width: none !important;
-  min-width: 0 !important;
-
-  margin: 0 !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
 }
 
 /* =========================================================
@@ -166,16 +186,17 @@ body {
 .header-principal h1 {
   margin: 0 0 4px;
 
-  color: #172033;
+  color: #1e293b;
 
   font-size:
     clamp(
       1.55rem,
       2.3vw,
-      2.05rem
+      2rem
     );
 
   font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .header-principal p {
@@ -199,7 +220,7 @@ body {
 }
 
 /* =========================================================
-   CARDS SUPERIORES
+   TARJETAS SUPERIORES
 ========================================================= */
 
 .cards-superiores {
@@ -218,46 +239,46 @@ body {
 
   gap: 16px;
 
+  margin-top: 0;
   margin-bottom: 22px;
 }
 
 .card-stat {
+  width: 100%;
   min-width: 0;
 
   display: flex;
   align-items: center;
+
   gap: 13px;
 
   padding: 17px;
 
-  background: #fff;
-
-  border: 1px solid #e5e7eb;
   border-radius: 15px;
 
   box-shadow:
-    0 2px 7px
+    0 2px 8px
     rgba(15, 23, 42, 0.05);
 }
 
 .card-verde {
   background: #effcf5;
-  border-color: #bbf7d0;
+  border: 1px solid #bbf7d0;
 }
 
 .card-azul {
   background: #eff6ff;
-  border-color: #bfdbfe;
+  border: 1px solid #bfdbfe;
 }
 
 .card-violeta {
   background: #faf5ff;
-  border-color: #e9d5ff;
+  border: 1px solid #e9d5ff;
 }
 
 .card-naranja {
   background: #fff7ed;
-  border-color: #fed7aa;
+  border: 1px solid #fed7aa;
 }
 
 .icon-wrapper {
@@ -293,27 +314,25 @@ body {
 
 .stat-info {
   min-width: 0;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .stat-info small {
-  display: block;
-
-  margin-bottom: 3px;
-
   color: #64748b;
 
   font-size: 0.73rem;
   font-weight: 800;
 
   text-transform: uppercase;
-
   letter-spacing: 0.03em;
 }
 
 .stat-info h2 {
-  margin: 0;
+  margin: 4px 0 0;
 
-  color: #172033;
+  color: #0f172a;
 
   font-size:
     clamp(
@@ -347,11 +366,16 @@ body {
 }
 
 /* =========================================================
-   DASHBOARD INICIO
+   DASHBOARD PRINCIPAL
+   La rama actual usa:
+   dashboard-grid
+     col-izquierda
+     col-derecha
 ========================================================= */
 
 .dashboard-grid {
   width: 100%;
+  min-width: 0;
 
   display: grid;
 
@@ -365,19 +389,39 @@ body {
       0.9fr
     );
 
-  grid-template-areas:
-    "venta accesos"
-    "grafico actividad";
-
   gap: 18px;
 
-  align-items: stretch;
+  align-items: start;
+
+  margin-top: 0;
 }
 
-.venta-card-destacada {
-  grid-area: venta;
-
+.col-izquierda,
+.col-derecha {
+  width: 100%;
   min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+.venta-card-destacada,
+.grafico-card,
+.actividad-card,
+.accesos-card {
+  width: 100%;
+  min-width: 0;
+
+  margin: 0 !important;
+}
+
+/* =========================================================
+   ACCIÓN PRINCIPAL
+========================================================= */
+
+.venta-card-destacada {
   min-height: 220px;
 
   padding: 28px;
@@ -401,10 +445,10 @@ body {
 .venta-card-destacada .badge {
   display: inline-block;
 
-  margin-bottom: 17px;
   padding: 4px 9px;
 
   color: #fff;
+
   background:
     rgba(
       255,
@@ -423,10 +467,7 @@ body {
 }
 
 .venta-card-destacada h2 {
-  margin:
-    0
-    0
-    7px;
+  margin: 18px 0 7px;
 
   font-size:
     clamp(
@@ -439,10 +480,9 @@ body {
 }
 
 .venta-card-destacada p {
-  margin:
-    0
-    0
-    22px;
+  max-width: 720px;
+
+  margin: 0 0 22px;
 
   color:
     rgba(
@@ -458,9 +498,7 @@ body {
   align-items: center;
   gap: 8px;
 
-  padding:
-    11px
-    20px;
+  padding: 11px 20px;
 
   color: #2563eb;
   background: #fff;
@@ -473,11 +511,13 @@ body {
   cursor: pointer;
 }
 
-.accesos-card,
-.grafico-card,
-.actividad-card {
-  min-width: 0;
+/* =========================================================
+   CARDS SECUNDARIAS
+========================================================= */
 
+.grafico-card,
+.actividad-card,
+.accesos-card {
   padding: 19px;
 
   background: #fff;
@@ -490,21 +530,20 @@ body {
     rgba(15, 23, 42, 0.04);
 }
 
-.accesos-card {
-  grid-area: accesos;
+.grafico-header,
+.actividad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 15px;
 }
 
-.grafico-card {
-  grid-area: grafico;
-}
-
-.actividad-card {
-  grid-area: actividad;
-}
-
-.accesos-card h3,
 .grafico-header h3,
-.actividad-header h3 {
+.actividad-header h3,
+.accesos-card h3 {
   margin: 0;
 
   color: #172033;
@@ -512,6 +551,10 @@ body {
   font-size: 1rem;
   font-weight: 800;
 }
+
+/* =========================================================
+   ACCESOS RÁPIDOS
+========================================================= */
 
 .accesos-grid {
   display: grid;
@@ -531,13 +574,17 @@ body {
 }
 
 .btn-acceso {
+  min-width: 0;
   min-height: 78px;
 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
   gap: 6px;
+
+  padding: 12px 8px;
 
   border: 0;
   border-radius: 12px;
@@ -568,21 +615,12 @@ body {
   background: #ffedd5;
 }
 
-.grafico-header,
-.actividad-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 12px;
-
-  margin-bottom: 15px;
-}
+/* =========================================================
+   GRÁFICO INICIO
+========================================================= */
 
 .periodo-semana {
-  padding:
-    6px
-    9px;
+  padding: 6px 9px;
 
   color: #64748b;
   background: #f8fafc;
@@ -594,9 +632,7 @@ body {
 }
 
 .grafico-cargando {
-  padding:
-    44px
-    0;
+  padding: 44px 0;
 
   color: #64748b;
 
@@ -605,6 +641,7 @@ body {
 
 .grafico-inicio {
   width: 100%;
+  min-width: 0;
   min-height: 220px;
 
   display: grid;
@@ -613,7 +650,7 @@ body {
     repeat(
       7,
       minmax(
-        38px,
+        0,
         1fr
       )
     );
@@ -621,6 +658,8 @@ body {
   gap: 8px;
 
   align-items: end;
+
+  padding: 0;
 }
 
 .grafico-dia {
@@ -629,6 +668,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+
   gap: 5px;
 
   color: #64748b;
@@ -688,7 +728,29 @@ body {
   text-transform: capitalize;
 }
 
+.grafico-dia small {
+  text-align: center;
+}
+
+/* =========================================================
+   ACTIVIDAD
+========================================================= */
+
+.lista-contenedor {
+  width: 100%;
+
+  padding: 0;
+
+  background: transparent;
+
+  border: 0;
+
+  overflow: visible;
+}
+
 .lista-actividad {
+  width: 100%;
+
   list-style: none;
 
   margin: 0;
@@ -696,6 +758,9 @@ body {
 }
 
 .item-actividad {
+  width: 100%;
+  min-width: 0;
+
   display: grid;
 
   grid-template-columns:
@@ -710,13 +775,9 @@ body {
 
   gap: 10px;
 
-  padding:
-    11px
-    0;
+  padding: 11px 0;
 
-  border-bottom:
-    1px solid
-    #eef2f7;
+  border-bottom: 1px solid #eef2f7;
 }
 
 .item-actividad:last-child {
@@ -781,9 +842,13 @@ body {
   cursor: pointer;
 }
 
+/* =========================================================
+   FOOTER
+========================================================= */
+
 .footer-principal {
   margin-top: 20px;
-  padding-top: 12px;
+  padding: 12px 0 0;
 
   color: #94a3b8;
 
@@ -793,11 +858,14 @@ body {
 }
 
 /* =========================================================
-   RESÚMENES: EVITAR KPIs DEMASIADO ANGOSTOS
+   RESÚMENES
+   Sólo corregimos ancho/layout general.
+   El resto sigue viviendo en Resumenes.css.
 ========================================================= */
 
 .pagina-reportes {
-  padding-bottom: 24px;
+  min-width: 0;
+  padding-bottom: 20px;
 }
 
 .reporte-kpis {
@@ -805,7 +873,7 @@ body {
     repeat(
       5,
       minmax(
-        155px,
+        150px,
         1fr
       )
     ) !important;
@@ -815,12 +883,8 @@ body {
   min-width: 0;
 }
 
-.reporte-kpi strong {
-  overflow-wrap: anywhere;
-}
-
 /* =========================================================
-   RESPONSIVE
+   TABLET / NOTEBOOK
 ========================================================= */
 
 @media (
@@ -849,17 +913,26 @@ body {
   }
 }
 
+/* =========================================================
+   SIDEBAR MÓVIL
+========================================================= */
+
 @media (
   max-width: 1024px
 ) {
+  :root {
+    --mr11-page-gap: 18px;
+  }
+
   .contenido,
   .contenido-sidebar-abierto,
   .contenido-sidebar-cerrado {
-    padding-left:
-      18px;
+    width: 100% !important;
 
-    padding-right:
-      18px;
+    margin-left: 0 !important;
+
+    padding-left: var(--mr11-page-gap);
+    padding-right: var(--mr11-page-gap);
   }
 
   .toggle-sidebar-abierto {
@@ -867,7 +940,7 @@ body {
       calc(
         min(
           82vw,
-          var(--sidebar-width)
+          var(--mr11-sidebar-width)
         )
         +
         12px
@@ -890,23 +963,17 @@ body {
         15,
         23,
         42,
-        0.50
+        0.48
       );
 
     border: 0;
-
-    cursor: pointer;
   }
 
   .dashboard-grid {
     grid-template-columns:
       1fr;
 
-    grid-template-areas:
-      "venta"
-      "accesos"
-      "grafico"
-      "actividad";
+    gap: 18px;
   }
 
   .reporte-kpis {
@@ -921,25 +988,16 @@ body {
   }
 }
 
+/* =========================================================
+   CELULAR
+========================================================= */
+
 @media (
   max-width: 700px
 ) {
   :root {
-    --page-top:
-      68px;
-  }
-
-  .contenido,
-  .contenido-sidebar-abierto,
-  .contenido-sidebar-cerrado {
-    padding-left:
-      12px;
-
-    padding-right:
-      12px;
-
-    padding-bottom:
-      16px;
+    --mr11-page-gap: 12px;
+    --mr11-top-gap: 68px;
   }
 
   .cards-superiores {
@@ -948,9 +1006,7 @@ body {
   }
 
   .venta-card-destacada {
-    padding:
-      22px
-      18px;
+    padding: 22px 18px;
   }
 
   .accesos-grid {
