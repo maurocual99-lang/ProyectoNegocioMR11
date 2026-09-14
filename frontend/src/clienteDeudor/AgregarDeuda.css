@@ -1,0 +1,266 @@
+.agregar-deuda-card {
+  width: 100%;
+  margin: 0 !important;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+
+  box-shadow:
+    0 2px 7px
+    rgba(15, 23, 42, 0.04);
+}
+
+.agregar-deuda-header {
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  padding:
+    9px
+    12px !important;
+
+  background: #fff;
+
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.agregar-deuda-seleccionado {
+  max-width: 65%;
+
+  overflow: hidden;
+
+  padding:
+    3px
+    7px;
+
+  color: #166534;
+  background: #dcfce7;
+
+  border-radius: 999px;
+
+  font-size: 0.68rem;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agregar-deuda-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  padding:
+    12px !important;
+}
+
+.agregar-deuda-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  padding:
+    10px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+}
+
+.agregar-deuda-switch > div {
+  min-width: 0;
+}
+
+.agregar-deuda-switch strong,
+.agregar-deuda-switch span {
+  display: block;
+}
+
+.agregar-deuda-switch strong {
+  color: #1f2937;
+
+  font-size: 0.84rem;
+}
+
+.agregar-deuda-switch span {
+  margin-top: 2px;
+
+  color: #64748b;
+
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.agregar-deuda-busqueda {
+  min-width: 0;
+}
+
+.agregar-deuda-busqueda .form-label {
+  margin-bottom: 5px;
+
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.agregar-deuda-busqueda-contenedor {
+  position: relative;
+}
+
+.agregar-deuda-resultados {
+  position: absolute;
+
+  top:
+    calc(
+      100% + 5px
+    );
+
+  left: 0;
+  right: 0;
+
+  z-index: 50;
+
+  max-height: 180px;
+
+  overflow-y: auto;
+
+  padding: 5px;
+
+  background: #fff;
+
+  border: 1px solid #dbe3ee;
+  border-radius: 9px;
+
+  box-shadow:
+    0 10px 28px
+    rgba(15, 23, 42, 0.14);
+}
+
+.agregar-deuda-resultados button {
+  width: 100%;
+
+  display: block;
+
+  padding:
+    8px
+    9px;
+
+  color: #172033;
+  background: transparent;
+
+  border: 0;
+  border-radius: 7px;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.agregar-deuda-resultados button:hover {
+  background: #eff6ff;
+}
+
+.agregar-deuda-resultados strong,
+.agregar-deuda-resultados span {
+  display: block;
+}
+
+.agregar-deuda-resultados strong {
+  font-size: 0.78rem;
+}
+
+.agregar-deuda-resultados span {
+  color: #64748b;
+
+  font-size: 0.68rem;
+}
+
+.agregar-deuda-error {
+  margin-top: 5px;
+
+  color: #b91c1c;
+
+  font-size: 0.72rem;
+}
+
+.agregar-deuda-nuevo {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    auto
+    minmax(
+      0,
+      1fr
+    )
+    auto;
+
+  align-items: center;
+
+  gap: 9px;
+
+  padding:
+    9px
+    10px;
+
+  color: #1d4ed8;
+  background: #eef4ff;
+
+  border: 1px solid #dbeafe;
+  border-radius: 9px;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.agregar-deuda-nuevo:hover {
+  background: #e0edff;
+}
+
+.agregar-deuda-nuevo strong,
+.agregar-deuda-nuevo small {
+  display: block;
+}
+
+.agregar-deuda-nuevo strong {
+  font-size: 0.79rem;
+}
+
+.agregar-deuda-nuevo small {
+  margin-top: 1px;
+
+  color: #64748b;
+
+  font-size: 0.67rem;
+}
+
+@media (
+  max-width: 650px
+) {
+  .agregar-deuda-switch {
+    align-items: flex-start;
+  }
+
+  .agregar-deuda-busqueda
+  .input-group {
+    flex-wrap: wrap;
+  }
+
+  .agregar-deuda-busqueda
+  .input-group
+  .btn {
+    width: 100%;
+
+    margin-top: 6px;
+
+    border-radius:
+      7px !important;
+  }
+}

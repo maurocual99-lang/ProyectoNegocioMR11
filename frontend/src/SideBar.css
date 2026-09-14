@@ -1,68 +1,96 @@
-/* =====================================================
+/* =========================================================
    SIDEBAR
-===================================================== */
+========================================================= */
 
 .sidebar {
   position: fixed;
+  inset:
+    0
+    auto
+    0
+    0;
 
-  top: 0;
-  left: 0;
-
-  z-index: 1050;
+  z-index: 1100;
 
   width: 260px;
-  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
 
   display: flex;
   flex-direction: column;
 
-  color: white;
+  color: #fff;
 
   background:
     linear-gradient(
       180deg,
-      #2298c7 0%,
-      #1681ac 100%
+      #2197c6 0%,
+      #137da8 100%
+    );
+
+  border-right:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.10
     );
 
   box-shadow:
-    4px 0 18px
-    rgba(15, 23, 42, 0.08);
-
-  transition:
-    transform 0.3s ease;
+    6px 0 22px
+    rgba(
+      15,
+      23,
+      42,
+      0.10
+    );
 
   overflow: hidden;
-}
 
+  transition:
+    transform
+    0.25s
+    ease;
+}
 
 .sidebar-abierto {
   transform:
-    translateX(0);
+    translateX(
+      0
+    );
 }
-
 
 .sidebar-cerrado {
   transform:
-    translateX(-100%);
+    translateX(
+      -100%
+    );
+
+  pointer-events:
+    none;
 }
 
-
-/* =====================================================
+/* =========================================================
    LOGO
-===================================================== */
+========================================================= */
 
 .sidebar-logo-contenedor {
   width: 100%;
-  height: 185px;
+  flex:
+    0 0
+    auto;
 
-  flex-shrink: 0;
+  min-height:
+    170px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  padding: 20px;
+  padding:
+    18px
+    16px;
 
   border-bottom:
     1px solid
@@ -70,27 +98,30 @@
       255,
       255,
       255,
-      0.16
+      0.14
     );
 }
-
 
 .sidebar-logo {
   display: block;
 
-  width: auto;
-  height: auto;
+  width:
+    min(
+      138px,
+      72%
+    );
 
-  max-width: 135px;
-  max-height: 145px;
+  max-height:
+    138px;
 
-  object-fit: contain;
-
-  margin: 0 auto;
+  object-fit:
+    contain;
 
   filter:
     drop-shadow(
-      0 3px 5px
+      0
+      4px
+      6px
       rgba(
         0,
         0,
@@ -100,54 +131,58 @@
     );
 }
 
-
-/* =====================================================
+/* =========================================================
    MENÚ
-===================================================== */
+========================================================= */
 
 .sidebar-menu {
-  width: 100%;
-
+  min-height: 0;
   flex: 1;
 
   display: flex;
   flex-direction: column;
-
-  align-items: center;
-
-  gap: 8px;
+  gap: 7px;
 
   padding:
-    24px
-    12px;
+    18px
+    10px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  scrollbar-width:
+    thin;
+
+  scrollbar-color:
+    rgba(
+      255,
+      255,
+      255,
+      0.30
+    )
+    transparent;
 }
-
-
-/* =====================================================
-   BOTONES
-===================================================== */
 
 .sidebar-item {
   width: 100%;
-  max-width: 236px;
 
-  min-height: 52px;
+  min-height:
+    50px;
 
   display: flex;
   align-items: center;
-  justify-content: center;
 
   padding:
     0
-    15px;
+    12px;
 
   color:
     rgba(
       255,
       255,
       255,
-      0.88
-    );
+      0.92
+    ) !important;
 
   background:
     transparent;
@@ -157,32 +192,79 @@
     transparent;
 
   border-radius:
-    13px;
+    12px;
 
-  cursor: pointer;
-
-  font-family: inherit;
+  cursor:
+    pointer;
 
   transition:
-    background 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease;
+    background
+      0.18s
+      ease,
+    border-color
+      0.18s
+      ease,
+    transform
+      0.18s
+      ease;
 }
 
+.sidebar-item:hover {
+  color:
+    #fff !important;
 
-/*
- * Este bloque es el que hace
- * que icono + texto queden
- * visualmente centrados.
- *
- * Al mismo tiempo todos los
- * textos empiezan exactamente
- * en el mismo lugar.
- */
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.13
+    );
+
+  border-color:
+    rgba(
+      255,
+      255,
+      255,
+      0.14
+    );
+
+  transform:
+    translateX(
+      2px
+    );
+}
+
+.sidebar-item-activo {
+  color:
+    #fff !important;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.20
+    ) !important;
+
+  border-color:
+    rgba(
+      255,
+      255,
+      255,
+      0.72
+    ) !important;
+
+  box-shadow:
+    inset
+    3px
+    0
+    0
+    #fff;
+}
 
 .sidebar-item-contenido {
-  width: 165px;
+  width: 100%;
 
   display: grid;
 
@@ -195,116 +277,59 @@
 
   align-items: center;
 
-  column-gap: 12px;
-
-  text-align: left;
+  gap: 10px;
 }
 
+.sidebar-item svg,
+.sidebar-item span {
+  color:
+    currentColor !important;
 
-.sidebar-item-contenido svg {
-  justify-self: center;
-
-  flex-shrink: 0;
+  opacity:
+    1 !important;
 }
 
+.sidebar-item span {
+  overflow:
+    hidden;
 
-.sidebar-item-contenido span {
-  font-size: 0.93rem;
+  font-size:
+    0.88rem;
+  font-weight:
+    700;
 
-  font-weight: 600;
+  text-overflow:
+    ellipsis;
 
-  white-space: nowrap;
+  white-space:
+    nowrap;
 }
 
-
-/* =====================================================
-   HOVER
-===================================================== */
-
-.sidebar-item:hover {
-  color: white;
-
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.11
-    );
-
-  transform:
-    translateY(-1px);
-}
-
-
-/* =====================================================
-   ACTIVO
-===================================================== */
-
-.sidebar-item-activo {
-  color: white;
-
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.19
-    );
-
-  border:
-    1.5px solid
-    rgba(
-      255,
-      255,
-      255,
-      0.95
-    );
-
-  box-shadow:
-    0 3px 9px
-    rgba(
-      0,
-      0,
-      0,
-      0.08
-    );
-}
-
-
-.sidebar-item-activo:hover {
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.23
-    );
-}
-
-
-/* =====================================================
+/* =========================================================
    FOOTER
-===================================================== */
+========================================================= */
 
 .sidebar-footer {
-  width: 100%;
-
-  flex-shrink: 0;
+  flex:
+    0 0
+    auto;
 
   display: flex;
   flex-direction: column;
-
-  align-items: center;
-  justify-content: center;
-
   gap: 4px;
 
   padding:
-    21px
-    15px;
+    16px
+    18px
+    18px;
 
-  text-align: center;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.78
+    );
 
   border-top:
     1px solid
@@ -312,232 +337,87 @@
       255,
       255,
       255,
-      0.16
+      0.12
     );
 }
-
 
 .sidebar-footer strong {
-  color: white;
+  color:
+    #fff;
 
-  font-size: 0.81rem;
-  font-weight: 700;
+  font-size:
+    0.78rem;
 }
-
 
 .sidebar-footer span {
-  color:
-    rgba(
-      255,
-      255,
-      255,
-      0.76
-    );
-
-  font-size: 0.69rem;
+  font-size:
+    0.68rem;
 }
 
-
-/* =====================================================
-   NOTEBOOK BAJA
-===================================================== */
-
-@media (
-  max-height: 750px
-) {
-
-  .sidebar-logo-contenedor {
-    height: 145px;
-
-    padding: 12px;
-  }
-
-
-  .sidebar-logo {
-    max-width: 105px;
-    max-height: 115px;
-  }
-
-
-  .sidebar-menu {
-    padding-top: 17px;
-
-    gap: 5px;
-  }
-
-
-  .sidebar-item {
-    min-height: 47px;
-  }
-
-
-  .sidebar-footer {
-    padding:
-      14px
-      10px;
-  }
-
-}
-
-
-/* =====================================================
-   TABLET / CELULAR
-===================================================== */
+/* =========================================================
+   TABLET / MOBILE
+========================================================= */
 
 @media (
   max-width: 1024px
 ) {
-
   .sidebar {
-    width: 260px;
+    width:
+      min(
+        82vw,
+        260px
+      );
 
     box-shadow:
-      6px 0 24px
+      8px
+      0
+      28px
       rgba(
         15,
         23,
         42,
-        0.18
+        0.22
       );
   }
-
-
-  .sidebar-logo-contenedor {
-    height: 155px;
-  }
-
-
-  .sidebar-logo {
-    max-width: 115px;
-    max-height: 125px;
-  }
-
 }
-
-
-/* =====================================================
-   CELULAR PEQUEÑO
-===================================================== */
 
 @media (
-  max-width: 450px
+  max-height: 680px
 ) {
+  .sidebar-logo-contenedor {
+    min-height:
+      128px;
 
-  .sidebar {
+    padding:
+      10px;
+  }
+
+  .sidebar-logo {
     width:
       min(
-        260px,
-        82vw
+        105px,
+        60%
       );
+
+    max-height:
+      105px;
   }
 
+  .sidebar-menu {
+    gap: 4px;
+
+    padding:
+      10px;
+  }
 
   .sidebar-item {
-    max-width:
-      calc(
-        100% - 4px
-      );
+    min-height:
+      44px;
   }
 
-}
-/* =====================================================
-   FIX VISUAL SIDEBAR
-===================================================== */
-
-.layout-principal .sidebar {
-  background:
-    linear-gradient(
-      180deg,
-      #168fc0 0%,
-      #11759e 100%
-    ) !important;
-
-  opacity: 1 !important;
-
-  visibility:
-    visible;
-}
-
-
-.layout-principal
-.sidebar-item {
-  color:
-    rgba(
-      255,
-      255,
-      255,
-      0.92
-    )
-    !important;
-
-  opacity:
-    1
-    !important;
-}
-
-
-.layout-principal
-.sidebar-item svg {
-  color:
-    currentColor
-    !important;
-
-  opacity:
-    1
-    !important;
-}
-
-
-.layout-principal
-.sidebar-item span {
-  color:
-    currentColor
-    !important;
-
-  opacity:
-    1
-    !important;
-}
-
-
-.layout-principal
-.sidebar-item:hover {
-  color:
-    #ffffff
-    !important;
-
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.14
-    )
-    !important;
-}
-
-
-.layout-principal
-.sidebar-item-activo {
-  color:
-    #ffffff
-    !important;
-
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.22
-    )
-    !important;
-
-  border-color:
-    rgba(
-      255,
-      255,
-      255,
-      0.9
-    )
-    !important;
+  .sidebar-footer {
+    padding:
+      10px
+      14px;
+  }
 }
