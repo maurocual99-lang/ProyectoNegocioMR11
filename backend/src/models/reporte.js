@@ -1,9 +1,62 @@
-const db = require("../db");
+const db =
+  require("../db");
 
 
-/* ======================================================
-   OBTENER REPORTE MENSUAL
-====================================================== */
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function numero(
+  valor
+) {
+
+  return Number(
+    valor ||
+    0
+  );
+
+}
+
+
+function mapearDetalle(
+  detalle
+) {
+
+  return {
+    ...detalle,
+
+    id:
+      Number(
+        detalle.id
+      ),
+
+    producto_id:
+      Number(
+        detalle.producto_id
+      ),
+
+    cantidad:
+      numero(
+        detalle.cantidad
+      ),
+
+    precio_unitario:
+      numero(
+        detalle.precio_unitario
+      ),
+
+    subtotal:
+      numero(
+        detalle.subtotal
+      ),
+  };
+
+}
+
+
+/* =========================================================
+   REPORTE MENSUAL
+========================================================= */
 
 async function obtenerReporteMensual(
   mes,
@@ -11,10 +64,14 @@ async function obtenerReporteMensual(
 ) {
 
   const mesNumero =
-    Number(mes);
+    Number(
+      mes
+    );
 
   const anioNumero =
-    Number(anio);
+    Number(
+      anio
+    );
 
 
   const parametros = [
@@ -23,22 +80,29 @@ async function obtenerReporteMensual(
   ];
 
 
-  /* ====================================================
-     FILTRO COMÚN DEL MES
-  ==================================================== */
-
-  const filtroMensual = `
-
+  /*
+   * Todas las consultas que corresponden al período
+   * seleccionado usan el mismo rango:
+   *
+   *   >= primer día del mes
+   *   <  primer día del mes siguiente
+   *
+   * De esta forma también se conserva correctamente
+   * la hora de fecha_venta / fecha_pago.
+   */
+  const filtroMensualVenta = `
     v.finalizada = TRUE
 
-    AND v.fecha_venta >=
+    AND
+    v.fecha_venta >=
       make_date(
         $1::int,
         $2::int,
         1
       )
 
-    AND v.fecha_venta <
+    AND
+    v.fecha_venta <
       (
         make_date(
           $1::int,
@@ -48,15 +112,25 @@ async function obtenerReporteMensual(
         +
         INTERVAL '1 month'
       )
-
   `;
 
 
   try {
 
-    /* ==================================================
-       1. RESUMEN GENERAL DEL MES
-    ================================================== */
+    /* =====================================================
+       1. RESUMEN EXACTO DE LAS VENTAS DEL MES
+
+       total_vendido:
+         suma de TODAS las ventas finalizadas del mes.
+
+       total_pendiente_mes:
+         saldo que HOY continúa pendiente de las ventas
+         realizadas durante ese mes.
+
+       IMPORTANTE:
+       No usamos v.total para el pendiente porque una venta
+       puede haber recibido pagos parciales.
+    ===================================================== */
 
     const resumenResult =
       await db.query(
@@ -68,7 +142,9 @@ async function obtenerReporteMensual(
 
 
             COALESCE(
-              SUM(v.total),
+              SUM(
+                v.total
+              ),
               0
             )
               AS total_vendido,
@@ -76,144 +152,157 @@ async function obtenerReporteMensual(
 
             COALESCE(
               SUM(
-                CASE
-
-                  WHEN
-                    COALESCE(
-                      v.cuenta_pendiente,
-                      FALSE
-                    ) = FALSE
-
-                  THEN
-                    v.total
-
-                  ELSE
+                GREATEST(
+                  COALESCE(
+                    v.saldo_pendiente,
                     0
-
-                END
-              ),
-              0
-            )
-              AS total_cobrado,
-
-
-            COALESCE(
-              SUM(
-                CASE
-
-                  WHEN
-                    v.cuenta_pendiente = TRUE
-
-                  THEN
-                    v.total
-
-                  ELSE
-                    0
-
-                END
+                  ),
+                  0
+                )
               ),
               0
             )
               AS total_pendiente_mes
 
-
           FROM venta v
 
-
           WHERE
-            ${filtroMensual};
-
+            ${filtroMensualVenta};
         `,
         parametros
       );
 
 
-      const cajaResult =
-    await db.query(
+    /* =====================================================
+       2. CONTROL DE CAJA DEL MES
+
+       Hay dos formas de ingresar dinero:
+
+       A) Venta cobrada en el momento.
+       B) Pago de una deuda.
+
+       PROBLEMA DEL CÓDIGO ANTERIOR:
+       cuenta_pendiente cambia a FALSE cuando una deuda queda
+       totalmente pagada. Por eso una venta a cuenta podía
+       terminar contándose después como "venta de contado" y,
+       además, sumar también su pago: se duplicaba caja.
+
+       SOLUCIÓN:
+       Consideramos venta de contado solamente una venta
+       sin saldo pendiente y SIN aplicaciones de pago
+       registradas en pago_venta.
+
+       Una venta que alguna vez fue deuda y fue pagada tiene
+       registros en pago_venta, así que no se vuelve a sumar
+       como venta de contado.
+    ===================================================== */
+
+    const cajaResult =
+      await db.query(
         `
-        SELECT
+          SELECT
 
-            /* Ventas cobradas en el momento */
+            /* -------------------------------------------
+               VENTAS COBRADAS DIRECTAMENTE EN EL MES
+            ------------------------------------------- */
             COALESCE(
-                (
-                    SELECT
-                        SUM(v.total)
+              (
+                SELECT
+                  SUM(
+                    v.total
+                  )
 
-                    FROM venta v
+                FROM venta v
+
+                WHERE
+                  v.finalizada = TRUE
+
+                  AND
+                  v.fecha_venta >=
+                    make_date(
+                      $1::int,
+                      $2::int,
+                      1
+                    )
+
+                  AND
+                  v.fecha_venta <
+                    (
+                      make_date(
+                        $1::int,
+                        $2::int,
+                        1
+                      )
+                      +
+                      INTERVAL '1 month'
+                    )
+
+                  AND
+                  COALESCE(
+                    v.saldo_pendiente,
+                    0
+                  ) = 0
+
+                  AND
+                  NOT EXISTS (
+                    SELECT
+                      1
+
+                    FROM pago_venta pv
 
                     WHERE
-                        v.finalizada = TRUE
-
-                        AND
-                        COALESCE(
-                            v.cuenta_pendiente,
-                            FALSE
-                        ) = FALSE
-
-                        AND
-                        v.fecha_venta >=
-                            make_date(
-                                $1::int,
-                                $2::int,
-                                1
-                            )
-
-                        AND
-                        v.fecha_venta <
-                            (
-                                make_date(
-                                    $1::int,
-                                    $2::int,
-                                    1
-                                )
-                                +
-                                INTERVAL '1 month'
-                            )
-                ),
-                0
+                      pv.venta_id =
+                      v.id
+                  )
+              ),
+              0
             )
+              AS ventas_contado_mes,
 
-            +
 
-            /* Pagos de deudas realizados durante el mes */
+            /* -------------------------------------------
+               PAGOS DE DEUDAS RECIBIDOS EN EL MES
+            ------------------------------------------- */
             COALESCE(
-                (
-                    SELECT
-                        SUM(p.total)
+              (
+                SELECT
+                  SUM(
+                    p.total
+                  )
 
-                    FROM pago p
+                FROM pago p
 
-                    WHERE
-                        p.fecha_pago >=
-                            make_date(
-                                $1::int,
-                                $2::int,
-                                1
-                            )
+                WHERE
+                  p.fecha_pago >=
+                    make_date(
+                      $1::int,
+                      $2::int,
+                      1
+                    )
 
-                        AND
-                        p.fecha_pago <
-                            (
-                                make_date(
-                                    $1::int,
-                                    $2::int,
-                                    1
-                                )
-                                +
-                                INTERVAL '1 month'
-                            )
-                ),
-                0
+                  AND
+                  p.fecha_pago <
+                    (
+                      make_date(
+                        $1::int,
+                        $2::int,
+                        1
+                      )
+                      +
+                      INTERVAL '1 month'
+                    )
+              ),
+              0
             )
-
-            AS total_caja_mes
+              AS pagos_deuda_mes;
         `,
         parametros
-    );
-    /* ==================================================
-       2. VENTAS AGRUPADAS POR DÍA
-       PARA EL GRÁFICO
-    ================================================== */
+      );
+
+
+    /* =====================================================
+       3. VENTAS AGRUPADAS POR DÍA
+    ===================================================== */
 
     const ventasPorDiaResult =
       await db.query(
@@ -232,39 +321,45 @@ async function obtenerReporteMensual(
 
 
             COALESCE(
-              SUM(v.total),
+              SUM(
+                v.total
+              ),
               0
             )
               AS total
 
-
           FROM venta v
 
-
           WHERE
-            ${filtroMensual}
-
+            ${filtroMensualVenta}
 
           GROUP BY
-
             EXTRACT(
               DAY
               FROM v.fecha_venta
             )
 
-
           ORDER BY
             dia ASC;
-
         `,
         parametros
       );
 
 
-    /* ==================================================
-       3. TODAS LAS VENTAS DEL MES
-       CON PRODUCTOS Y CLIENTE
-    ================================================== */
+    /* =====================================================
+       4. REGISTRO EXACTO DE TODAS LAS VENTAS DEL MES
+
+       Se devuelve:
+       - venta
+       - fecha y hora
+       - total
+       - saldo actual
+       - monto total pagado
+       - cliente
+       - todos los productos
+       - cantidad/precio/subtotal
+       - tipo de venta UNIDAD/PESO
+    ===================================================== */
 
     const ventasResult =
       await db.query(
@@ -277,14 +372,38 @@ async function obtenerReporteMensual(
 
             v.total,
 
-            COALESCE(
-              v.cuenta_pendiente,
-              FALSE
+            GREATEST(
+              COALESCE(
+                v.saldo_pendiente,
+                0
+              ),
+              0
+            )
+              AS saldo_pendiente,
+
+
+            GREATEST(
+              v.total
+              -
+              COALESCE(
+                v.saldo_pendiente,
+                0
+              ),
+              0
+            )
+              AS total_pagado,
+
+
+            (
+              COALESCE(
+                v.saldo_pendiente,
+                0
+              ) > 0
             )
               AS cuenta_pendiente,
 
-            v.cliente_id,
 
+            v.cliente_id,
 
             c.nombre
               AS cliente_nombre,
@@ -297,9 +416,7 @@ async function obtenerReporteMensual(
 
 
             COALESCE(
-
               json_agg(
-
                 json_build_object(
 
                   'id',
@@ -311,6 +428,19 @@ async function obtenerReporteMensual(
                   'producto_nombre',
                   p.nombre,
 
+                  'tipo_venta',
+                  CASE
+                    WHEN
+                      COALESCE(
+                        p.tipo_venta::text,
+                        'UNIDAD'
+                      ) = 'PESO'
+                    THEN
+                      'PESO'
+                    ELSE
+                      'UNIDAD'
+                  END,
+
                   'cantidad',
                   dv.cantidad,
 
@@ -319,176 +449,237 @@ async function obtenerReporteMensual(
 
                   'subtotal',
                   dv.subtotal
-
                 )
 
                 ORDER BY
                   dv.id
-
               )
-
               FILTER (
                 WHERE
-                  dv.id IS NOT NULL
+                  dv.id
+                  IS NOT NULL
               ),
 
               '[]'::json
-
             )
               AS detalles
 
-
           FROM venta v
 
-
           LEFT JOIN cliente c
-
-            ON
-              c.id =
-              v.cliente_id
-
+            ON c.id =
+               v.cliente_id
 
           LEFT JOIN detalle_venta dv
-
-            ON
-              dv.venta_id =
-              v.id
-
+            ON dv.venta_id =
+               v.id
 
           LEFT JOIN producto p
-
-            ON
-              p.id =
-              dv.producto_id
-
+            ON p.id =
+               dv.producto_id
 
           WHERE
-            ${filtroMensual}
-
+            ${filtroMensualVenta}
 
           GROUP BY
-
             v.id,
-
             v.fecha_venta,
-
             v.total,
-
-            v.cuenta_pendiente,
-
+            v.saldo_pendiente,
             v.cliente_id,
-
             c.id,
-
             c.nombre,
-
             c.apellido,
-
             c.apodo
 
-
           ORDER BY
-
             v.fecha_venta DESC,
-
             v.id DESC;
-
         `,
         parametros
       );
 
 
-    /* ==================================================
-       4. DEUDA TOTAL ACTUAL
+    /* =====================================================
+       5. PERSONAS QUE DEBEN DINERO ACTUALMENTE
 
-       IMPORTANTE:
-       NO SE FILTRA POR MES.
+       NO se filtra por mes.
+       El issue pide saber cuánto deben HOY los clientes
+       morosos, independientemente de cuándo nació la deuda.
+    ===================================================== */
 
-       Esto responde:
-       "¿Cuánto me deben actualmente todos
-       los clientes morosos?"
-    ================================================== */
-const deudoresResult =
-    await db.query(
+    const deudoresResult =
+      await db.query(
         `
-        SELECT
+          SELECT
+
             c.id,
+
             c.nombre,
+
             c.apellido,
+
             c.apodo,
 
-            COUNT(v.id)::int
-                AS ventas_pendientes,
+
+            COUNT(
+              v.id
+            )::int
+              AS ventas_pendientes,
+
 
             COALESCE(
-                SUM(
-                    v.saldo_pendiente
-                ),
-                0
+              SUM(
+                v.saldo_pendiente
+              ),
+              0
             )
-                AS deuda_total
+              AS deuda_total
 
-        FROM cliente c
+          FROM cliente c
 
-        JOIN venta v
+          JOIN venta v
             ON v.cliente_id =
                c.id
 
-        WHERE
+          WHERE
             v.finalizada = TRUE
-            AND
-            v.saldo_pendiente > 0
 
-        GROUP BY
+            AND
+            COALESCE(
+              v.saldo_pendiente,
+              0
+            ) > 0
+
+          GROUP BY
             c.id,
             c.nombre,
             c.apellido,
             c.apodo
 
-        ORDER BY
-            deuda_total DESC
+          ORDER BY
+            deuda_total DESC,
+            c.apellido ASC,
+            c.nombre ASC;
         `
-    );
-
-const deudaResult =
-  await db.query(
-    `
-      SELECT
-
-        COALESCE(
-          SUM(v.saldo_pendiente),
-          0
-        )
-          AS total_deuda,
-
-        COUNT(*)::int
-          AS ventas_pendientes,
-
-        COUNT(
-          DISTINCT
-          v.cliente_id
-        )::int
-          AS clientes_morosos
-
-      FROM venta v
-
-      WHERE
-
-        v.finalizada = TRUE
-
-        AND
-        v.saldo_pendiente > 0
-
-        AND
-        v.cliente_id
-          IS NOT NULL;
-    `
-  );
+      );
 
 
-    /* ==================================================
-       5. AÑOS CON VENTAS DISPONIBLES
-    ================================================== */
+    /* =====================================================
+       6. TOTAL DE DEUDA ACTUAL
+
+       Tampoco se filtra por mes.
+    ===================================================== */
+
+    const deudaResult =
+      await db.query(
+        `
+          SELECT
+
+            COALESCE(
+              SUM(
+                v.saldo_pendiente
+              ),
+              0
+            )
+              AS total_deuda,
+
+
+            COUNT(*)::int
+              AS ventas_pendientes,
+
+
+            COUNT(
+              DISTINCT
+              v.cliente_id
+            )::int
+              AS clientes_morosos
+
+          FROM venta v
+
+          WHERE
+            v.finalizada = TRUE
+
+            AND
+            COALESCE(
+              v.saldo_pendiente,
+              0
+            ) > 0
+
+            AND
+            v.cliente_id
+              IS NOT NULL;
+        `
+      );
+
+
+    /* =====================================================
+       7. PAGOS DE DEUDAS REALIZADOS DURANTE EL MES
+
+       Este detalle no rompe el frontend actual.
+       Queda disponible para auditar el valor
+       "Ingresó a caja" y para ampliar la pantalla después.
+    ===================================================== */
+
+    const pagosMesResult =
+      await db.query(
+        `
+          SELECT
+
+            p.id,
+
+            p.fecha_pago,
+
+            p.total,
+
+            p.cliente_id,
+
+            c.nombre
+              AS cliente_nombre,
+
+            c.apellido
+              AS cliente_apellido,
+
+            c.apodo
+              AS cliente_apodo
+
+          FROM pago p
+
+          LEFT JOIN cliente c
+            ON c.id =
+               p.cliente_id
+
+          WHERE
+            p.fecha_pago >=
+              make_date(
+                $1::int,
+                $2::int,
+                1
+              )
+
+            AND
+            p.fecha_pago <
+              (
+                make_date(
+                  $1::int,
+                  $2::int,
+                  1
+                )
+                +
+                INTERVAL '1 month'
+              )
+
+          ORDER BY
+            p.fecha_pago DESC,
+            p.id DESC;
+        `,
+        parametros
+      );
+
+
+    /* =====================================================
+       8. AÑOS DISPONIBLES
+    ===================================================== */
 
     const aniosResult =
       await db.query(
@@ -501,286 +692,349 @@ const deudaResult =
             )::int
               AS anio
 
-
           FROM venta
-
 
           WHERE
             finalizada = TRUE
 
-
           ORDER BY
             anio DESC;
-
         `
       );
 
 
-    /* ==================================================
-       ARMAR RESPUESTA
-    ================================================== */
+    /* =====================================================
+       9. ARMAR RESPUESTA
+    ===================================================== */
 
     const resumen =
-      resumenResult.rows[0];
+      resumenResult
+        .rows[0] ||
+      {};
+
+
+    const caja =
+      cajaResult
+        .rows[0] ||
+      {};
 
 
     const deuda =
-      deudaResult.rows[0];
+      deudaResult
+        .rows[0] ||
+      {};
 
-    const caja =
-        cajaResult.rows[0];
+
+    const ventasContadoMes =
+      numero(
+        caja
+          .ventas_contado_mes
+      );
+
+
+    const pagosDeudaMes =
+      numero(
+        caja
+          .pagos_deuda_mes
+      );
+
+
+    const totalCajaMes =
+      ventasContadoMes
+      +
+      pagosDeudaMes;
+
+
     return {
 
-      /* ==============================
-         PERÍODO
-      ============================== */
-
       periodo: {
-
         mes:
           mesNumero,
 
         anio:
           anioNumero,
-
       },
 
-
-      /* ==============================
-         RESUMEN
-      ============================== */
 
       resumen: {
 
         cantidad_ventas:
-          Number(
+          numero(
             resumen
-              ?.cantidad_ventas ||
-            0
+              .cantidad_ventas
           ),
+
 
         total_vendido:
-          Number(
+          numero(
             resumen
-              ?.total_vendido ||
-            0
+              .total_vendido
           ),
 
+
+        /*
+         * Conservamos el nombre total_cobrado para que
+         * Resumenes.tsx actual siga funcionando.
+         *
+         * Semántica:
+         * "dinero que realmente entró a caja durante
+         * el período seleccionado".
+         */
         total_cobrado:
-          Number(
-            caja
-              ?.total_caja_mes ||
-            0
-          ),
+          totalCajaMes,
+
 
         total_pendiente_mes:
-          Number(
+          numero(
             resumen
-              ?.total_pendiente_mes ||
-            0
+              .total_pendiente_mes
           ),
 
-          deudores:
-            deudoresResult.rows.map(
-              cliente => ({
 
-                id:
-                  cliente.id,
+        /*
+         * Desglose nuevo.
+         * El frontend actual puede ignorarlo sin problema.
+         */
+        ventas_contado_mes:
+          ventasContadoMes,
 
-                nombre:
-                  cliente.nombre,
+        pagos_deuda_mes:
+          pagosDeudaMes,
 
-                apellido:
-                  cliente.apellido,
-
-                apodo:
-                  cliente.apodo,
-
-                ventas_pendientes:
-                  Number(
-                    cliente
-                      .ventas_pendientes ||
-                    0
-                  ),
-
-                deuda_total:
-                  Number(
-                    cliente
-                      .deuda_total ||
-                    0
-                  ),
-
-              })
-            ),
+        total_caja_mes:
+          totalCajaMes,
       },
 
 
-      /* ==============================
-         DEUDA ACTUAL
-      ============================== */
+      /*
+       * IMPORTANTE:
+       * En la rama anterior "deudores" estaba metido
+       * accidentalmente dentro de "resumen".
+       *
+       * Resumenes.tsx espera:
+       *   reporte.deudores
+       *
+       * Por eso ahora va en la raíz.
+       */
+      deudores:
+        deudoresResult
+          .rows
+          .map(
+            (
+              cliente
+            ) => ({
+
+              id:
+                Number(
+                  cliente.id
+                ),
+
+              nombre:
+                cliente.nombre,
+
+              apellido:
+                cliente.apellido,
+
+              apodo:
+                cliente.apodo,
+
+              ventas_pendientes:
+                numero(
+                  cliente
+                    .ventas_pendientes
+                ),
+
+              deuda_total:
+                numero(
+                  cliente
+                    .deuda_total
+                ),
+            })
+          ),
+
 
       deuda_actual: {
 
         total_deuda:
-          Number(
+          numero(
             deuda
-              ?.total_deuda ||
-            0
+              .total_deuda
           ),
 
         ventas_pendientes:
-          Number(
+          numero(
             deuda
-              ?.ventas_pendientes ||
-            0
+              .ventas_pendientes
           ),
 
         clientes_morosos:
-          Number(
+          numero(
             deuda
-              ?.clientes_morosos ||
-            0
+              .clientes_morosos
           ),
-
       },
 
 
-      /* ==============================
-         DATOS DEL GRÁFICO
-      ============================== */
-
       ventas_por_dia:
+        ventasPorDiaResult
+          .rows
+          .map(
+            (
+              fila
+            ) => ({
 
-        ventasPorDiaResult.rows.map(
-          (fila) => ({
+              dia:
+                numero(
+                  fila.dia
+                ),
 
-            dia:
-              Number(
-                fila.dia
-              ),
+              cantidad_ventas:
+                numero(
+                  fila
+                    .cantidad_ventas
+                ),
 
-            cantidad_ventas:
-              Number(
-                fila
-                  .cantidad_ventas ||
-                0
-              ),
+              total:
+                numero(
+                  fila.total
+                ),
+            })
+          ),
 
-            total:
-              Number(
-                fila.total ||
-                0
-              ),
-
-          })
-        ),
-
-
-      /* ==============================
-         VENTAS COMPLETAS
-      ============================== */
 
       ventas:
+        ventasResult
+          .rows
+          .map(
+            (
+              venta
+            ) => ({
 
-        ventasResult.rows.map(
-          (venta) => ({
+              id:
+                Number(
+                  venta.id
+                ),
 
-            id:
-              venta.id,
+              fecha_venta:
+                venta.fecha_venta,
 
+              total:
+                numero(
+                  venta.total
+                ),
 
-            fecha_venta:
-              venta.fecha_venta,
+              saldo_pendiente:
+                numero(
+                  venta
+                    .saldo_pendiente
+                ),
 
+              total_pagado:
+                numero(
+                  venta
+                    .total_pagado
+                ),
 
-            total:
-              Number(
-                venta.total ||
-                0
-              ),
+              cuenta_pendiente:
+                Boolean(
+                  venta
+                    .cuenta_pendiente
+                ),
 
+              cliente_id:
+                venta.cliente_id ===
+                null
+                  ? null
+                  : Number(
+                      venta
+                        .cliente_id
+                    ),
 
-            cuenta_pendiente:
-              Boolean(
+              cliente_nombre:
                 venta
-                  .cuenta_pendiente
-              ),
+                  .cliente_nombre,
+
+              cliente_apellido:
+                venta
+                  .cliente_apellido,
+
+              cliente_apodo:
+                venta
+                  .cliente_apodo,
+
+              detalles:
+                (
+                  venta.detalles ||
+                  []
+                )
+                  .map(
+                    mapearDetalle
+                  ),
+            })
+          ),
 
 
-            cliente_id:
-              venta.cliente_id,
+      pagos_mes:
+        pagosMesResult
+          .rows
+          .map(
+            (
+              pago
+            ) => ({
 
+              id:
+                Number(
+                  pago.id
+                ),
 
-            cliente_nombre:
-              venta.cliente_nombre,
+              fecha_pago:
+                pago.fecha_pago,
 
+              total:
+                numero(
+                  pago.total
+                ),
 
-            cliente_apellido:
-              venta.cliente_apellido,
-
-
-            cliente_apodo:
-              venta.cliente_apodo,
-
-
-            detalles:
-
-              (
-                venta.detalles ||
-                []
-              ).map(
-                (detalle) => ({
-
-                  ...detalle,
-
-
-                  cantidad:
-                    Number(
-                      detalle
-                        .cantidad ||
-                      0
+              cliente_id:
+                pago.cliente_id ===
+                null
+                  ? null
+                  : Number(
+                      pago.cliente_id
                     ),
 
+              cliente_nombre:
+                pago
+                  .cliente_nombre,
 
-                  precio_unitario:
-                    Number(
-                      detalle
-                        .precio_unitario ||
-                      0
-                    ),
+              cliente_apellido:
+                pago
+                  .cliente_apellido,
 
+              cliente_apodo:
+                pago
+                  .cliente_apodo,
+            })
+          ),
 
-                  subtotal:
-                    Number(
-                      detalle
-                        .subtotal ||
-                      0
-                    ),
-
-                })
-              ),
-
-          })
-        ),
-
-
-      /* ==============================
-         AÑOS
-      ============================== */
 
       anios_disponibles:
-
-        aniosResult.rows.map(
-          (fila) =>
-            Number(
-              fila.anio
-            )
-        ),
-
+        aniosResult
+          .rows
+          .map(
+            (
+              fila
+            ) =>
+              numero(
+                fila.anio
+              )
+          ),
     };
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "======================================"
@@ -815,7 +1069,9 @@ const deudaResult =
 
 
     throw error;
+
   }
+
 }
 
 

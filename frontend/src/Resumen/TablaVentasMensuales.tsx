@@ -1,4 +1,5 @@
 import {
+  Fragment,
   useEffect,
   useState,
 } from "react";
@@ -15,176 +16,267 @@ import {
 
 import {
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   ChevronUp,
   ReceiptText,
 } from "lucide-react";
 
 import type {
+  DetalleVentaReporte,
   VentaReporte,
 } from "./tipos";
 
+
 interface Props {
-  ventas: VentaReporte[];
+  ventas:
+    VentaReporte[];
 }
 
-const POR_PAGINA = 10;
 
 function dinero(
-  valor: number
+  valor:
+    number
 ) {
-  return valor.toLocaleString(
+
+  return Number(
+    valor ||
+    0
+  ).toLocaleString(
     "es-AR",
     {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits:
+        2,
+
+      maximumFractionDigits:
+        2,
     }
   );
+
 }
 
+
 function fechaHora(
-  fecha: string
+  fecha:
+    string
 ) {
-  return new Date(fecha)
+
+  return new Date(
+    fecha
+  )
     .toLocaleString(
       "es-AR",
       {
         day:
           "2-digit",
+
         month:
           "2-digit",
+
         year:
           "numeric",
+
         hour:
           "2-digit",
+
         minute:
           "2-digit",
       }
     );
+
 }
 
+
 function nombreCliente(
-  venta: VentaReporte
+  venta:
+    VentaReporte
 ) {
+
   if (
     !venta.cliente_id
   ) {
+
     return "Venta de mostrador";
+
   }
+
 
   const nombre =
     [
       venta.cliente_nombre,
       venta.cliente_apellido,
     ]
-      .filter(Boolean)
-      .join(" ");
+      .filter(
+        Boolean
+      )
+      .join(
+        " "
+      );
+
 
   if (
     venta.cliente_apodo
   ) {
-    return `${nombre} (${venta.cliente_apodo})`;
+
+    return nombre
+      ? `${nombre} (${venta.cliente_apodo})`
+      : venta.cliente_apodo;
+
   }
+
 
   return nombre ||
     "Cliente";
+
 }
+
+
+function cantidadDetalle(
+  detalle:
+    DetalleVentaReporte
+) {
+
+  const cantidad =
+    Number(
+      detalle.cantidad ||
+      0
+    );
+
+
+  if (
+    detalle.tipo_venta ===
+    "PESO"
+  ) {
+
+    if (
+      cantidad < 1
+    ) {
+
+      return `${Math.round(
+        cantidad *
+        1000
+      )} g`;
+
+    }
+
+
+    return `${cantidad.toLocaleString(
+      "es-AR",
+      {
+        maximumFractionDigits:
+          3,
+      }
+    )} kg`;
+
+  }
+
+
+  return `${cantidad.toLocaleString(
+    "es-AR",
+    {
+      maximumFractionDigits:
+        3,
+    }
+  )} u.`;
+
+}
+
+
+function estadoVenta(
+  venta:
+    VentaReporte
+) {
+
+  const saldo =
+    Number(
+      venta.saldo_pendiente ||
+      0
+    );
+
+
+  const pagado =
+    Number(
+      venta.total_pagado ||
+      0
+    );
+
+
+  if (
+    saldo <= 0
+  ) {
+
+    return {
+      texto:
+        "Cobrada",
+
+      clase:
+        "badge-estado badge-cobrada",
+    };
+
+  }
+
+
+  if (
+    pagado > 0
+  ) {
+
+    return {
+      texto:
+        "Pago parcial",
+
+      clase:
+        "badge-estado badge-pendiente",
+    };
+
+  }
+
+
+  return {
+    texto:
+      "Pendiente",
+
+    clase:
+      "badge-estado badge-pendiente",
+  };
+
+}
+
 
 export default function TablaVentasMensuales({
   ventas,
 }: Props) {
 
   const [
-    pagina,
-    setPagina,
-  ] = useState(1);
-
-  const [
     ventaAbierta,
     setVentaAbierta,
   ] =
-    useState<number | null>(
+    useState<
+      number
+      | null
+    >(
       null
     );
 
-  useEffect(() => {
-    setPagina(1);
-    setVentaAbierta(null);
-  }, [ventas]);
 
-  const totalPaginas =
-    Math.max(
-      1,
-      Math.ceil(
-        ventas.length /
-        POR_PAGINA
-      )
-    );
+  useEffect(
+    () => {
 
-  const inicio =
-    (pagina - 1) *
-    POR_PAGINA;
+      setVentaAbierta(
+        null
+      );
 
-  const ventasPagina =
-    ventas.slice(
-      inicio,
-      inicio +
-        POR_PAGINA
-    );
+    },
+    [
+      ventas,
+    ]
+  );
+
 
   return (
+
     <div
       className="
         tabla-reporte-wrapper
       "
     >
-
-      <div
-        className="
-          d-flex
-          align-items-center
-          gap-2
-          mb-3
-        "
-      >
-
-        <ReceiptText
-          size={20}
-          color="#2563eb"
-        />
-
-        <div>
-
-          <h5
-            className="
-              mb-0
-              fw-bold
-            "
-          >
-            Registro de ventas
-          </h5>
-
-          <div
-            className="
-              text-muted
-            "
-            style={{
-              fontSize:
-                "0.82rem",
-            }}
-          >
-            {
-              ventas.length
-            }{" "}
-            ventas coinciden con
-            los filtros
-          </div>
-
-        </div>
-
-      </div>
-
 
       <div
         className="
@@ -242,6 +334,14 @@ export default function TablaVentasMensuales({
 
               <CTableHeaderCell
                 className="
+                  text-end
+                "
+              >
+                Saldo
+              </CTableHeaderCell>
+
+              <CTableHeaderCell
+                className="
                   text-center
                 "
               >
@@ -256,264 +356,426 @@ export default function TablaVentasMensuales({
           <CTableBody>
 
             {
-              ventasPagina.length ===
+              ventas.length ===
               0
                 ? (
 
                   <CTableRow>
 
                     <CTableDataCell
-                      colSpan={7}
+                      colSpan={
+                        8
+                      }
                       className="
                         text-center
                         text-muted
                         py-5
                       "
                     >
-                      No hay ventas
-                      para mostrar.
+
+                      <ReceiptText
+                        size={
+                          28
+                        }
+                        className="
+                          mb-2
+                        "
+                      />
+
+                      <div>
+                        No hay ventas
+                        para mostrar.
+                      </div>
+
                     </CTableDataCell>
 
                   </CTableRow>
 
                 )
-                : ventasPagina.map(
-                    (venta) => {
+                :
+                ventas.map(
+                  (
+                    venta
+                  ) => {
 
-                      const abierta =
-                        ventaAbierta ===
-                        venta.id;
+                    const abierta =
+                      ventaAbierta ===
+                      venta.id;
 
-                      const unidades =
-                        venta.detalles
-                          .reduce(
-                            (
-                              total,
-                              detalle
-                            ) =>
-                              total +
-                              detalle.cantidad,
-                            0
-                          );
 
-                      return (
-                        <>
-                          <CTableRow
-                            key={
-                              venta.id
+                    const estado =
+                      estadoVenta(
+                        venta
+                      );
+
+
+                    return (
+
+                      <Fragment
+                        key={
+                          venta.id
+                        }
+                      >
+                        <CTableRow>
+
+                          <CTableDataCell>
+
+                            <strong>
+                              #
+                              {
+                                venta.id
+                              }
+                            </strong>
+
+                          </CTableDataCell>
+
+
+                          <CTableDataCell>
+
+                            {
+                              fechaHora(
+                                venta.fecha_venta
+                              )
                             }
+
+                          </CTableDataCell>
+
+
+                          <CTableDataCell>
+
+                            {
+                              nombreCliente(
+                                venta
+                              )
+                            }
+
+                          </CTableDataCell>
+
+
+                          <CTableDataCell
+                            className="
+                              text-center
+                            "
                           >
 
-                            <CTableDataCell>
-                              <strong>
-                                #{venta.id}
-                              </strong>
-                            </CTableDataCell>
+                            {
+                              venta.detalles.length
+                            }
+
+                            {" "}
+
+                            {
+                              venta.detalles.length ===
+                              1
+                                ? "producto"
+                                : "productos"
+                            }
+
+                          </CTableDataCell>
 
 
-                            <CTableDataCell>
-                              {
-                                fechaHora(
-                                  venta.fecha_venta
-                                )
+                          <CTableDataCell
+                            className="
+                              text-center
+                            "
+                          >
+
+                            <span
+                              className={
+                                estado.clase
                               }
-                            </CTableDataCell>
-
-
-                            <CTableDataCell>
-                              {
-                                nombreCliente(
-                                  venta
-                                )
-                              }
-                            </CTableDataCell>
-
-
-                            <CTableDataCell
-                              className="
-                                text-center
-                              "
                             >
                               {
-                                unidades
+                                estado.texto
                               }
-                              {" "}
-                              unidades
-                            </CTableDataCell>
+                            </span>
+
+                          </CTableDataCell>
 
 
-                            <CTableDataCell
-                              className="
-                                text-center
-                              "
+                          <CTableDataCell
+                            className="
+                              text-end
+                              fw-bold
+                            "
+                          >
+
+                            $
+                            {
+                              dinero(
+                                venta.total
+                              )
+                            }
+
+                          </CTableDataCell>
+
+
+                          <CTableDataCell
+                            className="
+                              text-end
+                            "
+                          >
+
+                            <strong
+                              style={{
+                                color:
+                                  venta.saldo_pendiente >
+                                  0
+                                    ? "#dc2626"
+                                    : "#16a34a",
+                              }}
                             >
 
-                              <span
-                                className={
-                                  venta.cuenta_pendiente
-                                    ? "badge-estado badge-pendiente"
-                                    : "badge-estado badge-cobrada"
-                                }
-                              >
-                                {
-                                  venta.cuenta_pendiente
-                                    ? "Pendiente"
-                                    : "Cobrada"
-                                }
-                              </span>
-
-                            </CTableDataCell>
-
-
-                            <CTableDataCell
-                              className="
-                                text-end
-                                fw-bold
-                              "
-                            >
                               $
                               {
                                 dinero(
-                                  venta.total
+                                  venta.saldo_pendiente
                                 )
                               }
-                            </CTableDataCell>
+
+                            </strong>
+
+                          </CTableDataCell>
 
 
-                            <CTableDataCell
-                              className="
-                                text-center
-                              "
+                          <CTableDataCell
+                            className="
+                              text-center
+                            "
+                          >
+
+                            <CButton
+                              color="light"
+                              size="sm"
+                              onClick={() =>
+                                setVentaAbierta(
+                                  abierta
+                                    ? null
+                                    : venta.id
+                                )
+                              }
                             >
 
-                              <CButton
-                                color="light"
-                                size="sm"
-                                onClick={() =>
-                                  setVentaAbierta(
-                                    abierta
-                                      ? null
-                                      : venta.id
+                              {
+                                abierta
+                                  ? (
+                                    <ChevronUp
+                                      size={
+                                        17
+                                      }
+                                    />
                                   )
+                                  : (
+                                    <ChevronDown
+                                      size={
+                                        17
+                                      }
+                                    />
+                                  )
+                              }
+
+                            </CButton>
+
+                          </CTableDataCell>
+
+                        </CTableRow>
+
+
+                        {
+                          abierta
+                          &&
+                          (
+
+                            <CTableRow
+                              key={
+                                `detalle-${venta.id}`
+                              }
+                            >
+
+                              <CTableDataCell
+                                colSpan={
+                                  8
                                 }
+                                className="
+                                  p-0
+                                "
                               >
-                                {
-                                  abierta
-                                    ? (
-                                      <ChevronUp
-                                        size={17}
-                                      />
-                                    )
-                                    : (
-                                      <ChevronDown
-                                        size={17}
-                                      />
-                                    )
-                                }
-                              </CButton>
 
-                            </CTableDataCell>
-
-                          </CTableRow>
-
-
-                          {
-                            abierta
-                            &&
-                            (
-                              <CTableRow
-                                key={
-                                  `detalle-${venta.id}`
-                                }
-                              >
-
-                                <CTableDataCell
-                                  colSpan={7}
+                                <div
                                   className="
-                                    p-0
+                                    detalle-venta-reporte
                                   "
                                 >
 
-                                  <div
-                                    className="
-                                      detalle-venta-reporte
-                                    "
-                                  >
+                                  {
+                                    venta.detalles.map(
+                                      (
+                                        detalle
+                                      ) => (
 
-                                    {
-                                      venta.detalles
-                                        .map(
-                                          (
-                                            detalle
-                                          ) => (
+                                        <div
+                                          key={
+                                            detalle.id
+                                          }
+                                          className="
+                                            detalle-venta-item
+                                          "
+                                        >
+
+                                          <div>
+
+                                            <strong>
+                                              {
+                                                detalle.producto_nombre
+                                              }
+                                            </strong>
+
 
                                             <div
-                                              key={
-                                                detalle.id
-                                              }
                                               className="
-                                                detalle-venta-item
+                                                text-muted
                                               "
+                                              style={{
+                                                fontSize:
+                                                  "0.78rem",
+                                              }}
                                             >
 
-                                              <div>
+                                              {
+                                                cantidadDetalle(
+                                                  detalle
+                                                )
+                                              }
 
-                                                <strong>
-                                                  {
-                                                    detalle.producto_nombre
-                                                  }
-                                                </strong>
+                                              {" × "}
 
-                                                <div
-                                                  className="
-                                                    text-muted
-                                                  "
-                                                  style={{
-                                                    fontSize:
-                                                      "0.78rem",
-                                                  }}
-                                                >
-                                                  {
-                                                    detalle.cantidad
-                                                  }
-                                                  {" "}x{" "}
-                                                  $
-                                                  {
-                                                    dinero(
-                                                      detalle.precio_unitario
-                                                    )
-                                                  }
-                                                </div>
+                                              $
+                                              {
+                                                dinero(
+                                                  detalle.precio_unitario
+                                                )
+                                              }
 
-                                              </div>
-
-                                              <strong>
-                                                $
-                                                {
-                                                  dinero(
-                                                    detalle.subtotal
-                                                  )
-                                                }
-                                              </strong>
+                                              {
+                                                detalle.tipo_venta ===
+                                                "PESO"
+                                                  ? " / kg"
+                                                  : ""
+                                              }
 
                                             </div>
 
-                                          )
-                                        )
-                                    }
+                                          </div>
 
-                                  </div>
 
-                                </CTableDataCell>
+                                          <strong>
 
-                              </CTableRow>
-                            )
-                          }
+                                            $
+                                            {
+                                              dinero(
+                                                detalle.subtotal
+                                              )
+                                            }
 
-                        </>
-                      );
-                    }
-                  )
+                                          </strong>
+
+                                        </div>
+
+                                      )
+                                    )
+                                  }
+
+
+                                  {
+                                    venta.cliente_id
+                                    &&
+                                    (
+                                      <div
+                                        className="
+                                          detalle-venta-item
+                                        "
+                                        style={{
+                                          borderTop:
+                                            "1px solid #e5e7eb",
+
+                                          marginTop:
+                                            "8px",
+
+                                          paddingTop:
+                                            "12px",
+                                        }}
+                                      >
+
+                                        <div>
+
+                                          <strong>
+                                            Estado de cuenta
+                                          </strong>
+
+                                          <div
+                                            className="
+                                              text-muted
+                                            "
+                                            style={{
+                                              fontSize:
+                                                "0.78rem",
+                                            }}
+                                          >
+
+                                            Pagado:
+                                            {" "}
+                                            $
+                                            {
+                                              dinero(
+                                                venta.total_pagado
+                                              )
+                                            }
+
+                                          </div>
+
+                                        </div>
+
+
+                                        <strong
+                                          style={{
+                                            color:
+                                              venta.saldo_pendiente >
+                                              0
+                                                ? "#dc2626"
+                                                : "#16a34a",
+                                          }}
+                                        >
+
+                                          Saldo:
+                                          {" "}
+                                          $
+                                          {
+                                            dinero(
+                                              venta.saldo_pendiente
+                                            )
+                                          }
+
+                                        </strong>
+
+                                      </div>
+                                    )
+                                  }
+
+                                </div>
+
+                              </CTableDataCell>
+
+                            </CTableRow>
+
+                          )
+                        }
+
+                      </Fragment>
+
+                    );
+
+                  }
+                )
             }
 
           </CTableBody>
@@ -522,97 +784,8 @@ export default function TablaVentasMensuales({
 
       </div>
 
-
-      {
-        ventas.length >
-        POR_PAGINA
-        &&
-        (
-          <div
-            className="
-              d-flex
-              justify-content-between
-              align-items-center
-              mt-3
-            "
-          >
-
-            <span
-              className="
-                text-muted
-              "
-              style={{
-                fontSize:
-                  "0.85rem",
-              }}
-            >
-              Página{" "}
-              {pagina} de{" "}
-              {totalPaginas}
-            </span>
-
-
-            <div
-              className="
-                d-flex
-                gap-2
-              "
-            >
-
-              <CButton
-                color="light"
-                size="sm"
-                disabled={
-                  pagina === 1
-                }
-                onClick={() =>
-                  setPagina(
-                    (
-                      actual
-                    ) =>
-                      Math.max(
-                        1,
-                        actual - 1
-                      )
-                  )
-                }
-              >
-                <ChevronLeft
-                  size={17}
-                />
-              </CButton>
-
-
-              <CButton
-                color="light"
-                size="sm"
-                disabled={
-                  pagina ===
-                  totalPaginas
-                }
-                onClick={() =>
-                  setPagina(
-                    (
-                      actual
-                    ) =>
-                      Math.min(
-                        totalPaginas,
-                        actual + 1
-                      )
-                  )
-                }
-              >
-                <ChevronRight
-                  size={17}
-                />
-              </CButton>
-
-            </div>
-
-          </div>
-        )
-      }
-
     </div>
+
   );
+
 }

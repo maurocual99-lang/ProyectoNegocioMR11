@@ -1221,7 +1221,7 @@ export default function Resumenes() {
                       }}
                     >
 
-                      <div>
+                      <div className="deudor-item">
 
                         <strong>
                           {cliente.nombre}
@@ -1248,19 +1248,19 @@ export default function Resumenes() {
                             text-muted
                           "
                         >
-                          {
-                            cliente
-                              .ventas_pendientes
-                          }
+                              {
+                                cliente
+                                  .ventas_pendientes
+                              }
 
-                          {" "}
+                              {" "}
 
-                          {
-                            cliente
-                              .ventas_pendientes === 1
-                              ? "venta pendiente"
-                              : "ventas pendientes"
-                          }
+                              {
+                                cliente
+                                  .ventas_pendientes === 1
+                                  ? "venta pendiente"
+                                  : "ventas pendientes"
+                              }
                         </small>
 
                       </div>
