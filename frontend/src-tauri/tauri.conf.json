@@ -1,29 +1,51 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "frontend",
+
+  "productName": "MR11",
+
   "version": "0.1.0",
+
   "identifier": "com.mr11.proyectonegocio",
+
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
+
   "app": {
     "windows": [
       {
-        "title": "frontend",
-        "width": 800,
-        "height": 600
+        "label": "main",
+        "title": "Mini Mercado Ruta 11",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "center": true
       }
     ],
+
     "security": {
       "csp": null
     }
   },
+
   "bundle": {
     "active": true,
-    "targets": "all",
+
+    "targets": [
+      "nsis"
+    ],
+
+    "createUpdaterArtifacts": true,
+
+    "externalBin": [
+      "binaries/mr11-backend"
+    ],
+
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -31,5 +53,19 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJBMEFDRUNDNzNBRkVEMzUKUldRMTdhOXp6TTRLdWtOSU95ZzVqcWJXU1Y2MGcrUVdtL0lpUG1lMG5SakxETDRjbjVyUklidDcK",
+
+      "endpoints": [
+        "https://github.com/maurocual99-lang/ProyectoNegocioMR11/releases/latest/download/latest.json"
+      ],
+
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

@@ -1,11 +1,19 @@
 {
-  "name": "backend",
+  "name": "mr11-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend local de Mini Mercado Ruta 11",
+  "main": "src/index.js",
+  "bin": "src/index.js",
   "scripts": {
-  "start": "node src/index.js",
-  "dev": "nodemon src/index.js"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "prebuild:sidecar": "node -e \"require('fs').mkdirSync('../frontend/src-tauri/binaries', { recursive: true })\"",
+    "build:sidecar": "pkg . --targets node24-win-x64 --output ../frontend/src-tauri/binaries/mr11-backend-x86_64-pc-windows-msvc.exe"
+  },
+  "pkg": {
+    "assets": [
+      "database/**/*.sql"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -17,6 +25,7 @@
     "pg": "^8.22.0"
   },
   "devDependencies": {
+    "@yao-pkg/pkg": "^6.22.0",
     "nodemon": "^3.1.14"
   }
 }
