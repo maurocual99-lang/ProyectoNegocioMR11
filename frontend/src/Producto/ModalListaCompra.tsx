@@ -41,11 +41,10 @@ import {
   Package,
   Gift,
   Carrot,
-  ShoppingBag,
-  PackageCheck,
 } from "lucide-react";
 
 import "../ListaDeCompras.css";
+
 
 const categorias = [
   "Bebidas",
@@ -56,8 +55,10 @@ const categorias = [
   "Verduleria",
 ] as const;
 
+
 type Categoria =
   (typeof categorias)[number];
+
 
 interface Producto {
   codigo_barra: string;
@@ -67,16 +68,19 @@ interface Producto {
   categoria: Categoria;
 }
 
+
 interface ProductoCompra
   extends Producto {
   cantidadComprar: number;
 }
+
 
 interface Props {
   visible: boolean;
   onClose: () => void;
   productos: Producto[];
 }
+
 
 export default function ModalListaCompra({
   visible,
@@ -101,7 +105,13 @@ export default function ModalListaCompra({
     "lista" | "todos"
   >("lista");
 
+
+  /* =============================================
+     CARGA AUTOMÁTICA DE STOCK BAJO
+  ============================================= */
+
   useEffect(() => {
+
     if (!visible) return;
 
     const productosStockBajo:
@@ -124,7 +134,12 @@ export default function ModalListaCompra({
 
     setPestana("lista");
 
-  }, [visible]);
+  }, [visible, productos]);
+
+
+  /* =============================================
+     TOTAL DE UNIDADES
+  ============================================= */
 
   const cantidadTotal =
     listaCompra.reduce(
@@ -136,6 +151,40 @@ export default function ModalListaCompra({
         producto.cantidadComprar,
       0
     );
+
+
+  /* =============================================
+     FILTRADO DEL BUSCADOR
+  ============================================= */
+
+  const productosFiltrados =
+    productos.filter(
+      (producto) => {
+
+        const termino =
+          busqueda
+            .trim()
+            .toLowerCase();
+
+        if (!termino)
+          return true;
+
+        return (
+          producto.nombre
+            .toLowerCase()
+            .includes(termino) ||
+
+          producto.codigo_barra
+            .toLowerCase()
+            .includes(termino)
+        );
+      }
+    );
+
+
+  /* =============================================
+     AGREGAR PRODUCTO
+  ============================================= */
 
   function agregarProducto(
     producto: Producto
@@ -168,6 +217,11 @@ export default function ModalListaCompra({
     setPestana("lista");
   }
 
+
+  /* =============================================
+     ELIMINAR PRODUCTO
+  ============================================= */
+
   function eliminarProducto(
     codigoBarra: string
   ) {
@@ -181,6 +235,11 @@ export default function ModalListaCompra({
         )
     );
   }
+
+
+  /* =============================================
+     CAMBIAR CANTIDAD
+  ============================================= */
 
   function cambiarCantidad(
     codigoBarra: string,
@@ -205,9 +264,19 @@ export default function ModalListaCompra({
     );
   }
 
+
+  /* =============================================
+     VACIAR LISTA
+  ============================================= */
+
   function vaciarLista() {
     setListaCompra([]);
   }
+
+
+  /* =============================================
+     COLORES DE CATEGORÍA
+  ============================================= */
 
   function colorCategoria(
     categoria: Categoria
@@ -252,6 +321,11 @@ export default function ModalListaCompra({
         };
     }
   }
+
+
+  /* =============================================
+     ICONOS DE CATEGORÍA
+  ============================================= */
 
   function iconoCategoria(
     categoria: Categoria,
@@ -310,9 +384,9 @@ export default function ModalListaCompra({
     }
   }
 
-  
 
   return (
+
     <CModal
       visible={visible}
       onClose={onClose}
@@ -322,140 +396,31 @@ export default function ModalListaCompra({
       className="modal-lista-compra"
     >
 
+      {/* =============================================
+          HEADER
+      ============================================= */}
+
       <CModalHeader closeButton>
 
-        <div className="w-100 pe-3">
+        <div className="lista-compra-header">
 
-          <div className="d-flex justify-content-between align-items-start gap-4">
+          <ShoppingCart
+            size={28}
+            className="lista-compra-header-icono"
+          />
 
-            <div className="d-flex align-items-start gap-3">
+          <div className="lista-compra-header-texto">
 
-              <ShoppingCart
-                size={30}
-                color="#2563eb"
-                style={{
-                  marginTop:
-                    "3px",
-                  flexShrink: 0,
-                }}
-              />
+            <CModalTitle>
+              Lista de Compra
+            </CModalTitle>
 
-              <div>
-
-                <CModalTitle
-                  style={{
-                    fontSize:
-                      "1.45rem",
-                    fontWeight:
-                      700,
-                  }}
-                >
-                  Lista de Compra
-                </CModalTitle>
-
-                <p
-                  className="text-muted mb-0 mt-2"
-                  style={{
-                    fontSize:
-                      "0.88rem",
-                    lineHeight:
-                      1.5,
-                  }}
-                >
-                  Esta lista se genera
-                  automáticamente con
-                  productos con stock bajo.
-
-                  <br />
-
-                  También podés agregar
-                  otros productos que
-                  quieras comprar.
-                </p>
-
-              </div>
-
-            </div>
-
-            {/* CONTADOR */}
-
-            <div
-              className="contador-lista-compra d-flex justify-content-between align-items-center"
-              style={{
-                width: "210px",
-                minHeight:
-                  "78px",
-                background:
-                  "#eef4ff",
-                border:
-                  "1px solid #dbeafe",
-                borderRadius:
-                  "10px",
-                padding:
-                  "12px 14px",
-              }}
-            >
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection:
-                    "column",
-                  justifyContent:
-                    "center",
-                }}
-              >
-
-                <span
-                  className="text-muted"
-                  style={{
-                    fontSize:
-                      "0.78rem",
-                    marginBottom:
-                      "3px",
-                  }}
-                >
-                  Total de productos
-                </span>
-
-                <span
-                  style={{
-                    color:
-                      "#2563eb",
-                    fontSize:
-                      "1.6rem",
-                    fontWeight:
-                      700,
-                    lineHeight: 1,
-                  }}
-                >
-                  {
-                    listaCompra.length
-                  }
-                </span>
-
-              </div>
-
-              <div
-                className="d-flex justify-content-center align-items-center"
-                style={{
-                  width: "46px",
-                  height: "46px",
-                  minWidth:
-                    "46px",
-                  background:
-                    "#dbeafe",
-                  borderRadius:
-                    "50%",
-                }}
-              >
-                <ShoppingCart
-                  size={21}
-                  color="#2563eb"
-                />
-              </div>
-
-            </div>
+            <p>
+              Los productos con stock bajo
+              se agregan automáticamente.
+              También podés agregar otros
+              productos manualmente.
+            </p>
 
           </div>
 
@@ -463,11 +428,18 @@ export default function ModalListaCompra({
 
       </CModalHeader>
 
+
+      {/* =============================================
+          BODY
+      ============================================= */}
+
       <CModalBody
         className="lista-compra-body"
       >
 
-        {/* PESTAÑAS */}
+        {/* =============================================
+            PESTAÑAS
+        ============================================= */}
 
         <div
           className="lista-compra-tabs"
@@ -484,9 +456,17 @@ export default function ModalListaCompra({
               setPestana("lista")
             }
           >
-            Productos en la lista (
-            {listaCompra.length})
+
+            Lista de compra
+
+            {listaCompra.length > 0 && (
+              <span className="contador-pestana">
+                {listaCompra.length}
+              </span>
+            )}
+
           </button>
+
 
           <button
             type="button"
@@ -504,19 +484,34 @@ export default function ModalListaCompra({
 
         </div>
 
+
+        {/* =============================================
+            PESTAÑA LISTA
+        ============================================= */}
+
         {pestana === "lista" && (
 
           <div
             className="lista-compra-panel"
           >
 
+            {/* =============================================
+                TABLA
+            ============================================= */}
+
             <div
-              className="tabla-lista-scroll"
+              className={`tabla-lista-scroll ${
+                listaCompra.length === 0
+                  ? "vacia"
+                  : ""
+              }`}
             >
 
               <CTable
                 align="middle"
-                hover
+                hover={
+                  listaCompra.length > 0
+                }
                 className="mb-0 tabla-lista-compra"
               >
 
@@ -531,13 +526,13 @@ export default function ModalListaCompra({
                     <CTableHeaderCell
                       className="text-center"
                     >
-                      Stock Actual
+                      Stock
                     </CTableHeaderCell>
 
                     <CTableHeaderCell
                       className="text-center"
                     >
-                      Cantidad a Comprar
+                      Cantidad
                     </CTableHeaderCell>
 
                     <CTableHeaderCell
@@ -549,12 +544,13 @@ export default function ModalListaCompra({
                     <CTableHeaderCell
                       className="text-center"
                     >
-                      Acciones
+                      Acción
                     </CTableHeaderCell>
 
                   </CTableRow>
 
                 </CTableHead>
+
 
                 <CTableBody>
 
@@ -565,43 +561,25 @@ export default function ModalListaCompra({
 
                       <CTableDataCell
                         colSpan={5}
-                        className="text-center py-5"
+                        className="celda-lista-vacia"
                       >
 
-                        <ShoppingCart
-                          size={30}
-                          color="#94a3b8"
-                          style={{
-                            marginBottom:
-                              "8px",
-                          }}
-                        />
+                        <div className="lista-vacia">
 
-                        <div
-                          style={{
-                            fontWeight:
-                              600,
-                            color:
-                              "#475569",
-                          }}
-                        >
-                          La lista está
-                          vacía
-                        </div>
+                          <ShoppingCart
+                            size={23}
+                            className="lista-vacia-icono"
+                          />
 
-                        <div
-                          className="text-muted"
-                          style={{
-                            fontSize:
-                              "0.85rem",
-                            marginTop:
-                              "4px",
-                          }}
-                        >
-                          Podés agregar
-                          productos desde
-                          "Todos los
-                          productos".
+                          <strong>
+                            La lista está vacía
+                          </strong>
+
+                          <span>
+                            Agregá productos desde
+                            "Todos los productos".
+                          </span>
+
                         </div>
 
                       </CTableDataCell>
@@ -630,19 +608,11 @@ export default function ModalListaCompra({
 
                             <CTableDataCell>
 
-                              <div className="d-flex align-items-center gap-3">
+                              <div className="producto-tabla">
 
                                 <div
-                                  className="d-flex justify-content-center align-items-center"
+                                  className="producto-icono"
                                   style={{
-                                    width:
-                                      "42px",
-                                    height:
-                                      "42px",
-                                    minWidth:
-                                      "42px",
-                                    borderRadius:
-                                      "10px",
                                     background:
                                       colores.fondo,
                                   }}
@@ -652,36 +622,26 @@ export default function ModalListaCompra({
                                   )}
                                 </div>
 
-                                <div>
+                                <div className="producto-info">
 
-                                  <div
-                                    style={{
-                                      fontWeight:
-                                        600,
-                                    }}
-                                  >
+                                  <strong>
                                     {Capitalizar(
                                       producto.nombre
                                     )}
-                                  </div>
+                                  </strong>
 
-                                  <div
-                                    className="text-muted"
-                                    style={{
-                                      fontSize:
-                                        "0.78rem",
-                                    }}
-                                  >
+                                  <span>
                                     {
                                       producto.codigo_barra
                                     }
-                                  </div>
+                                  </span>
 
                                 </div>
 
                               </div>
 
                             </CTableDataCell>
+
 
                             {/* STOCK */}
 
@@ -712,6 +672,7 @@ export default function ModalListaCompra({
 
                             </CTableDataCell>
 
+
                             {/* CANTIDAD */}
 
                             <CTableDataCell>
@@ -732,17 +693,11 @@ export default function ModalListaCompra({
                                     )
                                   )
                                 }
-                                style={{
-                                  width:
-                                    "110px",
-                                  margin:
-                                    "auto",
-                                  textAlign:
-                                    "center",
-                                }}
+                                className="cantidad-compra-input"
                               />
 
                             </CTableDataCell>
+
 
                             {/* CATEGORÍA */}
 
@@ -751,19 +706,11 @@ export default function ModalListaCompra({
                             >
 
                               <span
+                                className="categoria-badge"
                                 style={{
-                                  display:
-                                    "inline-flex",
-                                  alignItems:
-                                    "center",
-                                  gap:
-                                    "6px",
-                                  padding:
-                                    "5px 12px",
-                                  borderRadius:
-                                    "999px",
                                   background:
                                     colores.fondo,
+
                                   color:
                                     colores.texto,
                                 }}
@@ -771,7 +718,7 @@ export default function ModalListaCompra({
 
                                 {iconoCategoria(
                                   producto.categoria,
-                                  16
+                                  15
                                 )}
 
                                 {
@@ -781,6 +728,7 @@ export default function ModalListaCompra({
                               </span>
 
                             </CTableDataCell>
+
 
                             {/* ELIMINAR */}
 
@@ -799,9 +747,7 @@ export default function ModalListaCompra({
                                 }
                               >
                                 <Trash2
-                                  size={
-                                    16
-                                  }
+                                  size={15}
                                 />
                               </CButton>
 
@@ -820,21 +766,18 @@ export default function ModalListaCompra({
 
             </div>
 
-            {/* BUSCADOR */}
+
+            {/* =============================================
+                BUSCADOR
+            ============================================= */}
 
             <div
               className="buscador-lista-compra"
             >
 
-              <div
-                style={{
-                  fontWeight: 600,
-                  marginBottom:
-                    "7px",
-                }}
-              >
-                Agregar otro producto
-              </div>
+              <span className="buscador-lista-compra-label">
+                Agregar producto
+              </span>
 
               <CInputGroup>
 
@@ -853,6 +796,13 @@ export default function ModalListaCompra({
                       e.target.value
                     )
                   }
+                  onFocus={() => {
+                    if (
+                      productos.length > 0
+                    ) {
+                      setPestana("todos");
+                    }
+                  }}
                   placeholder="Buscar por nombre o código de barras..."
                 />
 
@@ -860,178 +810,64 @@ export default function ModalListaCompra({
 
             </div>
 
-            {/* RESUMEN */}
+
+            {/* =============================================
+                RESUMEN
+            ============================================= */}
 
             <div
               className="resumen-compra"
             >
 
               <div
-                className="d-flex align-items-center"
-                style={{
-                  background:
-                    "#f8fafc",
-                  border:
-                    "1px solid #e5e7eb",
-                  borderRadius:
-                    "12px",
-                  overflow:
-                    "hidden",
-                }}
+                className="resumen-compra-info"
               >
 
-                {/* PRODUCTOS */}
+                <span>
+                  <strong>
+                    {
+                      listaCompra.length
+                    }
+                  </strong>{" "}
+                  productos
+                </span>
 
-                <div
-                  className="d-flex align-items-center gap-3"
-                  style={{
-                    flex: 1,
-                    padding:
-                      "14px 18px",
-                  }}
-                >
+                <span className="resumen-separador">
+                  •
+                </span>
 
-                  <div
-                    className="d-flex justify-content-center align-items-center"
-                    style={{
-                      width: "48px",
-                      height:
-                        "48px",
-                      minWidth:
-                        "48px",
-                      background:
-                        "#f1f5f9",
-                      borderRadius:
-                        "10px",
-                    }}
-                  >
-                    <ShoppingBag
-                      size={21}
-                      color="#64748b"
-                    />
-                  </div>
-
-                  <div>
-
-                    <div
-                      style={{
-                        fontSize:
-                          "1rem",
-                        fontWeight:
-                          700,
-                      }}
-                    >
-                      {
-                        listaCompra.length
-                      }{" "}
-                      productos
-                    </div>
-
-                    <div
-                      className="text-muted"
-                      style={{
-                        fontSize:
-                          "0.85rem",
-                      }}
-                    >
-                      en la lista
-                    </div>
-
-                  </div>
-
-                </div>
-
-                {/* DIVISOR */}
-
-                <div
-                  style={{
-                    width: "1px",
-                    height:
-                      "55px",
-                    background:
-                      "#e5e7eb",
-                  }}
-                />
-
-                {/* UNIDADES */}
-
-                <div
-                  className="d-flex align-items-center gap-3"
-                  style={{
-                    flex: 1,
-                    padding:
-                      "14px 18px",
-                  }}
-                >
-
-                  <div
-                    className="d-flex justify-content-center align-items-center"
-                    style={{
-                      width: "48px",
-                      height:
-                        "48px",
-                      minWidth:
-                        "48px",
-                      background:
-                        "#ecfdf3",
-                      borderRadius:
-                        "10px",
-                    }}
-                  >
-                    <PackageCheck
-                      size={21}
-                      color="#16a34a"
-                    />
-                  </div>
-
-                  <div>
-
-                    <div
-                      style={{
-                        fontSize:
-                          "1rem",
-                        fontWeight:
-                          700,
-                      }}
-                    >
-                      {
-                        cantidadTotal
-                      }{" "}
-                      unidades
-                    </div>
-
-                    <div
-                      className="text-muted"
-                      style={{
-                        fontSize:
-                          "0.85rem",
-                      }}
-                    >
-                      cantidad total
-                      a comprar
-                    </div>
-
-                  </div>
-
-                </div>
+                <span>
+                  <strong>
+                    {
+                      cantidadTotal
+                    }
+                  </strong>{" "}
+                  unidades
+                </span>
 
               </div>
 
+
               <CButton
-                color="primary"
+                color="danger"
                 variant="outline"
-                onClick={vaciarLista}
+                size="sm"
+                className="btn-vaciar"
+                onClick={
+                  vaciarLista
+                }
                 disabled={
                   listaCompra.length ===
                   0
                 }
               >
+
                 <Trash2
-                  size={16}
-                  className="me-2"
+                  size={15}
                 />
 
                 Vaciar lista
+
               </CButton>
 
             </div>
@@ -1040,14 +876,53 @@ export default function ModalListaCompra({
 
         )}
 
+
+        {/* =============================================
+            PESTAÑA TODOS LOS PRODUCTOS
+        ============================================= */}
+
         {pestana === "todos" && (
 
           <div
             className="lista-compra-panel"
           >
 
+            {/* BUSCADOR */}
+
             <div
-              className="tabla-lista-scroll"
+              className="buscador-lista-compra buscador-todos"
+            >
+
+              <CInputGroup>
+
+                <CInputGroupText>
+                  <Search
+                    size={16}
+                  />
+                </CInputGroupText>
+
+                <CFormInput
+                  autoFocus
+                  value={busqueda}
+                  onChange={(
+                    e: ChangeEvent<HTMLInputElement>
+                  ) =>
+                    setBusqueda(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Buscar producto..."
+                />
+
+              </CInputGroup>
+
+            </div>
+
+
+            {/* TABLA */}
+
+            <div
+              className="tabla-lista-scroll tabla-todos-productos"
             >
 
               <CTable
@@ -1086,196 +961,190 @@ export default function ModalListaCompra({
 
                 </CTableHead>
 
+
                 <CTableBody>
 
-                  {productos.map(
-                    (producto) => {
+                  {productosFiltrados.length ===
+                  0 ? (
 
-                      const colores =
-                        colorCategoria(
-                          producto.categoria
-                        );
+                    <CTableRow>
 
-                      const estaEnLista =
-                        listaCompra.some(
-                          (item) =>
-                            item.codigo_barra ===
-                            producto.codigo_barra
-                        );
+                      <CTableDataCell
+                        colSpan={4}
+                        className="sin-resultados"
+                      >
+                        No se encontraron productos.
+                      </CTableDataCell>
 
-                      return (
+                    </CTableRow>
 
-                        <CTableRow
-                          key={
-                            producto.codigo_barra
-                          }
-                        >
+                  ) : (
 
-                          {/* PRODUCTO */}
+                    productosFiltrados.map(
+                      (producto) => {
 
-                          <CTableDataCell>
+                        const colores =
+                          colorCategoria(
+                            producto.categoria
+                          );
 
-                            <div className="d-flex align-items-center gap-3">
+                        const estaEnLista =
+                          listaCompra.some(
+                            (item) =>
+                              item.codigo_barra ===
+                              producto.codigo_barra
+                          );
 
-                              <div
-                                className="d-flex justify-content-center align-items-center"
-                                style={{
-                                  width:
-                                    "42px",
-                                  height:
-                                    "42px",
-                                  minWidth:
-                                    "42px",
-                                  borderRadius:
-                                    "10px",
-                                  background:
-                                    colores.fondo,
-                                }}
-                              >
-                                {iconoCategoria(
-                                  producto.categoria
-                                )}
-                              </div>
+                        return (
 
-                              <div>
+                          <CTableRow
+                            key={
+                              producto.codigo_barra
+                            }
+                          >
+
+                            {/* PRODUCTO */}
+
+                            <CTableDataCell>
+
+                              <div className="producto-tabla">
 
                                 <div
+                                  className="producto-icono"
                                   style={{
-                                    fontWeight:
-                                      600,
+                                    background:
+                                      colores.fondo,
                                   }}
                                 >
-                                  {Capitalizar(
-                                    producto.nombre
+                                  {iconoCategoria(
+                                    producto.categoria
                                   )}
                                 </div>
 
-                                <div
-                                  className="text-muted"
-                                  style={{
-                                    fontSize:
-                                      "0.78rem",
-                                  }}
-                                >
-                                  {
-                                    producto.codigo_barra
-                                  }
+                                <div className="producto-info">
+
+                                  <strong>
+                                    {Capitalizar(
+                                      producto.nombre
+                                    )}
+                                  </strong>
+
+                                  <span>
+                                    {
+                                      producto.codigo_barra
+                                    }
+                                  </span>
+
                                 </div>
 
                               </div>
 
-                            </div>
+                            </CTableDataCell>
 
-                          </CTableDataCell>
 
-                          {/* STOCK */}
+                            {/* STOCK */}
 
-                          <CTableDataCell
-                            className="text-center"
-                          >
-
-                            <span
-                              className="stock-badge"
-                              style={{
-                                background:
-                                  producto.stock <=
-                                  3
-                                    ? "#fff7ed"
-                                    : "#ecfdf3",
-
-                                color:
-                                  producto.stock <=
-                                  3
-                                    ? "#ea580c"
-                                    : "#15803d",
-                              }}
-                            >
-                              {
-                                producto.stock
-                              }
-                            </span>
-
-                          </CTableDataCell>
-
-                          {/* CATEGORÍA */}
-
-                          <CTableDataCell
-                            className="text-center"
-                          >
-
-                            <span
-                              style={{
-                                display:
-                                  "inline-flex",
-                                alignItems:
-                                  "center",
-                                gap:
-                                  "6px",
-                                padding:
-                                  "5px 12px",
-                                borderRadius:
-                                  "999px",
-                                background:
-                                  colores.fondo,
-                                color:
-                                  colores.texto,
-                              }}
+                            <CTableDataCell
+                              className="text-center"
                             >
 
-                              {iconoCategoria(
-                                producto.categoria,
-                                16
-                              )}
+                              <span
+                                className="stock-badge"
+                                style={{
+                                  background:
+                                    producto.stock <=
+                                    3
+                                      ? "#fff7ed"
+                                      : "#ecfdf3",
 
-                              {
-                                producto.categoria
-                              }
+                                  color:
+                                    producto.stock <=
+                                    3
+                                      ? "#ea580c"
+                                      : "#15803d",
+                                }}
+                              >
+                                {
+                                  producto.stock
+                                }
+                              </span>
 
-                            </span>
+                            </CTableDataCell>
 
-                          </CTableDataCell>
 
-                          {/* AGREGAR */}
+                            {/* CATEGORÍA */}
 
-                          <CTableDataCell
-                            className="text-center"
-                          >
-
-                            <CButton
-                              color="primary"
-                              variant={
-                                estaEnLista
-                                  ? "outline"
-                                  : undefined
-                              }
-                              size="sm"
-                              disabled={
-                                estaEnLista
-                              }
-                              onClick={() =>
-                                agregarProducto(
-                                  producto
-                                )
-                              }
-                              className="d-inline-flex align-items-center gap-1"
+                            <CTableDataCell
+                              className="text-center"
                             >
 
-                              <Plus
-                                size={15}
-                              />
+                              <span
+                                className="categoria-badge"
+                                style={{
+                                  background:
+                                    colores.fondo,
 
-                              {estaEnLista
-                                ? "Agregado"
-                                : "Agregar"}
+                                  color:
+                                    colores.texto,
+                                }}
+                              >
 
-                            </CButton>
+                                {iconoCategoria(
+                                  producto.categoria,
+                                  15
+                                )}
 
-                          </CTableDataCell>
+                                {
+                                  producto.categoria
+                                }
 
-                        </CTableRow>
+                              </span>
 
-                      );
-                    }
+                            </CTableDataCell>
+
+
+                            {/* AGREGAR */}
+
+                            <CTableDataCell
+                              className="text-center"
+                            >
+
+                              <CButton
+                                color="primary"
+                                variant={
+                                  estaEnLista
+                                    ? "outline"
+                                    : undefined
+                                }
+                                size="sm"
+                                disabled={
+                                  estaEnLista
+                                }
+                                onClick={() =>
+                                  agregarProducto(
+                                    producto
+                                  )
+                                }
+                                className="boton-agregar-producto"
+                              >
+
+                                <Plus
+                                  size={15}
+                                />
+
+                                {estaEnLista
+                                  ? "Agregado"
+                                  : "Agregar"}
+
+                              </CButton>
+
+                            </CTableDataCell>
+
+                          </CTableRow>
+
+                        );
+                      }
+                    )
                   )}
 
                 </CTableBody>
@@ -1290,6 +1159,11 @@ export default function ModalListaCompra({
 
       </CModalBody>
 
+
+      {/* =============================================
+          FOOTER
+      ============================================= */}
+
       <CModalFooter
         className="footer-lista-compra"
       >
@@ -1297,30 +1171,29 @@ export default function ModalListaCompra({
         <CButton
           color="light"
           onClick={onClose}
-          style={{
-            minWidth:
-              "120px",
-          }}
+          className="btn-cerrar-lista"
         >
           Cerrar
         </CButton>
 
+
         <ModalExito
           onEnviar={() =>
-            generarListaCompraPDF(listaCompra)
+            generarListaCompraPDF(
+              listaCompra
+            )
           }
-          onExito={
-            onClose
-          }
+          onExito={onClose}
           desactivado={
             listaCompra.length ===
             0
           }
           textoBoton={
-            <div className="d-flex align-items-center justify-content-center gap-2">
+
+            <div className="boton-descargar-contenido">
 
               <Download
-                size={17}
+                size={16}
               />
 
               <span>
@@ -1328,6 +1201,7 @@ export default function ModalListaCompra({
               </span>
 
             </div>
+
           }
           variante="primary"
           className="btn-descargar-lista"

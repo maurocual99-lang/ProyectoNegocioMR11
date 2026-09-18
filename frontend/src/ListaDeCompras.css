@@ -3,45 +3,108 @@
 ============================================= */
 
 .modal-lista-compra .modal-dialog {
-  width: calc(100% - 48px);
-  max-width: 1100px;
-  margin: 1.75rem auto;
+  width: calc(100% - 40px);
+  max-width: 900px;
+
+  margin: 22px auto !important;
 }
 
+
 .modal-lista-compra .modal-content {
-  height: min(850px, calc(100vh - 56px));
+  width: 100%;
+
+  max-height: calc(100vh - 44px);
 
   display: flex;
   flex-direction: column;
 
   overflow: hidden;
 
-  border: none;
-  border-radius: 18px;
+  background: #ffffff;
 
-  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.22);
+  border: none;
+  border-radius: 16px;
+
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.2);
 }
 
 
-/* HEADER FIJO */
+/* =============================================
+   HEADER
+============================================= */
 
 .modal-lista-compra .modal-header {
   flex: 0 0 auto;
 
-  padding: 24px 28px 20px;
+  display: flex;
+  align-items: flex-start;
+
+  padding: 17px 22px 14px;
+
+  border-bottom: 1px solid #e5e7eb;
 }
 
 
-/* FOOTER FIJO */
+.lista-compra-header {
+  flex: 1;
 
-.modal-lista-compra .modal-footer {
+  min-width: 0;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 11px;
+
+  padding-right: 20px;
+}
+
+
+.lista-compra-header-icono {
   flex: 0 0 auto;
 
-  padding: 16px 28px;
+  margin-top: 2px;
 
-  background: white;
+  color: #2563eb;
+}
 
-  border-top: 1px solid #e5e7eb;
+
+.lista-compra-header-texto {
+  min-width: 0;
+}
+
+
+.lista-compra-header-texto .modal-title {
+  margin: 0;
+
+  color: #1f2937;
+
+  font-size: 1.25rem;
+  font-weight: 700;
+
+  line-height: 1.2;
+}
+
+
+.lista-compra-header-texto p {
+  max-width: 580px;
+
+  margin: 4px 0 0;
+
+  color: #6b7280;
+
+  font-size: 0.84rem;
+
+  line-height: 1.4;
+}
+
+
+.modal-lista-compra .btn-close {
+  flex: 0 0 auto;
+
+  margin: 2px 0 0;
+
+  box-shadow: none;
 }
 
 
@@ -50,69 +113,79 @@
 ============================================= */
 
 .lista-compra-body {
-  flex: 1 1 0;
+  flex: 1 1 auto;
 
   min-height: 0;
 
   display: flex;
   flex-direction: column;
 
-  overflow: hidden;
+  padding: 0 22px 13px;
 
-  padding: 0 28px 18px;
+  overflow: hidden;
 }
 
 
 /* =============================================
-   TABS
+   PESTAÑAS
 ============================================= */
 
 .lista-compra-tabs {
   flex: 0 0 auto;
 
+  width: 100%;
+
   display: flex;
   align-items: flex-end;
 
-  gap: 32px;
+  gap: 20px;
+
+  margin-bottom: 12px;
 
   border-bottom: 1px solid #e5e7eb;
-
-  margin-bottom: 18px;
 }
 
-
-/*
-  IMPORTANTE:
-  esto elimina completamente el aspecto
-  de botón HTML que aparece en tu captura.
-*/
 
 .boton-pestana {
   appearance: none;
   -webkit-appearance: none;
 
-  border: 0;
-  border-bottom: 3px solid transparent;
+  flex: 0 0 auto;
 
-  outline: none;
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin: 0;
+
+  padding: 10px 13px 9px;
 
   background: transparent;
 
-  box-shadow: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
 
   border-radius: 0;
-
-  padding: 11px 18px 10px;
-
-  margin: 0;
 
   color: #6b7280;
 
   font-family: inherit;
-  font-size: 0.95rem;
+
+  font-size: 0.89rem;
   font-weight: 600;
 
+  white-space: nowrap;
+
   cursor: pointer;
+
+  outline: none;
+
+  box-shadow: none;
+
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 
@@ -122,13 +195,10 @@
 
 
 .boton-pestana:focus,
-.boton-pestana:focus-visible,
 .boton-pestana:active {
   outline: none;
 
   box-shadow: none;
-
-  background: transparent;
 }
 
 
@@ -139,75 +209,132 @@
 }
 
 
+.contador-pestana {
+  min-width: 21px;
+  height: 21px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 6px;
+
+  background: #e8f0ff;
+
+  border-radius: 999px;
+
+  color: #2563eb;
+
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+
 /* =============================================
    PANEL
 ============================================= */
 
-/*
-  GRID es la clave.
-
-  fila 1 = tabla, toma todo el espacio sobrante
-  fila 2 = buscador, tamaño natural
-  fila 3 = resumen, tamaño natural
-
-  Por eso ni buscador ni resumen se mueven.
-*/
-
 .lista-compra-panel {
-  flex: 1 1 0;
+  flex: 1 1 auto;
 
+  width: 100%;
   min-height: 0;
 
-  display: grid;
+  display: flex;
+  flex-direction: column;
 
-  grid-template-rows:
-    minmax(0, 1fr)
-    auto
-    auto;
-
-  gap: 14px;
+  gap: 11px;
 
   overflow: hidden;
 }
 
 
 /* =============================================
-   TABLA: ÚNICO ELEMENTO CON SCROLL
+   TABLA
 ============================================= */
 
 .tabla-lista-scroll {
-  min-height: 0;
+  flex: 0 1 auto;
 
   width: 100%;
+  min-width: 0;
 
-  overflow-y: scroll;
-  overflow-x: auto;
+  min-height: 0;
+  max-height: 300px;
 
-  scrollbar-gutter: stable;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background: #ffffff;
 
   border: 1px solid #d9dee7;
 
-  border-radius: 12px;
+  border-radius: 10px;
 
-  background: white;
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #9ca3af
+    #eef2f7;
 }
 
 
-/*
-  Importante:
-  no uses responsive en el CTable de este modal.
-*/
-
 .tabla-lista-compra {
-  width: 100%;
+  width: 100% !important;
 
-  min-width: 850px;
+  min-width: 0 !important;
+
+  table-layout: fixed;
+
+  margin: 0;
+}
+
+
+.tabla-lista-scroll table {
+  width: 100%;
 
   margin-bottom: 0;
 }
 
 
-/* HEADER DE TABLA FIJO */
+/* =============================================
+   COLUMNAS LISTA
+============================================= */
+
+.tabla-lista-compra th:nth-child(1),
+.tabla-lista-compra td:nth-child(1) {
+  width: 29%;
+}
+
+
+.tabla-lista-compra th:nth-child(2),
+.tabla-lista-compra td:nth-child(2) {
+  width: 13%;
+}
+
+
+.tabla-lista-compra th:nth-child(3),
+.tabla-lista-compra td:nth-child(3) {
+  width: 20%;
+}
+
+
+.tabla-lista-compra th:nth-child(4),
+.tabla-lista-compra td:nth-child(4) {
+  width: 23%;
+}
+
+
+.tabla-lista-compra th:nth-child(5),
+.tabla-lista-compra td:nth-child(5) {
+  width: 15%;
+}
+
+
+/* =============================================
+   HEADER DE TABLA
+============================================= */
 
 .tabla-lista-scroll thead th {
   position: sticky;
@@ -216,41 +343,443 @@
 
   z-index: 5;
 
+  padding: 11px 10px;
+
   background: #f8fafc;
 
-  padding-top: 14px;
-  padding-bottom: 14px;
+  border-bottom:
+    1px solid #d9dee7;
 
-  white-space: nowrap;
+  color: #111827;
 
-  border-bottom: 1px solid #d9dee7;
-}
-
-
-/* FILAS */
-
-.tabla-lista-scroll tbody td {
-  padding-top: 10px;
-  padding-bottom: 10px;
+  font-size: 0.86rem;
+  font-weight: 600;
 
   vertical-align: middle;
 }
 
 
 /* =============================================
-   SCROLL VISIBLE
+   CELDAS
+============================================= */
+
+.tabla-lista-scroll tbody td {
+  padding: 8px 10px;
+
+  vertical-align: middle;
+
+  font-size: 0.87rem;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =============================================
+   ESTADO VACÍO
+============================================= */
+
+.tabla-lista-scroll.vacia {
+  flex: 0 0 auto;
+
+  max-height: none;
+
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+
+.tabla-lista-scroll.vacia
+.tabla-lista-compra {
+  min-width: 0 !important;
+}
+
+
+.celda-lista-vacia {
+  height: 100px !important;
+
+  padding: 0 !important;
+
+  border-bottom: none !important;
+}
+
+
+.lista-vacia {
+  width: 100%;
+  height: 100px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 3px;
+
+  padding: 10px;
+
+  text-align: center;
+}
+
+
+.lista-vacia-icono {
+  margin-bottom: 2px;
+
+  color: #94a3b8;
+}
+
+
+.lista-vacia strong {
+  color: #475569;
+
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+
+.lista-vacia span {
+  color: #6b7280;
+
+  font-size: 0.8rem;
+}
+
+
+/* =============================================
+   PRODUCTO EN TABLA
+============================================= */
+
+.producto-tabla {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+}
+
+
+.producto-icono {
+  width: 36px;
+  height: 36px;
+
+  min-width: 36px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+}
+
+
+.producto-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+
+.producto-info strong {
+  overflow: hidden;
+
+  color: #1f2937;
+
+  font-size: 0.88rem;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.producto-info span {
+  overflow: hidden;
+
+  margin-top: 1px;
+
+  color: #6b7280;
+
+  font-size: 0.72rem;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* =============================================
+   STOCK
+============================================= */
+
+.stock-badge {
+  min-width: 31px;
+  height: 31px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 7px;
+
+  border-radius: 999px;
+
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+
+/* =============================================
+   CANTIDAD
+============================================= */
+
+.cantidad-compra-input {
+  width: 90px !important;
+
+  margin: auto;
+
+  text-align: center;
+}
+
+
+/* =============================================
+   CATEGORÍA
+============================================= */
+
+.categoria-badge {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  max-width: 100%;
+
+  padding: 4px 9px;
+
+  border-radius: 999px;
+
+  font-size: 0.78rem;
+
+  white-space: nowrap;
+}
+
+
+/* =============================================
+   BUSCADOR
+============================================= */
+
+.buscador-lista-compra {
+  flex: 0 0 auto;
+
+  width: 100%;
+
+  min-width: 0;
+}
+
+
+.buscador-lista-compra-label {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #374151;
+
+  font-size: 0.87rem;
+  font-weight: 600;
+}
+
+
+.buscador-lista-compra
+.input-group {
+  width: 100%;
+}
+
+
+.buscador-lista-compra
+.form-control {
+  min-height: 37px;
+
+  font-size: 0.86rem;
+}
+
+
+.buscador-lista-compra
+.input-group-text {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+
+.buscador-todos {
+  margin-bottom: 0;
+}
+
+
+/* =============================================
+   RESUMEN
+============================================= */
+
+.resumen-compra {
+  flex: 0 0 auto;
+
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  padding: 9px 12px;
+
+  background: #f8fafc;
+
+  border:
+    1px solid #e5e7eb;
+
+  border-radius: 9px;
+}
+
+
+.resumen-compra-info {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  color: #64748b;
+
+  font-size: 0.84rem;
+}
+
+
+.resumen-compra-info strong {
+  color: #1f2937;
+
+  font-weight: 700;
+}
+
+
+.resumen-separador {
+  color: #cbd5e1;
+}
+
+
+.btn-vaciar {
+  flex: 0 0 auto;
+
+  display: inline-flex !important;
+
+  align-items: center;
+
+  gap: 6px;
+
+  padding:
+    6px 10px !important;
+
+  font-size:
+    0.82rem !important;
+}
+
+
+/* =============================================
+   TODOS LOS PRODUCTOS
+============================================= */
+
+.tabla-todos-productos {
+  flex: 1 1 auto;
+
+  min-height: 160px;
+
+  max-height: none;
+}
+
+
+.boton-agregar-producto {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 4px;
+}
+
+
+.sin-resultados {
+  padding: 35px 15px !important;
+
+  color: #6b7280;
+
+  text-align: center;
+}
+
+
+/* =============================================
+   FOOTER
+============================================= */
+
+.modal-lista-compra
+.modal-footer {
+  flex: 0 0 auto;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 9px;
+
+  padding: 11px 22px;
+
+  background: #ffffff;
+
+  border-top:
+    1px solid #e5e7eb;
+}
+
+
+.btn-cerrar-lista {
+  min-width: 105px;
+
+  min-height: 37px;
+}
+
+
+.btn-descargar-lista {
+  min-height: 37px;
+}
+
+
+.boton-descargar-contenido {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+}
+
+
+/* =============================================
+   SCROLL
 ============================================= */
 
 .tabla-lista-scroll::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 
 .tabla-lista-scroll::-webkit-scrollbar-track {
   background: #eef2f7;
-
-  border-radius: 10px;
 }
 
 
@@ -268,338 +797,354 @@
 }
 
 
-/* Firefox */
+/* =============================================
+   PANTALLAS MEDIANAS
+============================================= */
 
-.tabla-lista-scroll {
-  scrollbar-width: thin;
+@media (max-width: 900px) {
 
-  scrollbar-color:
-    #9ca3af
-    #eef2f7;
+  .modal-lista-compra
+  .modal-dialog {
+    width:
+      calc(100% - 24px);
+
+    max-width: none;
+
+    margin:
+      12px auto !important;
+  }
+
+
+  .modal-lista-compra
+  .modal-content {
+    max-height:
+      calc(100vh - 24px);
+
+    border-radius: 14px;
+  }
+
+
+  .modal-lista-compra
+  .modal-header {
+    padding:
+      15px 18px 12px;
+  }
+
+
+  .lista-compra-body {
+    padding:
+      0 18px 12px;
+  }
+
+
+  .modal-lista-compra
+  .modal-footer {
+    padding:
+      10px 18px;
+  }
+
+
+  .lista-compra-tabs {
+    gap: 10px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scrollbar-width: thin;
+  }
+
+
+  .boton-pestana {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+
+  .tabla-lista-scroll {
+    overflow-x: auto;
+  }
+
+
+  .tabla-lista-compra {
+    min-width:
+      700px !important;
+
+    table-layout: auto;
+  }
+
+
+  .tabla-lista-scroll.vacia {
+    overflow-x: hidden;
+  }
+
+
+  .tabla-lista-scroll.vacia
+  .tabla-lista-compra {
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    table-layout: fixed;
+  }
+
 }
 
 
 /* =============================================
-   STOCK
+   CELULAR
 ============================================= */
 
-.stock-badge {
-  min-width: 36px;
-  height: 36px;
+@media (max-width: 600px) {
 
-  display: inline-flex;
+  .modal-lista-compra {
+    padding: 0 !important;
+  }
 
-  justify-content: center;
-  align-items: center;
 
-  padding: 0 8px;
+  .modal-lista-compra
+  .modal-dialog {
+    width: 100%;
 
-  border-radius: 999px;
+    max-width: 100%;
 
-  font-weight: 600;
+    height: 100%;
+
+    margin: 0 !important;
+  }
+
+
+  .modal-lista-compra
+  .modal-content {
+    width: 100%;
+
+    height: 100dvh;
+
+    max-height: 100dvh;
+
+    border-radius: 0;
+  }
+
+
+  .modal-lista-compra
+  .modal-header {
+    padding: 13px;
+  }
+
+
+  .lista-compra-header {
+    gap: 8px;
+
+    padding-right: 8px;
+  }
+
+
+  .lista-compra-header-icono {
+    width: 23px;
+    height: 23px;
+  }
+
+
+  .lista-compra-header-texto
+  .modal-title {
+    font-size: 1.08rem;
+  }
+
+
+  .lista-compra-header-texto p {
+    font-size: 0.77rem;
+
+    line-height: 1.35;
+  }
+
+
+  .lista-compra-body {
+    padding:
+      0 11px 10px;
+  }
+
+
+  .lista-compra-tabs {
+    gap: 3px;
+
+    margin-bottom: 9px;
+  }
+
+
+  .boton-pestana {
+    min-height: 39px;
+
+    padding:
+      7px 9px;
+
+    font-size: 0.8rem;
+  }
+
+
+  .lista-compra-panel {
+    gap: 9px;
+  }
+
+
+  .tabla-lista-scroll {
+    border-radius: 8px;
+  }
+
+
+  .tabla-lista-compra {
+    min-width:
+      650px !important;
+  }
+
+
+  .tabla-lista-scroll.vacia
+  .tabla-lista-compra {
+    min-width:
+      0 !important;
+  }
+
+
+  .tabla-lista-scroll
+  thead th {
+    padding:
+      9px 8px;
+
+    font-size: 0.79rem;
+
+    white-space: nowrap;
+  }
+
+
+  .tabla-lista-scroll
+  tbody td {
+    padding:
+      7px 8px;
+
+    font-size: 0.81rem;
+  }
+
+
+  .lista-vacia,
+  .celda-lista-vacia {
+    height:
+      95px !important;
+  }
+
+
+  .resumen-compra {
+    gap: 8px;
+
+    padding: 8px 9px;
+  }
+
+
+  .resumen-compra-info {
+    gap: 4px;
+
+    font-size: 0.76rem;
+  }
+
+
+  .resumen-separador {
+    display: none;
+  }
+
+
+  .resumen-compra-info {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+
+  .modal-lista-compra
+  .modal-footer {
+    padding:
+      9px 11px;
+
+    flex-wrap: wrap;
+  }
+
+
+  .modal-lista-compra
+  .modal-footer
+  .btn {
+    flex:
+      1 1 130px;
+  }
+
 }
 
 
 /* =============================================
-   BUSCADOR
+   PANTALLAS BAJAS
 ============================================= */
 
-.buscador-lista-compra {
-  min-height: 0;
+@media
+(max-height: 650px)
+and
+(min-width: 601px) {
 
-  position: relative;
-}
+  .modal-lista-compra
+  .modal-dialog {
+    margin-top:
+      7px !important;
 
+    margin-bottom:
+      7px !important;
+  }
 
-/* =============================================
-   RESUMEN
-============================================= */
 
-.resumen-compra {
-  display: flex;
+  .modal-lista-compra
+  .modal-content {
+    max-height:
+      calc(100vh - 14px);
+  }
 
-  justify-content: space-between;
-  align-items: center;
 
-  min-height: 70px;
+  .modal-lista-compra
+  .modal-header {
+    padding-top: 11px;
+    padding-bottom: 9px;
+  }
 
-  padding: 12px 16px;
 
-  background: #f8fafc;
+  .lista-compra-header-texto p {
+    font-size: 0.78rem;
+  }
 
-  border: 1px solid #e5e7eb;
 
-  border-radius: 12px;
-}/* =============================================
-   MODAL
-============================================= */
+  .lista-compra-tabs {
+    margin-bottom: 8px;
+  }
 
-.modal-lista-compra .modal-dialog {
-  width: calc(100% - 48px);
-  max-width: 1100px;
-  margin: 1.75rem auto;
-}
 
-.modal-lista-compra .modal-content {
-  height: min(850px, calc(100vh - 56px));
+  .boton-pestana {
+    padding-top: 7px;
+    padding-bottom: 6px;
+  }
 
-  display: flex;
-  flex-direction: column;
 
-  overflow: hidden;
+  .tabla-lista-scroll {
+    max-height: 220px;
+  }
 
-  border: none;
-  border-radius: 18px;
 
-  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.22);
-}
+  .tabla-lista-scroll.vacia {
+    max-height: none;
+  }
 
 
-/* HEADER FIJO */
+  .lista-vacia,
+  .celda-lista-vacia {
+    height:
+      85px !important;
+  }
 
-.modal-lista-compra .modal-header {
-  flex: 0 0 auto;
 
-  padding: 24px 28px 20px;
-}
+  .modal-lista-compra
+  .modal-footer {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
 
-
-/* FOOTER FIJO */
-
-.modal-lista-compra .modal-footer {
-  flex: 0 0 auto;
-
-  padding: 16px 28px;
-
-  background: white;
-
-  border-top: 1px solid #e5e7eb;
-}
-
-
-/* =============================================
-   BODY
-============================================= */
-
-.lista-compra-body {
-  flex: 1 1 0;
-
-  min-height: 0;
-
-  display: flex;
-  flex-direction: column;
-
-  overflow: hidden;
-
-  padding: 0 28px 18px;
-}
-
-
-/* =============================================
-   TABS
-============================================= */
-
-.lista-compra-tabs {
-  flex: 0 0 auto;
-
-  display: flex;
-  align-items: flex-end;
-
-  gap: 32px;
-
-  border-bottom: 1px solid #e5e7eb;
-
-  margin-bottom: 18px;
-}
-
-
-/*
-  IMPORTANTE:
-  esto elimina completamente el aspecto
-  de botón HTML que aparece en tu captura.
-*/
-
-.boton-pestana {
-  appearance: none;
-  -webkit-appearance: none;
-
-  border: 0;
-  border-bottom: 3px solid transparent;
-
-  outline: none;
-
-  background: transparent;
-
-  box-shadow: none;
-
-  border-radius: 0;
-
-  padding: 11px 18px 10px;
-
-  margin: 0;
-
-  color: #6b7280;
-
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-
-  cursor: pointer;
-}
-
-
-.boton-pestana:hover {
-  color: #2563eb;
-}
-
-
-.boton-pestana:focus,
-.boton-pestana:focus-visible,
-.boton-pestana:active {
-  outline: none;
-
-  box-shadow: none;
-
-  background: transparent;
-}
-
-
-.boton-pestana-activa {
-  color: #2563eb;
-
-  border-bottom-color: #2563eb;
-}
-
-
-/* =============================================
-   PANEL
-============================================= */
-
-/*
-  GRID es la clave.
-
-  fila 1 = tabla, toma todo el espacio sobrante
-  fila 2 = buscador, tamaño natural
-  fila 3 = resumen, tamaño natural
-
-  Por eso ni buscador ni resumen se mueven.
-*/
-
-.lista-compra-panel {
-  flex: 1 1 0;
-
-  min-height: 0;
-
-  display: grid;
-
-  grid-template-rows:
-    minmax(0, 1fr)
-    auto
-    auto;
-
-  gap: 14px;
-
-  overflow: hidden;
-}
-
-
-/* =============================================
-   TABLA: ÚNICO ELEMENTO CON SCROLL
-============================================= */
-
-.tabla-lista-scroll {
-  width: 100%;
-}
-
-.tabla-lista-scroll table {
-  margin-bottom: 0;
-}
-
-.tabla-lista-scroll thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: #f8fafc;
-}
-
-.tabla-lista-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-
-.tabla-lista-scroll::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 10px;
-}
-
-.tabla-lista-scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-
-.tabla-lista-scroll::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Firefox */
-
-.tabla-lista-scroll {
-  scrollbar-width: thin;
-
-  scrollbar-color:
-    #9ca3af
-    #eef2f7;
-}
-
-
-/* =============================================
-   STOCK
-============================================= */
-
-.stock-badge {
-  min-width: 36px;
-  height: 36px;
-
-  display: inline-flex;
-
-  justify-content: center;
-  align-items: center;
-
-  padding: 0 8px;
-
-  border-radius: 999px;
-
-  font-weight: 600;
-}
-
-
-/* =============================================
-   BUSCADOR
-============================================= */
-
-.buscador-lista-compra {
-  min-height: 0;
-
-  position: relative;
-}
-
-
-/* =============================================
-   RESUMEN
-============================================= */
-
-.resumen-compra {
-  display: flex;
-
-  justify-content: space-between;
-  align-items: center;
-
-  min-height: 70px;
-
-  padding: 12px 16px;
-
-  background: #f8fafc;
-
-  border: 1px solid #e5e7eb;
-
-  border-radius: 12px;
 }
