@@ -6,7 +6,7 @@ import {
 import type {
   ReactNode,
 } from "react";
-
+import Actualizador from "./Actualizador";
 import {
   BrowserRouter,
   Route,
@@ -20,8 +20,6 @@ import {
   Menu,
   Package,
   ShoppingCart,
-  TrendingDown,
-  TrendingUp,
   Users,
   X,
 } from "lucide-react";
@@ -924,101 +922,104 @@ function PantallaPrincipal() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <Layout>
-              <PantallaPrincipal />
-            </Layout>
-          }
-        />
+    <>
+      <Actualizador />
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Layout>
+                <PantallaPrincipal />
+              </Layout>
+            }
+          />
 
-        <Route
-          path="/catalogo-producto"
-          element={
-            <Layout>
-              <Catalogo />
-            </Layout>
-          }
-        />
+          <Route
+            path="/catalogo-producto"
+            element={
+              <Layout>
+                <Catalogo />
+              </Layout>
+            }
+          />
 
-        <Route
-          path="/menu"
-          element={
-            <Layout>
-              <Catalogo />
-            </Layout>
-          }
-        />
+          <Route
+            path="/menu"
+            element={
+              <Layout>
+                <Catalogo />
+              </Layout>
+            }
+          />
 
-        <Route
-          path="/agregar-producto"
-          element={
-            <Layout>
-              <ProductoCreate
-                recargar={() => {}}
-              />
-            </Layout>
-          }
-        />
+          <Route
+            path="/agregar-producto"
+            element={
+              <Layout>
+                <ProductoCreate
+                  recargar={() => {}}
+                />
+              </Layout>
+            }
+          />
 
-        <Route
-          path="/modificar-producto"
-          element={
-            <Layout>
-              <ModificarProducto
-                producto={
-                  undefined!
-                }
-                recargar={() => {}}
-              />
-            </Layout>
-          }
-        />
+          <Route
+            path="/modificar-producto"
+            element={
+              <Layout>
+                <ModificarProducto
+                  producto={
+                    undefined!
+                  }
+                  recargar={() => {}}
+                />
+              </Layout>
+            }
+          />
 
-        <Route
-          path="/eliminar-producto"
-          element={
-            <Layout>
-              <EliminarProducto
-                producto={
-                  undefined!
-                }
-                recargar={() => {}}
-              />
-            </Layout>
-          }
-        />
+          <Route
+            path="/eliminar-producto"
+            element={
+              <Layout>
+                <EliminarProducto
+                  producto={
+                    undefined!
+                  }
+                  recargar={() => {}}
+                />
+              </Layout>
+            }
+          />
 
-        <Route
-          path="/caja"
-          element={
-            <Layout>
-              <VentaProducto />
-            </Layout>
-          }
-        />
+          <Route
+            path="/caja"
+            element={
+              <Layout>
+                <VentaProducto />
+              </Layout>
+            }
+          />
 
-        <Route
-          path="/deudores"
-          element={
-            <Layout>
-              <ListaDeudores />
-            </Layout>
-          }
-        />
+          <Route
+            path="/deudores"
+            element={
+              <Layout>
+                <ListaDeudores />
+              </Layout>
+            }
+          />
 
-        <Route
-          path="/resumenes"
-          element={
-            <Layout>
-              <Resumenes />
-            </Layout>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+          <Route
+            path="/resumenes"
+            element={
+              <Layout>
+                <Resumenes />
+              </Layout>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }

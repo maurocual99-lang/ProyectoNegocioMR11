@@ -777,12 +777,12 @@ export default function ProductoCreate({
                       categoria
                     }
 
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setCategoria(
-                        e.target
-                          .value as Categoria
-                      )
-                    }
+                  onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                    setCategoria(
+                      e.target
+                        .value as Categoria
+                    )
+                  }
                   >
 
                     {

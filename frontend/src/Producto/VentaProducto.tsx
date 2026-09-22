@@ -312,8 +312,16 @@ function VentaProducto() {
           tipo_venta: producto.tipo_venta === "PESO" ? "PESO" : "UNIDAD",
           activo: producto.activo,
         }))
-        .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-
+        .sort(
+          (
+            a: ProductoPeso,
+            b: ProductoPeso
+          ) =>
+            a.nombre.localeCompare(
+              b.nombre,
+              "es"
+            )
+        );
       setProductosPeso(disponibles);
     } catch (err) {
       console.error(err);
@@ -543,8 +551,10 @@ function VentaProducto() {
         </header>
 
         <CCard className="venta-agregar-card">
-          <CCardHeader component="h3" className="fw-bold">
-            Agregar producto
+          <CCardHeader>
+            <h3 className="m-0 fw-bold">
+              Agregar producto
+            </h3>
           </CCardHeader>
 
           <CCardBody>
@@ -590,8 +600,10 @@ function VentaProducto() {
 
         <div className="venta-workspace">
           <CCard className="venta-productos-card">
-            <CCardHeader component="h3" className="fw-bold">
-              Productos en la venta
+            <CCardHeader>
+              <h3 className="m-0 fw-bold">
+                Productos en la venta
+              </h3>
             </CCardHeader>
 
             <CCardBody className="venta-productos-body">
@@ -707,8 +719,10 @@ function VentaProducto() {
 
           <aside className="venta-lateral">
             <CCard className="venta-resumen-card">
-              <CCardHeader component="h3" className="fw-bold">
-                Resumen
+              <CCardHeader>
+                <h3 className="m-0 fw-bold">
+                  Resumen
+                </h3>
               </CCardHeader>
 
               <CCardBody>

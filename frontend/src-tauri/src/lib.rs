@@ -68,6 +68,12 @@ pub fn run() {
 
             .setup(
                 |app| {
+                    // En desarrollo, npm run dev ya inicia el backend Node.
+                    // El sidecar solo existe al preparar una distribución.
+                    if cfg!(debug_assertions) {
+                        return Ok(());
+                    }
+
 
                     /*
                      * Le pasamos al backend
@@ -202,28 +208,36 @@ pub fn run() {
             if let tauri::RunEvent::Exit =
                 event
             {
+                if cfg!(debug_assertions) {
+                    return;
+                }
+
 
                 let estado =
                     app_handle
                         .state::<BackendProcess>();
 
-
-                if let Ok(
-                    mut proceso
-                ) =
-                    estado
-                        .0
-                        .lock()
                 {
+                    let resultado_lock =
+                        estado
+                            .0
+                            .lock();
 
-                    if let Some(
-                        child
+                    if let Ok(
+                        mut proceso
                     ) =
-                        proceso.take()
+                        resultado_lock
                     {
 
-                        let _ =
-                            child.kill();
+                        if let Some(
+                            child
+                        ) =
+                            proceso.take()
+                        {
+
+                            let _ =
+                                child.kill();
+                        }
                     }
                 }
             }
