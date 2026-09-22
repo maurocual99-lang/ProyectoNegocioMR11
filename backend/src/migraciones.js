@@ -113,7 +113,22 @@ async function ejecutarMigraciones() {
         );
 
 
+      const sinTransaccion =
+        archivo.endsWith(".no-transaction.sql");
+
       try {
+
+        // ALTER TYPE ... ADD VALUE requiere autocommit en PostgreSQL < 12.
+        // Estos scripts deben ser idempotentes para admitir reintentos.
+        if (sinTransaccion) {
+          await cliente.query(sql);
+          await cliente.query(
+            "INSERT INTO schema_migrations (id) VALUES ($1) ON CONFLICT (id) DO NOTHING",
+            [archivo]
+          );
+          console.log(`Migración aplicada: ${archivo}`);
+          continue;
+        }
 
         await cliente.query(
           "BEGIN"
@@ -149,9 +164,11 @@ async function ejecutarMigraciones() {
 
       } catch (error) {
 
-        await cliente.query(
-          "ROLLBACK"
-        );
+        if (!sinTransaccion) {
+          await cliente.query(
+            "ROLLBACK"
+          );
+        }
 
         throw error;
       }

@@ -37,7 +37,7 @@ import AgregarDeuda from "../clienteDeudor/AgregarDeuda";
 import { generarComprobanteVentaPDF } from "../GeneradorPDF";
 import "./VentaProducto.css";
 
-const API_URL = "http://localhost:3000";
+const API_URL = "http://127.0.0.1:3000";
 type TipoVenta = "UNIDAD" | "PESO";
 
 interface DetalleItem {

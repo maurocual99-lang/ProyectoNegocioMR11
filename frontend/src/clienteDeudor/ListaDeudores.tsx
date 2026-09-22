@@ -57,7 +57,7 @@ interface Venta {
 
 type MontosPago = Record<number, string>;
 
-const API_URL = "http://localhost:3000/ventas";
+const API_URL = "http://127.0.0.1:3000/ventas";
 
 function dinero(valor: number | string) {
   return Number(valor || 0).toLocaleString("es-AR", {

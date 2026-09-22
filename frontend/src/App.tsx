@@ -322,59 +322,55 @@ function PantallaPrincipal() {
   ] =
     useState("");
 
+  const [intentoInicio, setIntentoInicio] = useState(0);
+
   useEffect(
     () => {
+      let cancelado = false;
+
       async function cargarInicio() {
-        try {
-          setCargando(
-            true
-          );
+        setCargando(true);
+        setErrorInicio("");
 
-          setErrorInicio(
-            ""
-          );
-
-          const respuesta =
-            await fetch(
-              "http://localhost:3000/inicio"
+        for (let intento = 0; intento < 30 && !cancelado; intento++) {
+          try {
+            const respuesta = await fetch(
+              "http://127.0.0.1:3000/inicio"
             );
+            if (!respuesta.ok) {
+              throw new Error(`Inicio devolvio ${respuesta.status}`);
+            }
 
-          if (
-            !respuesta.ok
-          ) {
-            throw new Error(
-              "No se pudo cargar el inicio."
-            );
+            const resultado: DatosInicio = await respuesta.json();
+            if (!cancelado) {
+              setDatos(resultado);
+              setCargando(false);
+            }
+            return;
+          } catch (error) {
+            if (intento === 29) {
+              console.error("Error al cargar inicio:", error);
+            } else {
+              await new Promise<void>((resolve) =>
+                window.setTimeout(resolve, 2000)
+              );
+            }
           }
+        }
 
-          const resultado:
-            DatosInicio =
-            await respuesta.json();
-
-          setDatos(
-            resultado
-          );
-        } catch (
-          error
-        ) {
-          console.error(
-            "Error al cargar inicio:",
-            error
-          );
-
-          setErrorInicio(
-            "No se pudieron cargar los datos del negocio."
-          );
-        } finally {
-          setCargando(
-            false
-          );
+        if (!cancelado) {
+          setErrorInicio("No se pudieron cargar los datos del negocio.");
+          setCargando(false);
         }
       }
 
       void cargarInicio();
+
+      return () => {
+        cancelado = true;
+      };
     },
-    []
+    [intentoInicio]
   );
 
   const maxVenta7Dias =
@@ -418,11 +414,14 @@ function PantallaPrincipal() {
 
       {errorInicio && (
         <div className="inicio-error">
-          {
-            errorInicio
-          }
+          {errorInicio}{" "}
+          <button type="button" onClick={() => setIntentoInicio((valor) => valor + 1)}>
+            Reintentar
+          </button>
         </div>
       )}
+
+      {cargando && <p>Conectando con los datos del negocio...</p>}
 
       <section className="cards-superiores">
         <div className="card-stat card-verde">

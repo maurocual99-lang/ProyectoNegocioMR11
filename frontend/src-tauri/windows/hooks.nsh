@@ -7,7 +7,7 @@
     ${If} $0 != 0
 
         MessageBox MB_ICONSTOP|MB_OK \
-            "No se pudo configurar la base de datos de MR11.$\r$\n$\r$\nCódigo de error: $0"
+            "No se pudo configurar la base de datos de MR11.$\r$\n$\r$\nCódigo de error: $0$\r$\nVer detalle en C:\ProgramData\MR11\instalacion-error.txt"
 
         Abort
 

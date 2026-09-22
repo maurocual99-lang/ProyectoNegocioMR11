@@ -268,7 +268,7 @@ export default function ProductoCreate({
 
       const response =
         await fetch(
-          "http://localhost:3000/productos",
+          "http://127.0.0.1:3000/productos",
           {
             method:
               "POST",
@@ -378,7 +378,7 @@ export default function ProductoCreate({
 
       const response =
         await fetch(
-          `http://localhost:3000/productos/${productoPendiente.codigo_barra}/stock`,
+          `http://127.0.0.1:3000/productos/${productoPendiente.codigo_barra}/stock`,
           {
             method:
               "PUT",

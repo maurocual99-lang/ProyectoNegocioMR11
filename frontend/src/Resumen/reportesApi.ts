@@ -3,7 +3,7 @@ import type {
 } from "./tipos";
 
 const API_URL =
-  "http://localhost:3000/reportes";
+  "http://127.0.0.1:3000/reportes";
 
 
 export async function obtenerReporteMensual(

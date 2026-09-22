@@ -260,12 +260,20 @@ async function iniciar() {
   try {
 
     /*
-      Verifica PostgreSQL.
+      PostgreSQL puede tardar en iniciar despues de Windows.
     */
-
-    await pool.query(
-      "SELECT 1"
-    );
+    for (let intento = 1; intento <= 30; intento++) {
+      try {
+        await pool.query("SELECT 1");
+        break;
+      } catch (error) {
+        if (intento === 30) {
+          throw error;
+        }
+        console.warn(`Esperando PostgreSQL (${intento}/30)...`);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    }
 
 
     console.log(
