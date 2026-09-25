@@ -100,24 +100,6 @@ async function actualizarCliente({
   apodo,
   telefono,
 }) {
-  const duplicado = await db.query(
-    `
-      SELECT id
-      FROM cliente
-      WHERE LOWER(TRIM(nombre)) = LOWER($1)
-        AND LOWER(TRIM(apellido)) = LOWER($2)
-        AND id <> $3
-      LIMIT 1
-    `,
-    [nombre, apellido, clienteId]
-  );
-
-  if (duplicado.rowCount > 0) {
-    const error = new Error("El cliente ya existe.");
-    error.code = "CLIENTE_DUPLICADO";
-    throw error;
-  }
-
   const resultado = await db.query(
     `
       UPDATE cliente

@@ -23,11 +23,6 @@ function cargarModelo(respuestas) {
 
 test("actualiza todos los datos editables de un cliente", async () => {
   const modelo = cargarModelo((consulta, parametros) => {
-    if (consulta.startsWith("SELECT id FROM cliente")) {
-      assert.deepEqual(parametros, ["Juan", "Pérez", 7]);
-      return { rows: [], rowCount: 0 };
-    }
-
     if (consulta.startsWith("UPDATE cliente")) {
       assert.deepEqual(parametros, ["Juan", "Pérez", "Juani", "5492215551234", 7]);
       return {
@@ -57,25 +52,33 @@ test("actualiza todos los datos editables de un cliente", async () => {
   assert.equal(cliente.telefono, "5492215551234");
 });
 
-test("impide que una edición duplique otro cliente", async () => {
-  const modelo = cargarModelo((consulta) => {
-    if (consulta.startsWith("SELECT id FROM cliente")) {
-      return { rows: [{ id: 3 }], rowCount: 1 };
+test("permite nombres repetidos porque cada cliente tiene su propio id", async () => {
+  const modelo = cargarModelo((consulta, parametros) => {
+    if (consulta.startsWith("UPDATE cliente")) {
+      assert.deepEqual(parametros, ["Ana", "Gómez", null, null, 7]);
+      return {
+        rows: [{
+          id: 7,
+          nombre: "Ana",
+          apellido: "Gómez",
+          apodo: null,
+          telefono: null,
+        }],
+        rowCount: 1,
+      };
     }
 
     throw new Error(`Consulta inesperada: ${consulta}`);
   });
 
-  await assert.rejects(
-    () =>
-      modelo.actualizarCliente({
-        clienteId: 7,
-        nombre: "Ana",
-        apellido: "Gómez",
-        apodo: null,
-        telefono: null,
-      }),
-    (error) => error.code === "CLIENTE_DUPLICADO"
-  );
-});
+  const cliente = await modelo.actualizarCliente({
+    clienteId: 7,
+    nombre: "Ana",
+    apellido: "Gómez",
+    apodo: null,
+    telefono: null,
+  });
 
+  assert.equal(cliente.id, 7);
+  assert.equal(cliente.nombre, "Ana");
+});

@@ -34,25 +34,6 @@ async function crearClienteDeudor(req, res) {
       });
     }
 
-    // Buscar posibles coincidencias
-    const clientes = await clienteDeudorModel.buscarCliente(
-      `${apellido} ${nombre}`
-    );
-
-    // Verificar si existe exactamente el mismo cliente
-    const clienteExistente = clientes.find(
-      (c) =>
-        c.nombre.toLowerCase().trim() === nombre.toLowerCase().trim() &&
-        c.apellido.toLowerCase().trim() === apellido.toLowerCase().trim()
-    );
-
-    if (clienteExistente) {
-      return res.status(409).json({
-        existe: true,
-        mensaje: "El cliente ya está registrado en el sistema."
-      });
-    }
-
     // Crear cliente
     const nuevoCliente = await clienteDeudorModel.crearClienteDeudor(
       nombre,
@@ -145,12 +126,6 @@ async function actualizarCliente(req, res) {
       cliente,
     });
   } catch (error) {
-    if (error.code === "CLIENTE_DUPLICADO") {
-      return res.status(409).json({
-        mensaje: "Ya existe otro cliente con ese nombre y apellido.",
-      });
-    }
-
     console.error("Error al actualizar cliente:", error);
     res.status(500).json({ mensaje: "No se pudieron actualizar los datos." });
   }

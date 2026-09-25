@@ -1,6 +1,6 @@
 [package]
 name = "frontend"
-version = "0.2.4"
+version = "0.2.5"
 description = "Sistema de gestión Mini Mercado Ruta 11"
 authors = ["MR11"]
 edition = "2021"
