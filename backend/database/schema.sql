@@ -18,7 +18,7 @@ CREATE TABLE producto (
   stock int,
   categoria categoria_productos,
   precio decimal(10,4),
-  nombre varchar(20),
+  nombre varchar(120),
   activo boolean DEFAULT TRUE
 );
 
@@ -26,7 +26,8 @@ CREATE TABLE cliente (
   id SERIAL PRIMARY KEY,
   nombre varchar(15) NOT NULL,
   apellido varchar(15) NOT NULL,
-  apodo varchar(15)
+  apodo varchar(15),
+  telefono varchar(20)
 );
 
 CREATE TABLE venta (
@@ -36,6 +37,10 @@ CREATE TABLE venta (
   total decimal(10,4),
   cliente_id int,
   finalizada boolean NOT NULL DEFAULT FALSE,
+  saldo_pendiente numeric(12,2) NOT NULL DEFAULT 0,
+  monto_pagado_inicial numeric(12,2) NOT NULL DEFAULT 0,
+  es_saldo_inicial boolean NOT NULL DEFAULT FALSE,
+  concepto varchar(160),
 
   FOREIGN KEY (cliente_id) REFERENCES cliente(id)
 );

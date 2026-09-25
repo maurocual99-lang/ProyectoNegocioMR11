@@ -1,43 +1,34 @@
-import { useState, type ChangeEvent } from "react";
-
-import "./Producto.css";
-
+import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import {
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
   CButton,
   CForm,
-  CFormSelect,
   CFormInput,
   CFormLabel,
+  CFormSelect,
   CInputGroup,
   CInputGroupText,
+  CModal,
+  CModalBody,
+  CModalFooter,
+  CModalHeader,
+  CModalTitle,
 } from "@coreui/react";
-
 import {
-  Plus,
   Barcode,
-  Package,
-  Tag,
-  DollarSign,
-  Percent,
   Boxes,
+  Calculator,
+  DollarSign,
+  Package,
+  Percent,
+  Plus,
+  Tag,
   TriangleAlert,
 } from "lucide-react";
 
-type TipoVenta = "UNIDAD" | "PESO";
+import "./Producto.css";
 
-interface ProductoPendiente {
-  codigo_barra: string | null;
-  nombre: string;
-  precio: number;
-  stock: number;
-  categoria: Categoria;
-  tipo_venta: TipoVenta;
-}
+type TipoVenta = "UNIDAD" | "PESO";
+type ModoPrecio = "CALCULADO" | "MANUAL";
 
 const categorias = [
   "Bebidas",
@@ -48,1399 +39,432 @@ const categorias = [
   "Verduleria",
 ] as const;
 
-type Categoria =
-  (typeof categorias)[number];
+type Categoria = (typeof categorias)[number];
 
+interface ProductoPendiente {
+  codigo_barra: string | null;
+  nombre: string;
+  precio: number;
+  stock: number;
+  categoria: Categoria;
+  tipo_venta: TipoVenta;
+}
 
 type Props = {
   recargar: () => void | Promise<void>;
 };
 
+function dinero(valor: number) {
+  return valor.toLocaleString("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
 
-export default function ProductoCreate({
-  recargar,
-}: Props) {
+export default function ProductoCreate({ recargar }: Props) {
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarPregunta, setMostrarPregunta] = useState(false);
+  const [productoPendiente, setProductoPendiente] =
+    useState<ProductoPendiente | null>(null);
+  const [tipoVenta, setTipoVenta] = useState<TipoVenta>("UNIDAD");
+  const [codigoBarra, setCodigoBarra] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [categoria, setCategoria] = useState<Categoria>(categorias[0]);
+  const [stock, setStock] = useState("");
+  const [modoPrecio, setModoPrecio] = useState<ModoPrecio>("CALCULADO");
+  const [costo, setCosto] = useState("");
+  const [ganancia, setGanancia] = useState("63");
+  const [precioManual, setPrecioManual] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState("");
 
-  const [tipoVenta, setTipoVenta] =
-    useState<TipoVenta>("UNIDAD");
-
-  const [
-    mostrarFormulario,
-    setMostrarFormulario,
-  ] = useState(false);
-
-
-  const [
-    mostrarPregunta,
-    setMostrarPregunta,
-  ] = useState(false);
-
-  const [
-    productoPendiente,
-    setProductoPendiente,
-  ] =
-    useState<ProductoPendiente | null>(
-      null
-    );
-
-
-  const [
-    codigoBarra,
-    setCodigoBarra,
-  ] = useState("");
-
-
-  const [
-    nombre,
-    setNombre,
-  ] = useState("");
-
-
-  const [
-    categoria,
-    setCategoria,
-  ] =
-    useState<Categoria>(
-      categorias[0]
-    );
-
-
-  const [
-    costo,
-    setCosto,
-  ] = useState("");
-
-
-  const [
-    ganancia,
-    setGanancia,
-  ] = useState("63");
-
-
-  const [
-    stock,
-    setStock,
-  ] = useState("");
-
-
-  const [
-    guardando,
-    setGuardando,
-  ] = useState(false);
+  const precioCalculado = useMemo(
+    () => Number(costo || 0) * (1 + Number(ganancia || 0) / 100),
+    [costo, ganancia]
+  );
 
   const precioFinal =
-    Number(costo || 0) *
-    (
-      1 +
-      Number(ganancia || 0) / 100
-    );
+    modoPrecio === "MANUAL" ? Number(precioManual || 0) : precioCalculado;
 
   function limpiarFormulario() {
-
-    setCodigoBarra("");
-
-    setNombre("");
-
-    setCategoria(
-      categorias[0]
-    );
-
-    setCosto("");
-
-    setGanancia("63");
-
-    setStock("");
-
-    setProductoPendiente(
-      null
-    );
-
-    setMostrarPregunta(
-      false
-    );
     setTipoVenta("UNIDAD");
+    setCodigoBarra("");
+    setNombre("");
+    setCategoria(categorias[0]);
+    setStock("");
+    setModoPrecio("CALCULADO");
+    setCosto("");
+    setGanancia("63");
+    setPrecioManual("");
+    setProductoPendiente(null);
+    setMostrarPregunta(false);
+    setError("");
   }
 
   function cerrarFormulario() {
-
+    if (guardando) return;
     limpiarFormulario();
-
-    setMostrarFormulario(
-      false
-    );
+    setMostrarFormulario(false);
   }
 
-  function cerrarPregunta() {
+  async function guardarProducto(evento: FormEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    setError("");
 
-    setMostrarPregunta(
-      false
-    );
-
-    setProductoPendiente(
-      null
-    );
-  }
-
-  async function guardarProducto(
-    e: React.FormEvent<HTMLFormElement>
-  ) {
-
-    e.preventDefault();
-
-
-    if (
-      tipoVenta === "UNIDAD" &&
-      !codigoBarra.trim()
-    ) {
-      alert(
-        "El código de barras es obligatorio para productos vendidos por unidad."
-      );
-
+    if (tipoVenta === "UNIDAD" && !codigoBarra.trim()) {
+      setError("Ingresá el código de barras para un producto por unidad.");
       return;
     }
-
 
     if (!nombre.trim()) {
-      alert(
-        "El nombre es obligatorio."
-      );
-
+      setError("Ingresá el nombre del producto.");
       return;
     }
 
-
-    if (Number(costo) < 0) {
-      alert(
-        "El costo no puede ser negativo."
-      );
-
+    if (nombre.trim().length > 120) {
+      setError("El nombre puede tener hasta 120 caracteres.");
       return;
     }
 
-
-    if (Number(ganancia) < 0) {
-      alert(
-        "La ganancia no puede ser negativa."
-      );
-
+    if (!Number.isFinite(Number(stock)) || Number(stock) < 0) {
+      setError("Ingresá un stock válido, igual o mayor que cero.");
       return;
     }
-
-
-    if (Number(stock) < 0) {
-      alert(
-        "El stock no puede ser negativo."
-      );
-
-      return;
-    }
-
-
-    const nuevoProducto: ProductoPendiente = {
-
-      codigo_barra:
-        codigoBarra.trim() || null,
-
-      nombre:
-        nombre.trim(),
-
-      precio:
-        Number(
-          precioFinal.toFixed(2)
-        ),
-
-      stock:
-        Number(stock),
-
-      categoria,
-
-      tipo_venta:
-        tipoVenta,
-    };
-
-
-    try {
-
-      setGuardando(
-        true
-      );
-
-
-      const response =
-        await fetch(
-          "http://127.0.0.1:3000/productos",
-          {
-            method:
-              "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify(
-                nuevoProducto
-              ),
-          }
-        );
-
-
-      let datos: any = {};
-
-
-      const contentType =
-        response.headers.get(
-          "content-type"
-        );
-
-
-      if (
-        contentType?.includes(
-          "application/json"
-        )
-      ) {
-
-        datos =
-          await response.json();
-
-      }
-
-      if (
-        datos.existe
-      ) {
-
-        setProductoPendiente(
-          nuevoProducto
-        );
-
-        setMostrarPregunta(
-          true
-        );
-
-        return;
-      }
-
-      if (
-        !response.ok
-      ) {
-
-        alert(
-          datos.mensaje ||
-          "No se pudo crear el producto."
-        );
-
-        return;
-      }
-      await recargar();
-
-      limpiarFormulario();
-
-
-    } catch (error) {
-
-      console.error(
-        "Error al guardar producto:",
-        error
-      );
-
-
-      alert(
-        "Error al guardar el producto."
-      );
-
-
-    } finally {
-
-      setGuardando(
-        false
-      );
-
-    }
-  }
-
-
-  async function agregarStock() {
 
     if (
-      !productoPendiente
+      modoPrecio === "CALCULADO" &&
+      (!Number.isFinite(Number(costo)) || Number(costo) < 0 ||
+        !Number.isFinite(Number(ganancia)) || Number(ganancia) < 0)
     ) {
+      setError("Revisá el costo y el porcentaje de ganancia.");
       return;
     }
 
+    if (!Number.isFinite(precioFinal) || precioFinal <= 0) {
+      setError("El precio de venta debe ser mayor que cero.");
+      return;
+    }
+
+    const nuevoProducto: ProductoPendiente = {
+      codigo_barra: codigoBarra.trim() || null,
+      nombre: nombre.trim(),
+      precio: Number(precioFinal.toFixed(2)),
+      stock: Number(stock),
+      categoria,
+      tipo_venta: tipoVenta,
+    };
 
     try {
+      setGuardando(true);
+      const respuesta = await fetch("http://127.0.0.1:3000/productos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoProducto),
+      });
+      const datos = await respuesta.json().catch(() => ({}));
 
-      setGuardando(
-        true
-      );
-
-
-      const response =
-        await fetch(
-          `http://127.0.0.1:3000/productos/${productoPendiente.codigo_barra}/stock`,
-          {
-            method:
-              "PUT",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify({
-                stock:
-                  productoPendiente.stock,
-              }),
-          }
-        );
-
-
-      if (
-        !response.ok
-      ) {
-
-        let datos: any = {};
-
-
-        const contentType =
-          response.headers.get(
-            "content-type"
-          );
-
-
-        if (
-          contentType?.includes(
-            "application/json"
-          )
-        ) {
-
-          datos =
-            await response.json();
-
-        }
-
-
-        alert(
-          datos.mensaje ||
-          "No se pudo actualizar el stock."
-        );
-
+      if (datos.existe) {
+        setProductoPendiente(nuevoProducto);
+        setMostrarPregunta(true);
         return;
       }
 
+      if (!respuesta.ok) {
+        throw new Error(datos.mensaje || "No se pudo crear el producto.");
+      }
 
       await recargar();
-
       limpiarFormulario();
-
-
-    } catch (error) {
-
-      console.error(
-        "Error al actualizar stock:",
-        error
+      setMostrarFormulario(false);
+    } catch (errorGuardar) {
+      setError(
+        errorGuardar instanceof Error
+          ? errorGuardar.message
+          : "No se pudo crear el producto."
       );
-
-
-      alert(
-        "No se pudo actualizar el stock."
-      );
-
-
     } finally {
-
-      setGuardando(
-        false
-      );
-
+      setGuardando(false);
     }
   }
 
+  async function agregarStock() {
+    if (!productoPendiente?.codigo_barra) return;
+
+    try {
+      setGuardando(true);
+      const respuesta = await fetch(
+        `http://127.0.0.1:3000/productos/${productoPendiente.codigo_barra}/stock`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ stock: productoPendiente.stock }),
+        }
+      );
+      const datos = await respuesta.json().catch(() => ({}));
+      if (!respuesta.ok) {
+        throw new Error(datos.mensaje || "No se pudo actualizar el stock.");
+      }
+
+      await recargar();
+      limpiarFormulario();
+      setMostrarFormulario(false);
+    } catch (errorStock) {
+      setError(
+        errorStock instanceof Error
+          ? errorStock.message
+          : "No se pudo actualizar el stock."
+      );
+      setMostrarPregunta(false);
+    } finally {
+      setGuardando(false);
+    }
+  }
 
   return (
     <>
-
       <CButton
         color="primary"
-
-        onClick={() =>
-          setMostrarFormulario(
-            true
-          )
-        }
-
-        style={{
-          width:
-            "100%",
-
-          maxWidth:
-            "250px",
-
-          display:
-            "flex",
-
-          justifyContent:
-            "center",
-
-          alignItems:
-            "center",
-
-          gap:
-            "8px",
-        }}
+        className="producto-nuevo-boton"
+        onClick={() => setMostrarFormulario(true)}
       >
-
-        <Plus
-          size={18}
-        />
-
-
-        <span
-          style={{
-            fontSize:
-              "0.95rem",
-
-            fontWeight:
-              500,
-          }}
-        >
-          Nuevo Producto
-        </span>
-
+        <Plus size={18} />
+        Nuevo producto
       </CButton>
 
-
       <CModal
-        visible={
-          mostrarFormulario
-        }
-
+        visible={mostrarFormulario}
         size="lg"
-
+        className="producto-modal-alta"
         alignment="center"
-
         backdrop="static"
-
         keyboard={false}
-
-        onClose={
-          cerrarFormulario
-        }
+        onClose={cerrarFormulario}
       >
-
-        <CModalHeader
-          closeButton
-        >
-
-          <div
-            className="
-              d-flex
-              align-items-center
-              gap-3
-            "
-          >
-
-            <div
-              className="
-                d-flex
-                justify-content-center
-                align-items-center
-              "
-
-              style={{
-                width:
-                  "46px",
-
-                height:
-                  "46px",
-
-                background:
-                  "#eef4ff",
-
-                border:
-                  "1px solid #dbeafe",
-
-                borderRadius:
-                  "10px",
-
-                flexShrink:
-                  0,
-              }}
-            >
-
-              <Plus
-                size={23}
-                color="#2563eb"
-              />
-
-            </div>
-
-
+        <CModalHeader closeButton={!guardando} className="producto-modal-header">
+          <div className="producto-modal-titulo">
+            <span className="producto-modal-icono"><Plus size={23} /></span>
             <div>
-
-              <CModalTitle
-                style={{
-                  fontWeight:
-                    700,
-                }}
-              >
-                Agregar Producto
-              </CModalTitle>
-
-
-              <div
-                className="
-                  text-muted
-                "
-
-                style={{
-                  fontSize:
-                    "0.85rem",
-
-                  marginTop:
-                    "2px",
-                }}
-              >
-                Registrá un nuevo producto
-                en el catálogo
-              </div>
-
+              <CModalTitle>Agregar producto</CModalTitle>
+              <small>Registrá un nuevo producto en el catálogo</small>
             </div>
-
           </div>
-
         </CModalHeader>
 
-        <CModalBody
-          style={{
-            padding:
-              "24px",
-          }}
-        >
-
-          <CForm
-            onSubmit={
-              guardarProducto
-            }
-          >
-
-            <div
-              className="
-                row
-                g-3
-              "
-            >
-
-              <div
-                className="
-                  col-md-6
-                "
-              >
-            <div className="col-md-6">
-
-              <CFormLabel>
-                Forma de venta
-              </CFormLabel>
-
-              <CFormSelect
-                value={tipoVenta}
-                onChange={(e) =>
-                  setTipoVenta(
-                    e.target.value as TipoVenta
-                  )
-                }
-              >
-                <option value="UNIDAD">
-                  Por unidad
-                </option>
-
-                <option value="PESO">
-                  Por peso
-                </option>
-              </CFormSelect>
-
-            </div>
-                <CFormLabel>
-                  Código de Barras
-                </CFormLabel>
-
-
+        <CForm onSubmit={guardarProducto}>
+          <CModalBody className="producto-modal-body">
+            <div className="producto-form-grid">
+              <div className="producto-campo">
+                <CFormLabel>Forma de venta</CFormLabel>
                 <CInputGroup>
-
-                  <CInputGroupText>
-
-                    <Barcode
-                      size={16}
-                    />
-
-                  </CInputGroupText>
-
-
-                  <CFormInput
-                    type="text"
-
-                    value={
-                      codigoBarra
-                    }
-
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setCodigoBarra(
-                        e.target.value
-                      )
-                    }
-
-                    required={tipoVenta === "UNIDAD"}
-
-                    placeholder=  {
-                      tipoVenta === "PESO"
-                    ? "Opcional para productos por peso"
-                    : "Ej: 7791234567890"
-                    }
-                    autoFocus
-
-                  />
-
-                </CInputGroup>
-
-              </div>
-
-              <div
-                className="
-                  col-md-6
-                "
-              >
-
-                <CFormLabel>
-                  Nombre
-                </CFormLabel>
-
-
-                <CInputGroup>
-
-                  <CInputGroupText>
-
-                    <Package
-                      size={16}
-                    />
-
-                  </CInputGroupText>
-
-
-                  <CFormInput
-                    type="text"
-
-                    value={
-                      nombre
-                    }
-
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setNombre(
-                        e.target.value
-                      )
-                    }
-
-                    placeholder="Nombre del producto"
-
-                    required
-                  />
-
-                </CInputGroup>
-
-              </div>
-
-              <div
-                className="
-                  col-md-6
-                "
-              >
-
-                <CFormLabel>
-                  Categoría
-                </CFormLabel>
-
-
-                <CInputGroup>
-
-                  <CInputGroupText>
-
-                    <Tag
-                      size={16}
-                    />
-
-                  </CInputGroupText>
-
-
+                  <CInputGroupText><Package size={16} /></CInputGroupText>
                   <CFormSelect
-                    value={
-                      categoria
-                    }
-
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                    setCategoria(
-                      e.target
-                        .value as Categoria
-                    )
-                  }
+                    value={tipoVenta}
+                    onChange={(e) => setTipoVenta(e.target.value as TipoVenta)}
                   >
-
-                    {
-                      categorias.map(
-                        (cat) => (
-
-                          <option
-                            key={
-                              cat
-                            }
-
-                            value={
-                              cat
-                            }
-                          >
-                            {cat}
-                          </option>
-
-                        )
-                      )
-                    }
-
+                    <option value="UNIDAD">Por unidad</option>
+                    <option value="PESO">Por peso</option>
                   </CFormSelect>
-
                 </CInputGroup>
-
               </div>
 
-              <div
-                className="
-                  col-md-6
-                "
-              >
-
-                <CFormLabel>{
-                  tipoVenta === "PESO"
-                    ? "Stock inicial (kg)"
-                    : "Stock inicial (unidades)"
-                  }
-                </CFormLabel>
-
-
+              <div className="producto-campo">
+                <CFormLabel>Nombre</CFormLabel>
                 <CInputGroup>
-
-                  <CInputGroupText>
-
-                    <Boxes
-                      size={16}
-                    />
-
-                  </CInputGroupText>
-
-
+                  <CInputGroupText><Package size={16} /></CInputGroupText>
                   <CFormInput
-                    type="number"
-
-                    min="0"
-
-                    step={
-                      tipoVenta === "PESO"
-                        ? "0.001"
-                        : "1"
-                    }
-
-                    value={
-                      stock
-                    }
-
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setStock(
-                        e.target.value
-                      )
-                    }
-
-                    placeholder="0"
-
+                    value={nombre}
+                    maxLength={120}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setNombre(e.target.value)}
+                    placeholder="Ej: Galletitas de chocolate rellenas"
                     required
                   />
-
                 </CInputGroup>
-
+                <small className="producto-ayuda">{nombre.length}/120 caracteres</small>
               </div>
 
-
-              <div className="text-muted">
-                
-
-                <CFormLabel>
-                  {tipoVenta === "PESO"
-                  ? "Precio de venta por kg"
-                  : "Precio de venta por unidad"
-                }
-                </CFormLabel>
-
-
+              <div className="producto-campo">
+                <CFormLabel>Código de barras</CFormLabel>
                 <CInputGroup>
-
-                  <CInputGroupText>
-
-                    <DollarSign
-                      size={16}
-                    />
-
-                  </CInputGroupText>
-
-
+                  <CInputGroupText><Barcode size={16} /></CInputGroupText>
                   <CFormInput
-                    type="number"
-
-                    min="0"
-
-                    step="0.01"
-
-                    value={
-                      costo
-                    }
-
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setCosto(
-                        e.target.value
-                      )
-                    }
-
-                    placeholder="0.00"
-
-                    required
+                    value={codigoBarra}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setCodigoBarra(e.target.value)}
+                    placeholder={tipoVenta === "PESO" ? "Opcional" : "Escaneá o escribí el código"}
+                    required={tipoVenta === "UNIDAD"}
+                    autoFocus
                   />
-
                 </CInputGroup>
-
               </div>
 
-              <div
-                className="
-                  col-md-6
-                "
-              >
-
-                <CFormLabel>
-                  Ganancia (%)
-                </CFormLabel>
-
-
+              <div className="producto-campo">
+                <CFormLabel>Categoría</CFormLabel>
                 <CInputGroup>
-
-                  <CInputGroupText>
-
-                    <Percent
-                      size={16}
-                    />
-
-                  </CInputGroupText>
-
-
-                  <CFormInput
-                    type="number"
-
-                    min="0"
-
-                    step="0.1"
-
-                    value={
-                      ganancia
-                    }
-
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setGanancia(
-                        e.target.value
-                      )
-                    }
-
-                    required
-                  />
-
-                </CInputGroup>
-
-              </div>
-
-              <div
-                className="
-                  col-12
-                "
-              >
-
-                <div
-                  className="
-                    d-flex
-                    justify-content-between
-                    align-items-center
-                  "
-
-                  style={{
-                    background:
-                      "#eef4ff",
-
-                    border:
-                      "1px solid #dbeafe",
-
-                    borderRadius:
-                      "12px",
-
-                    padding:
-                      "14px 18px",
-                  }}
-                >
-
-                  <div>
-
-                    <div
-                      className="
-                        text-muted
-                      "
-
-                      style={{
-                        fontSize:
-                          "0.82rem",
-                      }}
-                    >
-                      Precio de Venta
-                    </div>
-
-
-                    <div
-                      style={{
-                        color:
-                          "#2563eb",
-
-                        fontSize:
-                          "1.6rem",
-
-                        fontWeight:
-                          700,
-                      }}
-                    >
-                      $
-
-                      {
-                        precioFinal
-                          .toLocaleString(
-                            "es-AR",
-                            {
-                              minimumFractionDigits:
-                                2,
-
-                              maximumFractionDigits:
-                                2,
-                            }
-                          )
-                      }
-
-                    </div>
-
-
-                    <div
-                      className="
-                        text-muted
-                      "
-
-                      style={{
-                        fontSize:
-                          "0.78rem",
-
-                        marginTop:
-                          "2px",
-                      }}
-                    >
-                      Costo +{" "}
-                      {ganancia || 0}%
-                      {" "}de ganancia
-                    </div>
-
-                  </div>
-
-
-                  <div
-                    className="
-                      d-flex
-                      justify-content-center
-                      align-items-center
-                    "
-
-                    style={{
-                      width:
-                        "48px",
-
-                      height:
-                        "48px",
-
-                      background:
-                        "#dbeafe",
-
-                      borderRadius:
-                        "50%",
-                    }}
+                  <CInputGroupText><Tag size={16} /></CInputGroupText>
+                  <CFormSelect
+                    value={categoria}
+                    onChange={(e) => setCategoria(e.target.value as Categoria)}
                   >
+                    {categorias.map((item) => <option key={item}>{item}</option>)}
+                  </CFormSelect>
+                </CInputGroup>
+              </div>
 
-                    <DollarSign
-                      size={23}
-                      color="#2563eb"
-                    />
+              <div className="producto-campo producto-campo-ancho">
+                <CFormLabel>
+                  {tipoVenta === "PESO" ? "Stock inicial (kg)" : "Stock inicial (unidades)"}
+                </CFormLabel>
+                <CInputGroup>
+                  <CInputGroupText><Boxes size={16} /></CInputGroupText>
+                  <CFormInput
+                    type="number"
+                    min="0"
+                    step={tipoVenta === "PESO" ? "0.001" : "1"}
+                    value={stock}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setStock(e.target.value)}
+                    placeholder="0"
+                    required
+                  />
+                </CInputGroup>
+              </div>
 
-                  </div>
-
+              <fieldset className="producto-precio-panel producto-campo-ancho">
+                <legend>¿Cómo querés definir el precio?</legend>
+                <div className="producto-modo-precio">
+                  <button
+                    type="button"
+                    className={modoPrecio === "CALCULADO" ? "activo" : ""}
+                    onClick={() => setModoPrecio("CALCULADO")}
+                  >
+                    <Calculator size={18} />
+                    Calcular con costo y ganancia
+                  </button>
+                  <button
+                    type="button"
+                    className={modoPrecio === "MANUAL" ? "activo" : ""}
+                    onClick={() => setModoPrecio("MANUAL")}
+                  >
+                    <DollarSign size={18} />
+                    Escribir precio de venta
+                  </button>
                 </div>
 
-              </div>
+                {modoPrecio === "CALCULADO" ? (
+                  <div className="producto-precio-grid">
+                    <div className="producto-campo">
+                      <CFormLabel>Costo del producto</CFormLabel>
+                      <CInputGroup>
+                        <CInputGroupText><DollarSign size={16} /></CInputGroupText>
+                        <CFormInput
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={costo}
+                          onChange={(e) => setCosto(e.target.value)}
+                          placeholder="0,00"
+                          required
+                        />
+                      </CInputGroup>
+                    </div>
+                    <div className="producto-campo">
+                      <CFormLabel>Ganancia</CFormLabel>
+                      <CInputGroup>
+                        <CInputGroupText><Percent size={16} /></CInputGroupText>
+                        <CFormInput
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={ganancia}
+                          onChange={(e) => setGanancia(e.target.value)}
+                          required
+                        />
+                      </CInputGroup>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="producto-campo">
+                    <CFormLabel>
+                      {tipoVenta === "PESO" ? "Precio de venta por kg" : "Precio de venta por unidad"}
+                    </CFormLabel>
+                    <CInputGroup>
+                      <CInputGroupText><DollarSign size={16} /></CInputGroupText>
+                      <CFormInput
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={precioManual}
+                        onChange={(e) => setPrecioManual(e.target.value)}
+                        placeholder="0,00"
+                        required
+                      />
+                    </CInputGroup>
+                  </div>
+                )}
 
+                <div className="producto-precio-resumen">
+                  <span>Precio de venta</span>
+                  <strong>${dinero(precioFinal)}</strong>
+                  <small>
+                    {modoPrecio === "CALCULADO"
+                      ? `Costo + ${ganancia || 0}% de ganancia`
+                      : "Precio ingresado manualmente"}
+                  </small>
+                </div>
+              </fieldset>
             </div>
 
-            <CModalFooter
-              style={{
-                paddingLeft:
-                  0,
+            {error && <div className="producto-form-error">{error}</div>}
+          </CModalBody>
 
-                paddingRight:
-                  0,
-
-                paddingBottom:
-                  0,
-
-                marginTop:
-                  "22px",
-              }}
-            >
-
-
-              <CButton
-                type="button"
-
-                color="light"
-
-                onClick={
-                  cerrarFormulario
-                }
-
-                disabled={
-                  guardando
-                }
-
-                style={{
-                  minWidth:
-                    "110px",
-                }}
-              >
-                Cancelar
-              </CButton>
-
-
-              <CButton
-                type="submit"
-
-                color="primary"
-
-                disabled={
-                  guardando
-                }
-
-                style={{
-                  minWidth:
-                    "160px",
-                }}
-              >
-
-                <Plus
-                  size={17}
-                  className="me-2"
-                />
-
-
-                {
-                  guardando
-                    ? "Creando..."
-                    : "Crear Producto"
-                }
-
-              </CButton>
-
-            </CModalFooter>
-
-          </CForm>
-
-        </CModalBody>
-
+          <CModalFooter className="producto-modal-footer">
+            <CButton type="button" color="light" onClick={cerrarFormulario} disabled={guardando}>
+              Cancelar
+            </CButton>
+            <CButton type="submit" color="primary" disabled={guardando}>
+              <Plus size={17} />
+              {guardando ? "Guardando…" : "Crear producto"}
+            </CButton>
+          </CModalFooter>
+        </CForm>
       </CModal>
 
       <CModal
-
-        visible={
-          mostrarPregunta
-        }
-
+        visible={mostrarPregunta}
         alignment="center"
-
         backdrop="static"
-
         keyboard={false}
-
-        onClose={
-          cerrarPregunta
-        }
+        onClose={() => !guardando && setMostrarPregunta(false)}
       >
-
-        {/* HEADER */}
-
-        <CModalHeader
-          closeButton
-        >
-
-          <div
-            className="
-              d-flex
-              align-items-center
-              gap-3
-            "
-          >
-
-            <div
-              className="
-                d-flex
-                justify-content-center
-                align-items-center
-              "
-
-              style={{
-                width:
-                  "46px",
-
-                height:
-                  "46px",
-
-                background:
-                  "#fff7ed",
-
-                border:
-                  "1px solid #fed7aa",
-
-                borderRadius:
-                  "10px",
-
-                flexShrink:
-                  0,
-              }}
-            >
-
-              <TriangleAlert
-                size={23}
-                color="#ea580c"
-              />
-
-            </div>
-
-
+        <CModalHeader closeButton={!guardando}>
+          <div className="producto-modal-titulo producto-modal-advertencia">
+            <span className="producto-modal-icono"><TriangleAlert size={23} /></span>
             <div>
-
-              <CModalTitle
-                style={{
-                  fontWeight:
-                    700,
-                }}
-              >
-                Producto existente
-              </CModalTitle>
-
-
-              <div
-                className="
-                  text-muted
-                "
-
-                style={{
-                  fontSize:
-                    "0.85rem",
-
-                  marginTop:
-                    "2px",
-                }}
-              >
-                El código de barras
-                ya está registrado
-              </div>
-
+              <CModalTitle>Producto existente</CModalTitle>
+              <small>Ese código de barras ya está registrado</small>
             </div>
-
           </div>
-
         </CModalHeader>
-
-
-        {/* BODY */}
-
-        <CModalBody
-          style={{
-            padding:
-              "24px",
-          }}
-        >
-
-          <div
-            style={{
-              color:
-                "#475569",
-
-              fontSize:
-                "0.95rem",
-
-              lineHeight:
-                1.6,
-            }}
-          >
-
-            Ya existe un producto
-            registrado con el código:
-
-
-            <div
-              style={{
-                marginTop:
-                  "12px",
-
-                padding:
-                  "12px 14px",
-
-                background:
-                  "#f8fafc",
-
-                border:
-                  "1px solid #e5e7eb",
-
-                borderRadius:
-                  "10px",
-              }}
-            >
-
-              <div
-                className="
-                  d-flex
-                  align-items-center
-                  gap-2
-                "
-              >
-
-                <Barcode
-                  size={18}
-                  color="#2563eb"
-                />
-
-
-                <strong>
-                  {
-                    productoPendiente
-                      ?.codigo_barra
-                  }
-                </strong>
-
-              </div>
-
-            </div>
-
-
-            <div
-              style={{
-                marginTop:
-                  "18px",
-              }}
-            >
-
-              ¿Deseás agregar{" "}
-
-
-              <strong
-                style={{
-                  color:
-                    "#2563eb",
-                }}
-              >
-
-                {
-                  productoPendiente
-                    ?.stock
-                }
-
-                {" "}unidades
-
-              </strong>
-
-
-              {" "}al stock existente?
-
-            </div>
-
+        <CModalBody>
+          <p>
+            ¿Querés sumar <strong>{productoPendiente?.stock}</strong>{" "}
+            {productoPendiente?.tipo_venta === "PESO" ? "kg" : "unidades"}
+            {" "}al stock existente?
+          </p>
+          <div className="producto-codigo-existente">
+            <Barcode size={18} />
+            {productoPendiente?.codigo_barra}
           </div>
-
+          {error && <div className="producto-form-error">{error}</div>}
         </CModalBody>
-
-
-        {/* FOOTER */}
-
         <CModalFooter>
-
-          {/* SOLO CIERRA LA PREGUNTA */}
-
-          <CButton
-            color="light"
-
-            disabled={
-              guardando
-            }
-
-            onClick={
-              cerrarPregunta
-            }
-
-            style={{
-              minWidth:
-                "110px",
-            }}
-          >
+          <CButton color="light" disabled={guardando} onClick={() => setMostrarPregunta(false)}>
             Cancelar
           </CButton>
-
-
-          {/* SUMA STOCK Y VUELVE AL FORMULARIO */}
-
-          <CButton
-            color="primary"
-
-            disabled={
-              guardando
-            }
-
-            onClick={
-              agregarStock
-            }
-
-            style={{
-              minWidth:
-                "150px",
-            }}
-          >
-
-            <Plus
-              size={17}
-              className="me-2"
-            />
-
-
-            {
-              guardando
-                ? "Agregando..."
-                : "Agregar stock"
-            }
-
+          <CButton color="primary" disabled={guardando} onClick={() => void agregarStock()}>
+            <Plus size={17} />
+            {guardando ? "Agregando…" : "Agregar stock"}
           </CButton>
-
         </CModalFooter>
-
       </CModal>
-
     </>
   );
 }

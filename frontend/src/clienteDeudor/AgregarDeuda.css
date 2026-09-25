@@ -241,6 +241,94 @@
   font-size: 0.67rem;
 }
 
+.agregar-deuda-pago-parcial {
+  margin-top: 12px;
+  padding: 13px;
+  border: 1px solid #bfdbfe;
+  border-radius: 11px;
+  background: #f8fbff;
+}
+
+.agregar-deuda-pago-titulo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+  color: #1d4ed8;
+}
+
+.agregar-deuda-pago-titulo strong,
+.agregar-deuda-pago-titulo span {
+  display: block;
+}
+
+.agregar-deuda-pago-titulo strong {
+  color: #1e293b;
+  font-size: .85rem;
+}
+
+.agregar-deuda-pago-titulo span {
+  margin-top: 1px;
+  color: #64748b;
+  font-size: .7rem;
+}
+
+.agregar-deuda-atajos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.agregar-deuda-atajos button {
+  padding: 7px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #475569;
+  background: #fff;
+  font-size: .72rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.agregar-deuda-atajos button:hover {
+  color: #1d4ed8;
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.agregar-deuda-desglose {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #dbeafe;
+}
+
+.agregar-deuda-desglose > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+  color: #64748b;
+  font-size: .76rem;
+}
+
+.agregar-deuda-desglose strong {
+  color: #334155;
+}
+
+.agregar-deuda-desglose .agregar-deuda-saldo {
+  margin-top: 5px;
+  padding-top: 8px;
+  border-top: 1px dashed #bfdbfe;
+  color: #9a3412;
+  font-size: .84rem;
+  font-weight: 700;
+}
+
+.agregar-deuda-desglose .agregar-deuda-saldo strong {
+  color: #c2410c;
+}
+
 @media (
   max-width: 650px
 ) {

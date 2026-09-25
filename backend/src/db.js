@@ -7,6 +7,8 @@ const dotenv = require("dotenv");
 function buscarArchivoConfiguracion() {
 
   const posiblesRutas = [];
+  const esEjecutableEmpaquetado =
+    Boolean(process.pkg);
 
   /*
     Permite indicar una ruta manualmente
@@ -19,32 +21,14 @@ function buscarArchivoConfiguracion() {
   }
 
   /*
-    Desarrollo normal:
-    backend/.env
+    El ejecutable distribuido debe usar siempre la configuración creada por
+    el instalador. Nunca debe leer el .env de desarrollo que pkg pudiera
+    haber incluido dentro de C:\snapshot.
   */
-  posiblesRutas.push(
-    path.resolve(
-      process.cwd(),
-      ".env"
-    )
-  );
-
-  /*
-    También sirve al ejecutar:
-    node src/index.js
-  */
-  posiblesRutas.push(
-    path.resolve(
-      __dirname,
-      "..",
-      ".env"
-    )
-  );
-
-  /*
-    Instalación del cliente.
-  */
-  if (process.env.PROGRAMDATA) {
+  if (
+    esEjecutableEmpaquetado &&
+    process.env.PROGRAMDATA
+  ) {
 
     posiblesRutas.push(
       path.join(
@@ -53,6 +37,34 @@ function buscarArchivoConfiguracion() {
         ".env"
       )
     );
+  }
+
+  /*
+    Desarrollo normal: backend/.env.
+  */
+  if (!esEjecutableEmpaquetado) {
+
+    posiblesRutas.push(
+      path.resolve(
+        process.cwd(),
+        ".env"
+      )
+    );
+
+    /*
+      Como respaldo para desarrollo, permite usar la configuración de una
+      instalación local si backend/.env no existe.
+    */
+    if (process.env.PROGRAMDATA) {
+
+      posiblesRutas.push(
+        path.join(
+          process.env.PROGRAMDATA,
+          "MR11",
+          ".env"
+        )
+      );
+    }
   }
 
   for (
@@ -76,7 +88,9 @@ function buscarArchivoConfiguracion() {
     }
   }
 
-  dotenv.config();
+  if (!esEjecutableEmpaquetado) {
+    dotenv.config();
+  }
 
   return null;
 }

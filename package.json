@@ -7,7 +7,11 @@
     "backend": "cd backend && npm run dev",
     "frontend": "cd frontend && npm run tauri dev -- --config src-tauri/tauri.dev.conf.json",
     "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
-    "install:all": "cd backend && npm install && cd ../frontend && npm install"
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "version:app": "node scripts/preparar-version.mjs",
+    "release:manifest": "node scripts/generar-latest.mjs",
+    "release:sign": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/firmar-actualizacion.ps1",
+    "actualizar": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/crear-actualizacion.ps1"
   },
   "repository": {
     "type": "git",

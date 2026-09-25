@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   CButton,
   CCard,
@@ -19,12 +20,18 @@ import {
 import {
   ArrowLeft,
   CheckCircle2,
+  MessageCircle,
+  Pencil,
+  Phone,
+  Plus,
   ReceiptText,
   User,
   WalletCards,
 } from "lucide-react";
 
 import { generarComprobantePagoPDF } from "../GeneradorPDF";
+import CargarDeudaInicial from "./CargarDeudaInicial";
+import EditarCliente, { type ClienteEditable } from "./EditarCliente";
 import "./ListaDeudores.css";
 
 interface Cliente {
@@ -32,6 +39,7 @@ interface Cliente {
   nombre: string;
   apellido: string;
   apodo?: string | null;
+  telefono?: string | null;
   ventas_pendientes?: number;
   deuda_total?: number | string;
 }
@@ -52,12 +60,15 @@ interface Venta {
   total: number | string;
   saldo_pendiente?: number | string;
   total_pagado?: number | string;
+  es_saldo_inicial?: boolean;
+  concepto?: string | null;
   detalles?: DetalleVenta[];
 }
 
 type MontosPago = Record<number, string>;
 
 const API_URL = "http://127.0.0.1:3000/ventas";
+const CLIENTES_API_URL = "http://127.0.0.1:3000/deudores";
 
 function dinero(valor: number | string) {
   return Number(valor || 0).toLocaleString("es-AR", {
@@ -120,6 +131,14 @@ export default function ListaDeudores() {
   const [mostrarExito, setMostrarExito] = useState(false);
   const [montoUltimoPago, setMontoUltimoPago] = useState(0);
   const [pdfGenerado, setPdfGenerado] = useState(false);
+  const [mostrarDeudaInicial, setMostrarDeudaInicial] = useState(false);
+  const [mensajeDeudaInicial, setMensajeDeudaInicial] = useState("");
+  const [ultimoClientePago, setUltimoClientePago] = useState<Cliente | null>(null);
+  const [saldoUltimoPago, setSaldoUltimoPago] = useState(0);
+  const [telefonoWhatsapp, setTelefonoWhatsapp] = useState("");
+  const [abriendoWhatsapp, setAbriendoWhatsapp] = useState(false);
+  const [errorWhatsapp, setErrorWhatsapp] = useState("");
+  const [clienteAEditar, setClienteAEditar] = useState<Cliente | null>(null);
 
   useEffect(() => {
     void cargarClientes();
@@ -317,6 +336,8 @@ export default function ListaDeudores() {
         total: venta.total,
         saldo_antes: obtenerSaldo(venta),
         monto_pagado: Number(montos[venta.id]),
+        es_saldo_inicial: venta.es_saldo_inicial,
+        concepto: venta.concepto,
         detalles: venta.detalles,
       }));
 
@@ -358,7 +379,12 @@ export default function ListaDeudores() {
             apellido: clienteSeleccionado.apellido,
             apodo: clienteSeleccionado.apodo,
           },
-          ventasPDF
+          ventasPDF,
+          {
+            deudaAntes: deudaCliente,
+            totalPagado: totalAPagar,
+            saldoDespues,
+          }
         );
         generado = true;
       } catch (errorPDF) {
@@ -370,6 +396,10 @@ export default function ListaDeudores() {
 
       setPdfGenerado(generado);
       setMontoUltimoPago(totalAPagar);
+      setSaldoUltimoPago(saldoDespues);
+      setUltimoClientePago(clienteSeleccionado);
+      setTelefonoWhatsapp(clienteSeleccionado.telefono || "");
+      setErrorWhatsapp("");
       setMostrarExito(true);
 
       setClienteSeleccionado(null);
@@ -387,6 +417,75 @@ export default function ListaDeudores() {
       );
     } finally {
       setProcesando(false);
+    }
+  }
+
+  async function abrirComprobanteEnWhatsapp() {
+    if (!ultimoClientePago) return;
+
+    const telefono = telefonoWhatsapp.replace(/\D/g, "");
+
+    if (telefono.length < 8 || telefono.length > 15) {
+      setErrorWhatsapp(
+        "Ingresá el número completo con código de país y área, sin 0 ni 15."
+      );
+      return;
+    }
+
+    setAbriendoWhatsapp(true);
+    setErrorWhatsapp("");
+
+    try {
+      if (telefono !== (ultimoClientePago.telefono || "")) {
+        const respuesta = await fetch(
+          `${CLIENTES_API_URL}/${ultimoClientePago.id}/telefono`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ telefono }),
+          }
+        );
+        const data = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(data?.mensaje || "No se pudo guardar el teléfono.");
+        }
+
+        const clienteActualizado = { ...ultimoClientePago, telefono };
+        setUltimoClientePago(clienteActualizado);
+        setClientes((actuales) =>
+          actuales.map((cliente) =>
+            cliente.id === clienteActualizado.id ? clienteActualizado : cliente
+          )
+        );
+      }
+
+      const nombre = ultimoClientePago.apodo || ultimoClientePago.nombre;
+      const mensaje = [
+        `Hola ${nombre}. Te comparto el comprobante de pago de Mini Mercado Ruta 11.`,
+        `Pago recibido: $${dinero(montoUltimoPago)}.`,
+        saldoUltimoPago > 0
+          ? `Saldo pendiente: $${dinero(saldoUltimoPago)}.`
+          : "Tu cuenta quedó saldada.",
+      ].join("\n");
+      const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+
+      try {
+        await openUrl(url);
+      } catch (errorTauri) {
+        console.warn("No se pudo usar el abridor de Tauri:", errorTauri);
+        const ventana = window.open(url, "_blank", "noopener,noreferrer");
+        if (!ventana) {
+          throw new Error("No se pudo abrir WhatsApp.");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorWhatsapp(
+        err instanceof Error ? err.message : "No se pudo abrir WhatsApp."
+      );
+    } finally {
+      setAbriendoWhatsapp(false);
     }
   }
 
@@ -416,6 +515,44 @@ export default function ListaDeudores() {
               ? "El comprobante PDF se descargó automáticamente."
               : "El pago quedó registrado, pero no se pudo descargar el PDF. Revisá las dependencias de jsPDF."}
           </p>
+
+          <div className="deudores-whatsapp">
+            <CFormLabel htmlFor="telefono-whatsapp">
+              Teléfono de WhatsApp
+            </CFormLabel>
+            <CInputGroup>
+              <CInputGroupText>
+                <Phone size={16} />
+              </CInputGroupText>
+              <CFormInput
+                id="telefono-whatsapp"
+                type="tel"
+                value={telefonoWhatsapp}
+                onChange={(evento) => setTelefonoWhatsapp(evento.target.value)}
+                placeholder="5492215551234"
+              />
+            </CInputGroup>
+            <small>País y área, sin 0 ni 15.</small>
+
+            {errorWhatsapp && (
+              <div className="deudores-whatsapp-error">{errorWhatsapp}</div>
+            )}
+
+            <CButton
+              className="deudores-whatsapp-boton"
+              disabled={abriendoWhatsapp}
+              onClick={() => void abrirComprobanteEnWhatsapp()}
+            >
+              <MessageCircle size={18} />
+              {abriendoWhatsapp ? "Abriendo..." : "Abrir WhatsApp"}
+            </CButton>
+
+            <small className="deudores-whatsapp-aclaracion">
+              {pdfGenerado
+                ? "Se abrirá el chat con el mensaje listo. Adjuntá el PDF descargado y confirmá el envío desde WhatsApp."
+                : "Se abrirá el chat con el resumen del pago. El PDF no pudo descargarse en esta operación."}
+            </small>
+          </div>
         </div>
       </CModalBody>
 
@@ -428,6 +565,39 @@ export default function ListaDeudores() {
         </CButton>
       </CModalFooter>
     </CModal>
+  );
+
+  const modalDeudaInicial = (
+    <CargarDeudaInicial
+      visible={mostrarDeudaInicial}
+      onClose={() => setMostrarDeudaInicial(false)}
+      onCreada={async () => {
+        setMensajeDeudaInicial("La deuda anterior se registró correctamente.");
+        await cargarClientes();
+      }}
+    />
+  );
+
+  const modalEditarCliente = (
+    <EditarCliente
+      cliente={clienteAEditar}
+      onClose={() => setClienteAEditar(null)}
+      onActualizado={(clienteActualizado: ClienteEditable) => {
+        setClientes((actuales) =>
+          actuales.map((cliente) =>
+            cliente.id === clienteActualizado.id
+              ? { ...cliente, ...clienteActualizado }
+              : cliente
+          )
+        );
+        setClienteSeleccionado((actual) =>
+          actual?.id === clienteActualizado.id
+            ? { ...actual, ...clienteActualizado }
+            : actual
+        );
+        setClienteAEditar(null);
+      }}
+    />
   );
 
   if (!clienteSeleccionado) {
@@ -459,11 +629,29 @@ export default function ListaDeudores() {
                   </div>
                 </div>
 
-                <div className="deudores-contador">
-                  {clientes.length}{" "}
-                  {clientes.length === 1 ? "deudor" : "deudores"}
+                <div className="deudores-header-acciones">
+                  <CButton
+                    color="primary"
+                    className="deudores-cargar-inicial"
+                    onClick={() => {
+                      setMensajeDeudaInicial("");
+                      setMostrarDeudaInicial(true);
+                    }}
+                  >
+                    <Plus size={17} />
+                    Cargar deuda anterior
+                  </CButton>
+
+                  <div className="deudores-contador">
+                    {clientes.length}{" "}
+                    {clientes.length === 1 ? "deudor" : "deudores"}
+                  </div>
                 </div>
               </div>
+
+              {mensajeDeudaInicial && (
+                <div className="deudores-mensaje-exito">{mensajeDeudaInicial}</div>
+              )}
 
               {error && <div className="deudores-error">{error}</div>}
 
@@ -481,30 +669,46 @@ export default function ListaDeudores() {
               ) : (
                 <div className="deudores-clientes-grid">
                   {clientes.map((cliente) => (
-                    <button
-                      type="button"
-                      key={cliente.id}
-                      className="deudores-cliente"
-                      onClick={() => void seleccionarCliente(cliente)}
-                    >
-                      <div className="deudores-cliente-icono">
-                        <User size={21} />
-                      </div>
+                    <div key={cliente.id} className="deudores-cliente">
+                      <button
+                        type="button"
+                        className="deudores-cliente-abrir"
+                        onClick={() => void seleccionarCliente(cliente)}
+                      >
+                        <div className="deudores-cliente-icono">
+                          <User size={21} />
+                        </div>
 
-                      <div className="deudores-cliente-datos">
-                        <strong>
-                          {cliente.apellido}, {cliente.nombre}
-                        </strong>
-                        {cliente.apodo && <span>{cliente.apodo}</span>}
-                      </div>
+                        <div className="deudores-cliente-datos">
+                          <strong>
+                            {cliente.apellido}, {cliente.nombre}
+                          </strong>
+                          {cliente.apodo && <span>{cliente.apodo}</span>}
+                          {cliente.telefono && (
+                            <span className="deudores-cliente-telefono">
+                              <Phone size={12} /> {cliente.telefono}
+                            </span>
+                          )}
+                        </div>
 
-                      <div className="deudores-cliente-resumen">
-                        {cliente.deuda_total !== undefined && (
-                          <strong>${dinero(cliente.deuda_total)}</strong>
-                        )}
-                        <span>Ver deudas</span>
-                      </div>
-                    </button>
+                        <div className="deudores-cliente-resumen">
+                          {cliente.deuda_total !== undefined && (
+                            <strong>${dinero(cliente.deuda_total)}</strong>
+                          )}
+                          <span>Ver deudas</span>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="deudores-cliente-editar"
+                        aria-label={`Modificar datos de ${cliente.nombre} ${cliente.apellido}`}
+                        title="Modificar cliente"
+                        onClick={() => setClienteAEditar(cliente)}
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
@@ -513,6 +717,8 @@ export default function ListaDeudores() {
         </div>
 
         {modalExito}
+        {modalDeudaInicial}
+        {modalEditarCliente}
       </>
     );
   }
@@ -545,9 +751,20 @@ export default function ListaDeudores() {
             </div>
           </div>
 
-          <div className="deudores-deuda-total">
-            <span>Deuda actual</span>
-            <strong>${dinero(deudaCliente)}</strong>
+          <div className="deudores-detalle-acciones">
+            <CButton
+              color="light"
+              className="deudores-editar-detalle"
+              onClick={() => setClienteAEditar(clienteSeleccionado)}
+            >
+              <Pencil size={16} />
+              Modificar cliente
+            </CButton>
+
+            <div className="deudores-deuda-total">
+              <span>Deuda actual</span>
+              <strong>${dinero(deudaCliente)}</strong>
+            </div>
           </div>
         </div>
 
@@ -606,7 +823,11 @@ export default function ListaDeudores() {
                           />
 
                           <div className="deudores-venta-info">
-                            <strong>Venta #{venta.id}</strong>
+                            <strong>
+                              {venta.es_saldo_inicial
+                                ? "Deuda anterior"
+                                : `Venta #${venta.id}`}
+                            </strong>
                             <span>{formatearFecha(venta.fecha_venta)}</span>
                           </div>
 
@@ -645,6 +866,12 @@ export default function ListaDeudores() {
                                 {formatearCantidad(detalle)}
                               </span>
                             ))}
+                          </div>
+                        )}
+
+                        {venta.es_saldo_inicial && (
+                          <div className="deudores-concepto-inicial">
+                            {venta.concepto || "Saldo anterior al sistema"}
                           </div>
                         )}
 
@@ -731,6 +958,8 @@ export default function ListaDeudores() {
       </div>
 
       {modalExito}
+      {modalDeudaInicial}
+      {modalEditarCliente}
     </>
   );
 }

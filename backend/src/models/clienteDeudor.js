@@ -58,14 +58,15 @@ async function buscarCliente(texto) {
   }
 }
 // Funcion para crear un nuevo cliente
-async function crearClienteDeudor(nombre, apellido, apodo) {
+async function crearClienteDeudor(nombre, apellido, apodo, telefono) {
   try {
     const query = `
-        INSERT INTO cliente(nombre, apellido, apodo) 
-        VALUES($1, $2, $3)
+        INSERT INTO cliente(nombre, apellido, apodo, telefono)
+        VALUES($1, $2, $3, $4)
         RETURNING *
     `;
-    const valores = [nombre, apellido, apodo];
+    const telefonoNormalizado = String(telefono || "").replace(/\D/g, "") || null;
+    const valores = [nombre, apellido, apodo, telefonoNormalizado];
     
     const resultado = await db.query(query, valores);
     console.log("¡Cliente agregado con éxito!");
@@ -78,9 +79,67 @@ async function crearClienteDeudor(nombre, apellido, apodo) {
   }
 }
 
+async function actualizarTelefono(clienteId, telefono) {
+  const resultado = await db.query(
+    `
+      UPDATE cliente
+      SET telefono = $1
+      WHERE id = $2
+      RETURNING *
+    `,
+    [telefono, clienteId]
+  );
+
+  return resultado.rows[0] || null;
+}
+
+async function actualizarCliente({
+  clienteId,
+  nombre,
+  apellido,
+  apodo,
+  telefono,
+}) {
+  const duplicado = await db.query(
+    `
+      SELECT id
+      FROM cliente
+      WHERE LOWER(TRIM(nombre)) = LOWER($1)
+        AND LOWER(TRIM(apellido)) = LOWER($2)
+        AND id <> $3
+      LIMIT 1
+    `,
+    [nombre, apellido, clienteId]
+  );
+
+  if (duplicado.rowCount > 0) {
+    const error = new Error("El cliente ya existe.");
+    error.code = "CLIENTE_DUPLICADO";
+    throw error;
+  }
+
+  const resultado = await db.query(
+    `
+      UPDATE cliente
+      SET
+        nombre = $1,
+        apellido = $2,
+        apodo = $3,
+        telefono = $4
+      WHERE id = $5
+      RETURNING *
+    `,
+    [nombre, apellido, apodo, telefono, clienteId]
+  );
+
+  return resultado.rows[0] || null;
+}
+
 // Exportamos todas las funciones para que el controlador pueda usarlas
 module.exports = {
   obtener_deudores,
   buscarCliente,
-  crearClienteDeudor
+  crearClienteDeudor,
+  actualizarTelefono,
+  actualizarCliente
 };

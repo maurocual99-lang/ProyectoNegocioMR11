@@ -340,6 +340,32 @@ async function agregarStock(
 }
 
 
+async function agregarStockPorId(
+  producto_id,
+  stock
+) {
+
+  const resultado =
+    await db.query(
+      `
+        UPDATE producto
+        SET
+          stock = stock + $1::numeric,
+          activo = TRUE
+        WHERE id = $2
+        RETURNING *
+      `,
+      [
+        stock,
+        producto_id,
+      ]
+    );
+
+  return resultado.rows[0] || null;
+
+}
+
+
 module.exports = {
   obtener_productos,
   buscarProducto,
@@ -349,4 +375,5 @@ module.exports = {
   eliminarProductoPorId,
   eliminarProducto,
   agregarStock,
+  agregarStockPorId,
 };
