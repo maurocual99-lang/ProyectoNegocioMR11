@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "test": "node --test --test-concurrency=1",
     "prebuild:sidecar": "node -e \"require('fs').mkdirSync('../frontend/src-tauri/binaries', { recursive: true })\"",
     "build:sidecar": "pkg . --targets node24-win-x64 --output ../frontend/src-tauri/binaries/mr11-backend-x86_64-pc-windows-msvc.exe"
   },

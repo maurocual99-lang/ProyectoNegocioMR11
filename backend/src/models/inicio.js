@@ -20,6 +20,7 @@ async function obtenerDatosInicio() {
         COALESCE(SUM(total), 0) AS total
       FROM venta
       WHERE finalizada = TRUE
+        AND COALESCE(es_saldo_inicial, FALSE) = FALSE
         AND fecha_venta >= CURRENT_DATE
         AND fecha_venta < CURRENT_DATE + INTERVAL '1 day';
     `),
@@ -33,6 +34,7 @@ async function obtenerDatosInicio() {
         COALESCE(SUM(total), 0) AS total
       FROM venta
       WHERE finalizada = TRUE
+        AND COALESCE(es_saldo_inicial, FALSE) = FALSE
         AND fecha_venta >= CURRENT_DATE - INTERVAL '1 day'
         AND fecha_venta < CURRENT_DATE;
     `),
@@ -57,10 +59,10 @@ async function obtenerDatosInicio() {
       SELECT
         COUNT(DISTINCT cliente_id)::int AS clientes,
         COUNT(*)::int AS cuentas,
-        COALESCE(SUM(total), 0) AS total
+        COALESCE(SUM(saldo_pendiente), 0) AS total
       FROM venta
       WHERE finalizada = TRUE
-        AND cuenta_pendiente = TRUE
+        AND saldo_pendiente > 0
         AND cliente_id IS NOT NULL;
     `),
 
@@ -84,6 +86,7 @@ async function obtenerDatosInicio() {
           COALESCE(SUM(total), 0) AS total
         FROM venta
         WHERE finalizada = TRUE
+          AND COALESCE(es_saldo_inicial, FALSE) = FALSE
           AND fecha_venta >= CURRENT_DATE - INTERVAL '6 days'
         GROUP BY fecha_venta::date
       )
@@ -106,7 +109,7 @@ async function obtenerDatosInicio() {
         v.id,
         v.fecha_venta,
         v.total,
-        v.cuenta_pendiente,
+        (v.saldo_pendiente > 0) AS cuenta_pendiente,
         v.cliente_id,
         c.nombre,
         c.apellido,
@@ -115,6 +118,7 @@ async function obtenerDatosInicio() {
       LEFT JOIN cliente c
         ON c.id = v.cliente_id
       WHERE v.finalizada = TRUE
+        AND COALESCE(v.es_saldo_inicial, FALSE) = FALSE
       ORDER BY v.fecha_venta DESC
       LIMIT 5;
     `),

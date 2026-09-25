@@ -274,7 +274,8 @@ async function finalizarVenta(
   try {
     const resultado =
       await ventaModel.finalizarVenta(
-        req.params.venta_id
+        req.params.venta_id,
+        req.body?.monto_pagado
       );
 
     res.json(
@@ -452,6 +453,73 @@ async function obtenerHistorial(
   }
 }
 
+async function crearDeudaInicial(
+  req,
+  res
+) {
+  try {
+    const {
+      cliente_id,
+      cliente,
+      monto,
+      concepto,
+      fecha,
+    } = req.body || {};
+
+    const importe = Number(monto);
+
+    if (!Number.isFinite(importe) || importe <= 0) {
+      return res.status(400).json({
+        mensaje: "Ingresá un monto de deuda mayor a cero.",
+      });
+    }
+
+    if (!cliente_id && (!cliente?.nombre?.trim() || !cliente?.apellido?.trim())) {
+      return res.status(400).json({
+        mensaje: "Seleccioná un cliente o completá su nombre y apellido.",
+      });
+    }
+
+    const telefonoNormalizado = String(cliente?.telefono || "").replace(/\D/g, "");
+
+    if (
+      telefonoNormalizado &&
+      (telefonoNormalizado.length < 8 || telefonoNormalizado.length > 15)
+    ) {
+      return res.status(400).json({
+        mensaje: "Ingresá el teléfono completo, con código de país y área.",
+      });
+    }
+
+    if (fecha && !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+      return res.status(400).json({
+        mensaje: "La fecha de la deuda no es válida.",
+      });
+    }
+
+    const deuda = await ventaModel.crearDeudaInicial({
+      cliente_id,
+      cliente: cliente
+        ? { ...cliente, telefono: telefonoNormalizado }
+        : cliente,
+      monto: importe,
+      concepto,
+      fecha,
+    });
+
+    res.status(201).json({
+      mensaje: "Deuda anterior registrada correctamente.",
+      deuda,
+    });
+  } catch (error) {
+    console.error("Error al crear deuda inicial:", error);
+
+    res.status(400).json({
+      mensaje: error.message || "No se pudo registrar la deuda anterior.",
+    });
+  }
+}
+
 async function listarClientesMorosos(
   req,
   res
@@ -582,6 +650,7 @@ module.exports = {
   finalizarVenta,
   obtenerDeudas,
   procesarPago,
+  crearDeudaInicial,
   obtenerHistorial,
   listarClientesMorosos,
   asociarCliente,

@@ -14,12 +14,23 @@ async function obtenerDeudores(req, res) {
 // Crear deudor
 async function crearClienteDeudor(req, res) {
   try {
-    const { nombre, apellido, apodo } = req.body;
+    const { nombre, apellido, apodo, telefono } = req.body;
 
     // Validacion
     if (!nombre || !apellido) {
       return res.status(400).json({
         mensaje: "El nombre y el apellido son obligatorios."
+      });
+    }
+
+    const telefonoNormalizado = String(telefono || "").replace(/\D/g, "");
+
+    if (
+      telefonoNormalizado &&
+      (telefonoNormalizado.length < 8 || telefonoNormalizado.length > 15)
+    ) {
+      return res.status(400).json({
+        mensaje: "Ingresá el teléfono completo, con código de país y área."
       });
     }
 
@@ -46,7 +57,8 @@ async function crearClienteDeudor(req, res) {
     const nuevoCliente = await clienteDeudorModel.crearClienteDeudor(
       nombre,
       apellido,
-      apodo
+      apodo,
+      telefonoNormalizado
     );
 
     res.status(201).json({
@@ -61,6 +73,34 @@ async function crearClienteDeudor(req, res) {
     res.status(500).json({
       mensaje: "Hubo un error al intentar guardar el cliente."
     });
+  }
+}
+async function actualizarTelefono(req, res) {
+  try {
+    const telefono = String(req.body?.telefono || "").replace(/\D/g, "");
+
+    if (telefono.length < 8 || telefono.length > 15) {
+      return res.status(400).json({
+        mensaje: "Ingresá el teléfono completo, con código de país y área.",
+      });
+    }
+
+    const cliente = await clienteDeudorModel.actualizarTelefono(
+      req.params.cliente_id,
+      telefono
+    );
+
+    if (!cliente) {
+      return res.status(404).json({ mensaje: "El cliente no existe." });
+    }
+
+    res.json({
+      mensaje: "Teléfono actualizado correctamente.",
+      cliente,
+    });
+  } catch (error) {
+    console.error("Error al actualizar teléfono:", error);
+    res.status(500).json({ mensaje: "No se pudo actualizar el teléfono." });
   }
 }
 async function buscarClienteDeudor(req, res) {
@@ -92,5 +132,6 @@ async function buscarClienteDeudor(req, res) {
 module.exports = {
   obtenerDeudores,
   crearClienteDeudor,
-  buscarClienteDeudor
+  buscarClienteDeudor,
+  actualizarTelefono
 };

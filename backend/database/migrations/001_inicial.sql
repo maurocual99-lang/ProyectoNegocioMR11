@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS producto (
 
   precio DECIMAL(10,4),
 
-  nombre VARCHAR(20),
+  nombre VARCHAR(120),
 
   activo BOOLEAN
     DEFAULT TRUE,
@@ -152,6 +152,10 @@ CREATE TABLE IF NOT EXISTS venta (
     NOT NULL
     DEFAULT 0,
 
+  monto_pagado_inicial NUMERIC(12,2)
+    NOT NULL
+    DEFAULT 0,
+
   FOREIGN KEY (
     cliente_id
   )
@@ -168,6 +172,13 @@ ALTER TABLE venta
 ADD COLUMN IF NOT EXISTS finalizada
 BOOLEAN NOT NULL
 DEFAULT FALSE;
+
+
+ALTER TABLE venta
+ADD COLUMN IF NOT EXISTS monto_pagado_inicial
+NUMERIC(12,2)
+NOT NULL
+DEFAULT 0;
 
 
 /*

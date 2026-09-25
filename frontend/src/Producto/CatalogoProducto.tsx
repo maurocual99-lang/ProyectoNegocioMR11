@@ -13,6 +13,7 @@ import {
   Box,
   MoveLeft,
   MoveRight,
+  PackagePlus,
   Search,
 } from "lucide-react";
 
@@ -26,6 +27,11 @@ import {
   CFormSelect,
   CInputGroup,
   CInputGroupText,
+  CModal,
+  CModalBody,
+  CModalFooter,
+  CModalHeader,
+  CModalTitle,
   CTable,
   CTableBody,
   CTableDataCell,
@@ -358,6 +364,12 @@ function Catalogo() {
       false
     );
 
+  const [productoStock, setProductoStock] =
+    useState<ProductoCatalogo | null>(null);
+  const [cantidadStock, setCantidadStock] = useState("");
+  const [guardandoStock, setGuardandoStock] = useState(false);
+  const [errorStock, setErrorStock] = useState("");
+
 
   async function cargarProductos() {
 
@@ -469,6 +481,68 @@ function Catalogo() {
 
     }
 
+  }
+
+
+  function abrirAgregarStock(producto: ProductoCatalogo) {
+    setProductoStock(producto);
+    setCantidadStock("");
+    setErrorStock("");
+  }
+
+
+  function cerrarAgregarStock() {
+    if (guardandoStock) return;
+    setProductoStock(null);
+    setCantidadStock("");
+    setErrorStock("");
+  }
+
+
+  async function confirmarAgregarStock() {
+    if (!productoStock) return;
+
+    const cantidad = Number(cantidadStock);
+    if (!Number.isFinite(cantidad) || cantidad <= 0) {
+      setErrorStock("Ingresá una cantidad mayor que cero.");
+      return;
+    }
+
+    if (productoStock.tipo_venta === "UNIDAD" && !Number.isInteger(cantidad)) {
+      setErrorStock("Para productos por unidad ingresá un número entero.");
+      return;
+    }
+
+    try {
+      setGuardandoStock(true);
+      setErrorStock("");
+      const respuesta = await fetch(
+        `${API_URL}/productos/id/${productoStock.id}/stock`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ stock: cantidad }),
+        }
+      );
+      const data = await respuesta.json().catch(() => ({}));
+
+      if (!respuesta.ok) {
+        throw new Error(data?.mensaje || "No se pudo agregar stock.");
+      }
+
+      await cargarProductos();
+      setProductoStock(null);
+      setCantidadStock("");
+      setErrorStock("");
+    } catch (errorCargaStock) {
+      setErrorStock(
+        errorCargaStock instanceof Error
+          ? errorCargaStock.message
+          : "No se pudo agregar stock."
+      );
+    } finally {
+      setGuardandoStock(false);
+    }
   }
 
 
@@ -928,6 +1002,7 @@ function Catalogo() {
 
 
   return (
+    <>
 
     <div
       style={{
@@ -1312,6 +1387,7 @@ function Catalogo() {
                 responsive
                 className="
                   mb-0
+                  catalogo-tabla
                 "
               >
 
@@ -1362,7 +1438,7 @@ function Catalogo() {
                           "default",
                       }}
                     >
-                      Acción
+                      Acciones
                     </CTableHeaderCell>
 
                   </CTableRow>
@@ -1500,6 +1576,7 @@ function Catalogo() {
                                 <CTableDataCell
                                   className="
                                     text-center
+                                    catalogo-nombre-columna
                                   "
                                 >
                                   {
@@ -1583,6 +1660,17 @@ function Catalogo() {
                                       flex-wrap
                                     "
                                   >
+
+                                    <CButton
+                                      color="success"
+                                      variant="outline"
+                                      size="sm"
+                                      className="catalogo-agregar-stock"
+                                      onClick={() => abrirAgregarStock(producto)}
+                                    >
+                                      <PackagePlus size={15} />
+                                      Agregar stock
+                                    </CButton>
 
                                     <ModificarProducto
                                       producto={
@@ -1813,6 +1901,79 @@ function Catalogo() {
       </div>
 
     </div>
+
+      <CModal
+        visible={Boolean(productoStock)}
+        alignment="center"
+        backdrop="static"
+        onClose={cerrarAgregarStock}
+      >
+        <CModalHeader closeButton={!guardandoStock}>
+          <div className="producto-modal-titulo">
+            <span className="producto-modal-icono catalogo-stock-icono">
+              <PackagePlus size={22} />
+            </span>
+            <div>
+              <CModalTitle>Agregar stock</CModalTitle>
+              <small>{productoStock?.nombre}</small>
+            </div>
+          </div>
+        </CModalHeader>
+        <CModalBody>
+          <div className="catalogo-stock-actual">
+            <span>Stock actual</span>
+            <strong>
+              {Number(productoStock?.stock || 0).toLocaleString("es-AR", {
+                maximumFractionDigits: 3,
+              })}
+              {productoStock?.tipo_venta === "PESO" ? " kg" : " unidades"}
+            </strong>
+          </div>
+
+          <CFormLabel htmlFor="cantidad-stock" className="mt-3">
+            {productoStock?.tipo_venta === "PESO"
+              ? "Cantidad que ingresa (kg)"
+              : "Cantidad que ingresa (unidades)"}
+          </CFormLabel>
+          <CInputGroup>
+            <CInputGroupText><PackagePlus size={17} /></CInputGroupText>
+            <CFormInput
+              id="cantidad-stock"
+              type="number"
+              min="0"
+              step={productoStock?.tipo_venta === "PESO" ? "0.001" : "1"}
+              value={cantidadStock}
+              onChange={(e) => setCantidadStock(e.target.value)}
+              placeholder={productoStock?.tipo_venta === "PESO" ? "Ej: 2,5" : "Ej: 12"}
+              autoFocus
+            />
+          </CInputGroup>
+
+          {cantidadStock && Number(cantidadStock) > 0 && (
+            <div className="catalogo-stock-resultado">
+              <span>Nuevo stock</span>
+              <strong>
+                {(Number(productoStock?.stock || 0) + Number(cantidadStock)).toLocaleString("es-AR", {
+                  maximumFractionDigits: 3,
+                })}
+                {productoStock?.tipo_venta === "PESO" ? " kg" : " unidades"}
+              </strong>
+            </div>
+          )}
+
+          {errorStock && <div className="producto-form-error">{errorStock}</div>}
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="light" onClick={cerrarAgregarStock} disabled={guardandoStock}>
+            Cancelar
+          </CButton>
+          <CButton color="success" onClick={() => void confirmarAgregarStock()} disabled={guardandoStock}>
+            <PackagePlus size={17} />
+            {guardandoStock ? "Guardando…" : "Sumar al stock"}
+          </CButton>
+        </CModalFooter>
+      </CModal>
+    </>
 
   );
 

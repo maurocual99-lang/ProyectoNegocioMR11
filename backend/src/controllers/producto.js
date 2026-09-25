@@ -109,6 +109,17 @@ async function crearProducto(
 
     }
 
+    if (
+      nombreLimpio.length > 120
+    ) {
+      return res
+        .status(400)
+        .json({
+          mensaje:
+            "El nombre puede tener hasta 120 caracteres.",
+        });
+    }
+
 
     if (
       ![
@@ -341,6 +352,17 @@ async function modificarProductoPorId(
             "El nombre es obligatorio.",
         });
 
+    }
+
+    if (
+      nombreLimpio.length > 120
+    ) {
+      return res
+        .status(400)
+        .json({
+          mensaje:
+            "El nombre puede tener hasta 120 caracteres.",
+        });
     }
 
 
@@ -725,6 +747,50 @@ async function agregarStock(
 }
 
 
+async function agregarStockPorId(
+  req,
+  res
+) {
+  try {
+    const productoId = Number(req.params.id);
+    const cantidad = Number(req.body.stock);
+
+    if (!Number.isInteger(productoId) || productoId <= 0) {
+      return res.status(400).json({
+        mensaje: "ID de producto inválido.",
+      });
+    }
+
+    if (!Number.isFinite(cantidad) || cantidad <= 0) {
+      return res.status(400).json({
+        mensaje: "Ingresá una cantidad mayor que cero.",
+      });
+    }
+
+    const producto = await productoModel.agregarStockPorId(
+      productoId,
+      cantidad
+    );
+
+    if (!producto) {
+      return res.status(404).json({
+        mensaje: "No se encontró el producto.",
+      });
+    }
+
+    res.json({
+      mensaje: "Stock agregado correctamente.",
+      producto,
+    });
+  } catch (error) {
+    console.error("Error al agregar stock por ID:", error);
+    res.status(500).json({
+      mensaje: "No se pudo agregar stock.",
+    });
+  }
+}
+
+
 module.exports = {
   listar_productos,
   crearProducto,
@@ -732,4 +798,5 @@ module.exports = {
   eliminarProductoPorId,
   eliminarProducto,
   agregarStock,
+  agregarStockPorId,
 };

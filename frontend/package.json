@@ -1,13 +1,14 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.2.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "installer:assets": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generar-recursos-instalador.ps1"
   },
   "dependencies": {
     "@coreui/coreui": "^5.9.0",

@@ -46,6 +46,257 @@ trap {
 }
 
 
+# El instalador NSIS no ofrece una consola interactiva confiable. Los pedidos
+# con Read-Host pueden quedar invisibles, por eso toda decision del usuario se
+# realiza con ventanas de Windows.
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
+function Solicitar-Contrasena {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Titulo,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Mensaje,
+
+        [switch]$Confirmar,
+
+        [switch]$PermitirGenerar
+    )
+
+    $Formulario = New-Object System.Windows.Forms.Form
+    $Formulario.Text = $Titulo
+    $Formulario.StartPosition = 'CenterScreen'
+    $Formulario.ClientSize = New-Object System.Drawing.Size(470, $(if ($Confirmar) { 285 } else { 225 }))
+    $Formulario.FormBorderStyle = 'FixedDialog'
+    $Formulario.MaximizeBox = $false
+    $Formulario.MinimizeBox = $false
+    $Formulario.TopMost = $true
+
+    $EtiquetaMensaje = New-Object System.Windows.Forms.Label
+    $EtiquetaMensaje.Location = New-Object System.Drawing.Point(20, 18)
+    $EtiquetaMensaje.Size = New-Object System.Drawing.Size(430, 48)
+    $EtiquetaMensaje.Text = $Mensaje
+    $Formulario.Controls.Add($EtiquetaMensaje)
+
+    $EtiquetaClave = New-Object System.Windows.Forms.Label
+    $EtiquetaClave.Location = New-Object System.Drawing.Point(20, 73)
+    $EtiquetaClave.AutoSize = $true
+    $EtiquetaClave.Text = 'Contrasena:'
+    $Formulario.Controls.Add($EtiquetaClave)
+
+    $CajaClave = New-Object System.Windows.Forms.TextBox
+    $CajaClave.Location = New-Object System.Drawing.Point(20, 94)
+    $CajaClave.Size = New-Object System.Drawing.Size(430, 23)
+    $CajaClave.UseSystemPasswordChar = $true
+    $Formulario.Controls.Add($CajaClave)
+
+    $CajaConfirmacion = $null
+    if ($Confirmar) {
+        $EtiquetaConfirmacion = New-Object System.Windows.Forms.Label
+        $EtiquetaConfirmacion.Location = New-Object System.Drawing.Point(20, 126)
+        $EtiquetaConfirmacion.AutoSize = $true
+        $EtiquetaConfirmacion.Text = 'Repetir contrasena:'
+        $Formulario.Controls.Add($EtiquetaConfirmacion)
+
+        $CajaConfirmacion = New-Object System.Windows.Forms.TextBox
+        $CajaConfirmacion.Location = New-Object System.Drawing.Point(20, 147)
+        $CajaConfirmacion.Size = New-Object System.Drawing.Size(430, 23)
+        $CajaConfirmacion.UseSystemPasswordChar = $true
+        $Formulario.Controls.Add($CajaConfirmacion)
+    }
+
+    $PosicionOpciones = if ($Confirmar) { 178 } else { 126 }
+    $MostrarClave = New-Object System.Windows.Forms.CheckBox
+    $MostrarClave.Location = New-Object System.Drawing.Point(20, $PosicionOpciones)
+    $MostrarClave.AutoSize = $true
+    $MostrarClave.Text = 'Mostrar contrasena'
+    $MostrarClave.Add_CheckedChanged({
+        $Ocultar = -not $MostrarClave.Checked
+        $CajaClave.UseSystemPasswordChar = $Ocultar
+        if ($null -ne $CajaConfirmacion) {
+            $CajaConfirmacion.UseSystemPasswordChar = $Ocultar
+        }
+    })
+    $Formulario.Controls.Add($MostrarClave)
+
+    if ($PermitirGenerar) {
+        $BotonGenerar = New-Object System.Windows.Forms.Button
+        $BotonGenerar.Location = New-Object System.Drawing.Point(300, $($PosicionOpciones - 4))
+        $BotonGenerar.Size = New-Object System.Drawing.Size(150, 28)
+        $BotonGenerar.Text = 'Generar una segura'
+        $BotonGenerar.Add_Click({
+            $Generada = 'Mr11_' + [guid]::NewGuid().ToString('N') + '_Aa9'
+            $CajaClave.Text = $Generada
+            $CajaConfirmacion.Text = $Generada
+            $MostrarClave.Checked = $true
+        })
+        $Formulario.Controls.Add($BotonGenerar)
+    }
+
+    $EtiquetaError = New-Object System.Windows.Forms.Label
+    $EtiquetaError.Location = New-Object System.Drawing.Point(20, $($PosicionOpciones + 31))
+    $EtiquetaError.Size = New-Object System.Drawing.Size(430, 32)
+    $EtiquetaError.ForeColor = [System.Drawing.Color]::Firebrick
+    $Formulario.Controls.Add($EtiquetaError)
+
+    $BotonAceptar = New-Object System.Windows.Forms.Button
+    $BotonAceptar.Location = New-Object System.Drawing.Point(270, $($PosicionOpciones + 64))
+    $BotonAceptar.Size = New-Object System.Drawing.Size(85, 29)
+    $BotonAceptar.Text = 'Aceptar'
+    $BotonAceptar.Add_Click({
+        if ([string]::IsNullOrWhiteSpace($CajaClave.Text)) {
+            $EtiquetaError.Text = 'La contrasena no puede estar vacia.'
+            return
+        }
+        if ($Confirmar) {
+            if ($CajaClave.Text -ne $CajaConfirmacion.Text) {
+                $EtiquetaError.Text = 'Las contrasenas no coinciden.'
+                return
+            }
+            if ($CajaClave.Text.Length -lt 10 -or $CajaClave.Text -notmatch '[A-Za-z]' -or $CajaClave.Text -notmatch '[0-9]') {
+                $EtiquetaError.Text = 'Use al menos 10 caracteres, con letras y numeros.'
+                return
+            }
+            if ($CajaClave.Text -notmatch '^[A-Za-z0-9_-]+$') {
+                $EtiquetaError.Text = 'Use solamente letras, numeros, guion y guion bajo.'
+                return
+            }
+        }
+        $Formulario.Tag = $CajaClave.Text
+        $Formulario.DialogResult = [System.Windows.Forms.DialogResult]::OK
+        $Formulario.Close()
+    })
+    $Formulario.Controls.Add($BotonAceptar)
+
+    $BotonCancelar = New-Object System.Windows.Forms.Button
+    $BotonCancelar.Location = New-Object System.Drawing.Point(365, $($PosicionOpciones + 64))
+    $BotonCancelar.Size = New-Object System.Drawing.Size(85, 29)
+    $BotonCancelar.Text = 'Cancelar'
+    $BotonCancelar.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $Formulario.Controls.Add($BotonCancelar)
+
+    $Formulario.AcceptButton = $BotonAceptar
+    $Formulario.CancelButton = $BotonCancelar
+    $Formulario.Add_Shown({ $Formulario.Activate(); $CajaClave.Focus() })
+
+    $ResultadoDialogo = $Formulario.ShowDialog()
+    if ($ResultadoDialogo -ne [System.Windows.Forms.DialogResult]::OK) {
+        throw 'La configuracion de PostgreSQL fue cancelada por el usuario.'
+    }
+
+    return [string]$Formulario.Tag
+}
+
+function Seleccionar-ServicioPostgres {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object[]]$Servicios
+    )
+
+    $Formulario = New-Object System.Windows.Forms.Form
+    $Formulario.Text = 'MR11 - Seleccionar PostgreSQL'
+    $Formulario.StartPosition = 'CenterScreen'
+    $Formulario.ClientSize = New-Object System.Drawing.Size(470, 185)
+    $Formulario.FormBorderStyle = 'FixedDialog'
+    $Formulario.MaximizeBox = $false
+    $Formulario.MinimizeBox = $false
+    $Formulario.TopMost = $true
+
+    $Etiqueta = New-Object System.Windows.Forms.Label
+    $Etiqueta.Location = New-Object System.Drawing.Point(20, 18)
+    $Etiqueta.Size = New-Object System.Drawing.Size(430, 44)
+    $Etiqueta.Text = 'Se encontraron varias instalaciones. Seleccione la que contiene la base mr11 con sus datos.'
+    $Formulario.Controls.Add($Etiqueta)
+
+    $Lista = New-Object System.Windows.Forms.ComboBox
+    $Lista.Location = New-Object System.Drawing.Point(20, 72)
+    $Lista.Size = New-Object System.Drawing.Size(430, 24)
+    $Lista.DropDownStyle = 'DropDownList'
+    foreach ($ServicioDisponible in $Servicios) {
+        [void]$Lista.Items.Add($ServicioDisponible.Name)
+    }
+    $Lista.SelectedIndex = 0
+    $Formulario.Controls.Add($Lista)
+
+    $BotonAceptar = New-Object System.Windows.Forms.Button
+    $BotonAceptar.Location = New-Object System.Drawing.Point(270, 125)
+    $BotonAceptar.Size = New-Object System.Drawing.Size(85, 29)
+    $BotonAceptar.Text = 'Aceptar'
+    $BotonAceptar.Add_Click({
+        $Formulario.Tag = [string]$Lista.SelectedItem
+        $Formulario.DialogResult = [System.Windows.Forms.DialogResult]::OK
+        $Formulario.Close()
+    })
+    $Formulario.Controls.Add($BotonAceptar)
+
+    $BotonCancelar = New-Object System.Windows.Forms.Button
+    $BotonCancelar.Location = New-Object System.Drawing.Point(365, 125)
+    $BotonCancelar.Size = New-Object System.Drawing.Size(85, 29)
+    $BotonCancelar.Text = 'Cancelar'
+    $BotonCancelar.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $Formulario.Controls.Add($BotonCancelar)
+
+    $Formulario.AcceptButton = $BotonAceptar
+    $Formulario.CancelButton = $BotonCancelar
+    $Formulario.Add_Shown({ $Formulario.Activate() })
+
+    if ($Formulario.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) {
+        throw 'La seleccion de PostgreSQL fue cancelada por el usuario.'
+    }
+
+    return [string]$Formulario.Tag
+}
+
+function Restablecer-ContrasenaServicioMr11 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PsqlPath,
+
+        [Parameter(Mandatory = $true)]
+        [string]$NuevaContrasena
+    )
+
+    # Esta recuperacion solo se usa para la instancia aislada que creo MR11.
+    # Se habilita acceso local sin clave durante unos segundos, se cambia la
+    # clave y se restaura pg_hba.conf byte por byte aun cuando algo falle.
+    $PgHbaPath = Join-Path $DataDir 'pg_hba.conf'
+    if (-not (Test-Path $PgHbaPath)) {
+        throw "Falta $PgHbaPath; no se puede recuperar la instalacion parcial."
+    }
+
+    $PgHbaOriginal = [System.IO.File]::ReadAllBytes($PgHbaPath)
+    $ReglasTemporales = [System.Text.UTF8Encoding]::new($false).GetBytes(
+        "host all all 127.0.0.1/32 trust`r`nhost all all ::1/128 trust`r`n"
+    )
+    $PgHbaTemporal = New-Object byte[] ($ReglasTemporales.Length + $PgHbaOriginal.Length)
+    [System.Array]::Copy($ReglasTemporales, 0, $PgHbaTemporal, 0, $ReglasTemporales.Length)
+    [System.Array]::Copy($PgHbaOriginal, 0, $PgHbaTemporal, $ReglasTemporales.Length, $PgHbaOriginal.Length)
+
+    $CambioAplicado = $false
+    try {
+        [System.IO.File]::WriteAllBytes($PgHbaPath, $PgHbaTemporal)
+        Restart-Service -Name $ServiceName -Force
+
+        Remove-Item Env:\PGPASSWORD -ErrorAction SilentlyContinue
+        "ALTER ROLE $DatabaseUser WITH PASSWORD '$NuevaContrasena';" |
+            & $PsqlPath -X -q -w -h 127.0.0.1 -p $Port -U $DatabaseUser -d postgres -v ON_ERROR_STOP=1
+        if ($LASTEXITCODE -ne 0) {
+            throw 'PostgreSQL no permitio establecer la nueva contrasena.'
+        }
+        $CambioAplicado = $true
+    } finally {
+        [System.IO.File]::WriteAllBytes($PgHbaPath, $PgHbaOriginal)
+        Restart-Service -Name $ServiceName -Force
+    }
+
+    if (-not $CambioAplicado) {
+        throw 'No se pudo restablecer la contrasena de la instalacion parcial.'
+    }
+}
+
+
 Write-Host "Configurando PostgreSQL para MR11..."
 
 
@@ -105,9 +356,7 @@ if ($null -eq $Servicio) {
         }
     }
     if ($ServiciosExistentes.Count -gt 1 -and -not $SeleccionPorPuerto) {
-        Write-Host 'Se encontraron varias instalaciones de PostgreSQL:'
-        $ServiciosExistentes | ForEach-Object { Write-Host " - $($_.Name)" }
-        $NombreElegido = Read-Host 'Nombre del servicio que contiene la base mr11 con datos'
+        $NombreElegido = Seleccionar-ServicioPostgres -Servicios $ServiciosExistentes
         $PostgresExistente = $ServiciosExistentes |
             Where-Object { $_.Name -eq $NombreElegido } |
             Select-Object -First 1
@@ -153,9 +402,9 @@ if ($null -eq $Servicio) {
             if ($Intento -lt $Candidatos.Count) {
                 $Candidato = $Candidatos[$Intento]
             } else {
-                Write-Host "PostgreSQL $VersionExistente ya esta instalado. MR11 usara esa instancia."
-                $ClaveSegura = Read-Host 'Contrasena del usuario postgres' -AsSecureString
-                $Candidato = [System.Net.NetworkCredential]::new('', $ClaveSegura).Password
+                $Candidato = Solicitar-Contrasena `
+                    -Titulo 'MR11 - PostgreSQL existente' `
+                    -Mensaje "PostgreSQL $VersionExistente ya esta instalado. Ingrese la contrasena actual del usuario postgres para que MR11 pueda usarlo."
             }
             if (-not $Candidato) {
                 continue
@@ -264,7 +513,19 @@ if ($null -ne $Servicio) {
         Remove-Item Env:\PGPASSWORD -ErrorAction SilentlyContinue
 
         if (-not $Password) {
-            throw "El servicio existe, pero falta $EnvPath y no se pudo recuperar la clave del registro local de PostgreSQL. No borre el servicio ni los datos."
+            if ($ServiceName -ne 'postgresql-mr11') {
+                throw "El servicio existe, pero falta $EnvPath y no se pudo recuperar la clave del registro local de PostgreSQL. No borre el servicio ni los datos."
+            }
+
+            $Etapa = 'restablecer contrasena de instalacion parcial'
+            $Password = Solicitar-Contrasena `
+                -Titulo 'MR11 - Recuperar instalacion' `
+                -Mensaje 'Se encontro una instalacion anterior incompleta. Elija una contrasena nueva para recuperarla sin borrar la base de datos.' `
+                -Confirmar `
+                -PermitirGenerar
+            Restablecer-ContrasenaServicioMr11 `
+                -PsqlPath $PsqlRecuperacion `
+                -NuevaContrasena $Password
         }
 
         $ContenidoEnv = @"
@@ -308,7 +569,11 @@ if ($null -eq $Servicio) {
         }
         $Password = $PasswordLine.Substring('DB_PASSWORD='.Length)
     } else {
-        $Password = "Mr11_" + [guid]::NewGuid().ToString("N") + "_Aa9!"
+        $Password = Solicitar-Contrasena `
+            -Titulo 'MR11 - Crear contrasena de PostgreSQL' `
+            -Mensaje 'Elija una contrasena para la base de datos de MR11. Guardela: tambien servira para conectarse con pgAdmin.' `
+            -Confirmar `
+            -PermitirGenerar
     }
 
     # Guardar la clave antes de instalar permite continuar si el instalador
@@ -358,6 +623,7 @@ $InstallerArguments = @(
 $InstallerProcess = Start-Process `
     -FilePath $InstallerPath `
     -ArgumentList $InstallerArguments `
+    -WindowStyle Hidden `
     -PassThru
 
 $InstallerProcess.WaitForExit()

@@ -36,6 +36,12 @@ router.put(
 );
 
 
+router.put(
+  "/id/:id/stock",
+  productoController.agregarStockPorId
+);
+
+
 /*
  * Eliminar por ID.
  * También funciona con productos sin código.

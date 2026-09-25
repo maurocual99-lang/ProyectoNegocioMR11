@@ -823,7 +823,8 @@ async function eliminarProductoDeVenta(
 }
 
 async function finalizarVenta(
-  venta_id
+  venta_id,
+  monto_pagado
 ) {
   const client =
     await db.connect();
@@ -841,7 +842,8 @@ async function finalizarVenta(
             total,
             cliente_id,
             cuenta_pendiente,
-            finalizada
+            finalizada,
+            monto_pagado_inicial
           FROM venta
           WHERE
             id = $1
@@ -867,6 +869,37 @@ async function finalizarVenta(
       throw new Error(
         "La venta ya fue finalizada."
       );
+    }
+
+    const totalVenta = Number(venta.total);
+    let pagadoInicial = totalVenta;
+    let saldoPendiente = 0;
+
+    if (venta.cuenta_pendiente) {
+      if (!venta.cliente_id) {
+        throw new Error(
+          "Seleccioná el cliente al que se le dejará la deuda."
+        );
+      }
+
+      pagadoInicial =
+        monto_pagado === undefined || monto_pagado === null || monto_pagado === ""
+          ? 0
+          : Number(monto_pagado);
+
+      if (
+        !Number.isFinite(pagadoInicial) ||
+        pagadoInicial < 0 ||
+        pagadoInicial > totalVenta
+      ) {
+        throw new Error(
+          "El monto pagado debe estar entre cero y el total de la venta."
+        );
+      }
+
+      pagadoInicial = Math.round(pagadoInicial * 100) / 100;
+      saldoPendiente =
+        Math.round((totalVenta - pagadoInicial) * 100) / 100;
     }
 
     const detalleResult =
@@ -939,21 +972,19 @@ async function finalizarVenta(
         SET
           finalizada = TRUE,
 
-          saldo_pendiente =
-            CASE
-              WHEN
-                cuenta_pendiente = TRUE
-              THEN
-                total
-              ELSE
-                0
-            END
+          monto_pagado_inicial = $2::numeric,
+
+          saldo_pendiente = $3::numeric,
+
+          cuenta_pendiente = ($3::numeric > 0)
 
         WHERE
           id = $1
       `,
       [
         venta_id,
+        pagadoInicial,
+        saldoPendiente,
       ]
     );
 
@@ -988,6 +1019,8 @@ async function obtenerDeudasPorCliente(
           v.fecha_venta,
           v.total,
           v.saldo_pendiente,
+          v.es_saldo_inicial,
+          v.concepto,
 
           (
             v.total -
@@ -1441,6 +1474,117 @@ async function obtenerHistorialCliente(
   );
 }
 
+async function crearDeudaInicial({
+  cliente_id,
+  cliente,
+  monto,
+  concepto,
+  fecha,
+}) {
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    let clienteId = cliente_id ? Number(cliente_id) : null;
+
+    if (clienteId) {
+      const clienteResult = await client.query(
+        "SELECT id FROM cliente WHERE id = $1",
+        [clienteId]
+      );
+
+      if (clienteResult.rowCount === 0) {
+        throw new Error("El cliente seleccionado no existe.");
+      }
+    } else {
+      const nombre = String(cliente.nombre).trim();
+      const apellido = String(cliente.apellido).trim();
+      const apodo = String(cliente.apodo || "").trim() || null;
+      const telefono = String(cliente.telefono || "").replace(/\D/g, "") || null;
+
+      const existenteResult = await client.query(
+        `
+          SELECT id
+          FROM cliente
+          WHERE LOWER(TRIM(nombre)) = LOWER($1)
+            AND LOWER(TRIM(apellido)) = LOWER($2)
+          LIMIT 1
+        `,
+        [nombre, apellido]
+      );
+
+      if (existenteResult.rowCount > 0) {
+        clienteId = existenteResult.rows[0].id;
+      } else {
+        const nuevoClienteResult = await client.query(
+          `
+            INSERT INTO cliente (nombre, apellido, apodo, telefono)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id
+          `,
+          [nombre, apellido, apodo, telefono]
+        );
+
+        clienteId = nuevoClienteResult.rows[0].id;
+      }
+    }
+
+    const conceptoLimpio =
+      String(concepto || "").trim() || "Saldo anterior al sistema";
+
+    const deudaResult = await client.query(
+      `
+        INSERT INTO venta (
+          fecha_venta,
+          cuenta_pendiente,
+          total,
+          cliente_id,
+          finalizada,
+          saldo_pendiente,
+          monto_pagado_inicial,
+          es_saldo_inicial,
+          concepto
+        )
+        VALUES (
+          COALESCE($1::date, CURRENT_DATE) + TIME '12:00',
+          TRUE,
+          $2::numeric,
+          $3,
+          TRUE,
+          $2::numeric,
+          0,
+          TRUE,
+          $4
+        )
+        RETURNING
+          id,
+          fecha_venta,
+          total,
+          saldo_pendiente,
+          cliente_id,
+          concepto,
+          es_saldo_inicial
+      `,
+      [fecha || null, monto, clienteId, conceptoLimpio.slice(0, 160)]
+    );
+
+    await client.query("COMMIT");
+
+    const deuda = deudaResult.rows[0];
+    return {
+      ...deuda,
+      total: Number(deuda.total),
+      saldo_pendiente: Number(deuda.saldo_pendiente),
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function obtenerClientesConDeuda() {
   const resultado =
     await db.query(
@@ -1450,6 +1594,7 @@ async function obtenerClientesConDeuda() {
           c.nombre,
           c.apellido,
           c.apodo,
+          c.telefono,
 
           COUNT(
             v.id
@@ -1477,7 +1622,8 @@ async function obtenerClientesConDeuda() {
           c.id,
           c.nombre,
           c.apellido,
-          c.apodo
+          c.apodo,
+          c.telefono
 
         ORDER BY
           c.apellido ASC,
@@ -1575,6 +1721,7 @@ module.exports = {
   finalizarVenta,
   obtenerDeudasPorCliente,
   registrarPago,
+  crearDeudaInicial,
   obtenerHistorialCliente,
   obtenerClientesConDeuda,
   asociarCliente,

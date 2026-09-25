@@ -2,7 +2,11 @@
 
     DetailPrint "Configurando base de datos de MR11..."
 
-    ExecWait '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\resources\configurar-postgres.ps1" -InstallerPath "$INSTDIR\resources\postgresql-installer.exe"' $0
+    ; nsExec ejecuta procesos de consola sin abrir la ventana negra. Las ventanas
+    ; graficas creadas por el script (contrasena y seleccion) siguen visibles.
+    nsExec::ExecToStack '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "$INSTDIR\resources\configurar-postgres.ps1" -InstallerPath "$INSTDIR\resources\postgresql-installer.exe"'
+    Pop $0
+    Pop $1
 
     ${If} $0 != 0
 

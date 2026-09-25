@@ -39,6 +39,11 @@ router.put(
 );
 
 router.post(
+  "/deuda-inicial",
+  ventaController.crearDeudaInicial
+);
+
+router.post(
   "/:venta_id/productos-peso",
   ventaController.agregarProductoPeso
 );

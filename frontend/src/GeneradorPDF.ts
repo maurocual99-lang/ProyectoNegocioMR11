@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { autoTable } from "jspdf-autotable";
+import logoMr11 from "../imagenes/ChatGPT Image 20 jul 2026, 11_47_32.png";
 
 export interface ClienteComprobantePDF {
   id: number;
@@ -24,7 +25,15 @@ export interface VentaComprobantePDF {
   total: number | string;
   saldo_antes?: number | string;
   monto_pagado?: number | string;
+  es_saldo_inicial?: boolean;
+  concepto?: string | null;
   detalles?: DetalleVentaComprobantePDF[];
+}
+
+export interface ResumenPagoComprobantePDF {
+  deudaAntes: number | string;
+  totalPagado: number | string;
+  saldoDespues: number | string;
 }
 
 export interface DetalleComprobanteVentaPDF {
@@ -115,6 +124,57 @@ function descargar(doc: jsPDF, nombreArchivo: string) {
   }, 1500);
 }
 
+function cargarLogo(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const imagen = new Image();
+
+    imagen.onload = () => {
+      try {
+        const lienzo = document.createElement("canvas");
+        lienzo.width = imagen.naturalWidth;
+        lienzo.height = imagen.naturalHeight;
+        const contexto = lienzo.getContext("2d");
+
+        if (!contexto) {
+          resolve(null);
+          return;
+        }
+
+        contexto.drawImage(imagen, 0, 0);
+        resolve(lienzo.toDataURL("image/png"));
+      } catch (error) {
+        console.warn("No se pudo preparar el logo para el PDF:", error);
+        resolve(null);
+      }
+    };
+
+    imagen.onerror = () => resolve(null);
+    imagen.src = logoMr11;
+  });
+}
+
+function tarjetaResumen(
+  doc: jsPDF,
+  x: number,
+  y: number,
+  ancho: number,
+  etiqueta: string,
+  valor: number | string,
+  colorFondo: [number, number, number],
+  colorTexto: [number, number, number]
+) {
+  doc.setFillColor(...colorFondo);
+  doc.roundedRect(x, y, ancho, 25, 2.5, 2.5, "F");
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(71, 85, 105);
+  doc.text(etiqueta, x + 5, y + 8);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(...colorTexto);
+  doc.text(`$ ${dinero(valor)}`, x + 5, y + 18);
+}
+
 function encabezado(
   doc: jsPDF,
   titulo: string,
@@ -174,7 +234,8 @@ function pie(doc: jsPDF, texto: string) {
 
 export async function generarComprobantePagoPDF(
   cliente: ClienteComprobantePDF,
-  ventas: VentaComprobantePDF[]
+  ventas: VentaComprobantePDF[],
+  resumen?: ResumenPagoComprobantePDF
 ): Promise<void> {
   if (!cliente || ventas.length === 0) {
     throw new Error(
@@ -183,12 +244,7 @@ export async function generarComprobantePagoPDF(
   }
 
   const doc = new jsPDF();
-
-  encabezado(
-    doc,
-    "COMPROBANTE DE PAGO",
-    "Cuenta corriente / pago total o parcial"
-  );
+  const logo = await cargarLogo();
 
   const totalPagado = ventas.reduce(
     (acumulado, venta) =>
@@ -201,128 +257,192 @@ export async function generarComprobantePagoPDF(
     0
   );
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.text("Cliente", 14, 43);
+  const deudaAntes = Number(
+    resumen?.deudaAntes ??
+      ventas.reduce(
+        (acumulado, venta) => acumulado + Number(venta.saldo_antes ?? venta.total),
+        0
+      )
+  );
+  const saldoDespues = Number(
+    resumen?.saldoDespues ?? Math.max(deudaAntes - totalPagado, 0)
+  );
+  const ahora = new Date();
 
-  doc.setFont("helvetica", "normal");
-  doc.text(`${cliente.apellido}, ${cliente.nombre}`, 14, 50);
+  doc.setFillColor(14, 165, 166);
+  doc.rect(0, 0, 210, 3, "F");
 
-  if (cliente.apodo) {
-    doc.setTextColor(100, 116, 139);
-    doc.setFontSize(8.5);
-    doc.text(`Apodo: ${cliente.apodo}`, 14, 56);
-    doc.setTextColor(15, 23, 42);
+  if (logo) {
+    doc.addImage(logo, "PNG", 14, 8, 21, 24);
   }
 
+  doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.text("Total abonado", 196, 43, { align: "right" });
+  doc.setFontSize(15);
+  doc.text("MINIMERCADO RUTA 11", logo ? 42 : 14, 16);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text("Comprobante de cuenta corriente", logo ? 42 : 14, 23);
 
-  doc.setTextColor(22, 163, 74);
-  doc.setFontSize(16);
-  doc.text(`$ ${dinero(totalPagado)}`, 196, 51, {
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(15, 23, 42);
+  doc.text("COMPROBANTE DE PAGO", 196, 15, { align: "right" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`${fechaArgentina(ahora)} · ${horaArgentina(ahora)}`, 196, 22, {
     align: "right",
   });
+
+  doc.setDrawColor(203, 213, 225);
+  doc.line(14, 36, 196, 36);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text("CLIENTE", 14, 44);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
   doc.setTextColor(15, 23, 42);
+  doc.text(`${cliente.apellido}, ${cliente.nombre}`, 14, 51);
+  if (cliente.apodo) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Apodo: ${cliente.apodo}`, 14, 57);
+  }
 
-  autoTable(doc, {
-    startY: 64,
-    head: [["Venta", "Fecha", "Importe original", "Saldo previo", "Pago"]],
-    body: ventas.map((venta) => [
-      `#${venta.id}`,
-      fechaArgentina(venta.fecha_venta),
-      `$ ${dinero(venta.total)}`,
-      venta.saldo_antes !== undefined
-        ? `$ ${dinero(venta.saldo_antes)}`
-        : "-",
-      `$ ${dinero(
-        venta.monto_pagado !== undefined
-          ? venta.monto_pagado
-          : venta.total
-      )}`,
-    ]),
-    styles: {
-      font: "helvetica",
-      fontSize: 8.5,
-      cellPadding: 3,
-    },
-    headStyles: {
-      fillColor: [37, 99, 235],
-      textColor: [255, 255, 255],
-    },
-    columnStyles: {
-      0: { cellWidth: 22 },
-      1: { cellWidth: 30 },
-      2: { halign: "right" },
-      3: { halign: "right" },
-      4: { halign: "right" },
-    },
-  });
+  tarjetaResumen(doc, 14, 65, 57, "DEUDA ANTES", deudaAntes, [248, 250, 252], [51, 65, 85]);
+  tarjetaResumen(doc, 76.5, 65, 57, "PAGÓ HOY", resumen?.totalPagado ?? totalPagado, [240, 253, 244], [21, 128, 61]);
+  tarjetaResumen(doc, 139, 65, 57, "FALTA PAGAR", saldoDespues, [255, 247, 237], [194, 65, 12]);
 
-  let y = ((doc as any).lastAutoTable?.finalY ?? 64) + 10;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text("Detalle de lo abonado", 14, 102);
+
+  let y = 109;
 
   for (const venta of ventas) {
-    if (!venta.detalles || venta.detalles.length === 0) {
-      continue;
-    }
-
-    if (y > 235) {
+    if (y > 230) {
       doc.addPage();
       y = 20;
     }
 
+    const montoPagado = Number(venta.monto_pagado ?? venta.total);
+    const saldoAntesVenta = Number(venta.saldo_antes ?? venta.total);
+    const saldoDespuesVenta = Math.max(saldoAntesVenta - montoPagado, 0);
+
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(14, y, 182, 15, 2, 2, "F");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.text(`Detalle de venta #${venta.id}`, 14, y);
+    doc.setFontSize(9.5);
+    doc.setTextColor(30, 41, 59);
+    doc.text(
+      venta.es_saldo_inicial ? "Deuda anterior" : `Compra #${venta.id}`,
+      19,
+      y + 9.5
+    );
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(fechaArgentina(venta.fecha_venta), 191, y + 9.5, { align: "right" });
+
+    y += 19;
+
+    if (venta.detalles && venta.detalles.length > 0) {
+      autoTable(doc, {
+        startY: y,
+        head: [["Producto", "Cantidad", "Precio unitario", "Subtotal"]],
+        body: venta.detalles.map((detalle) => [
+          detalle.producto_nombre,
+          cantidadTexto(detalle.cantidad, detalle.tipo_venta),
+          `$ ${dinero(detalle.precio_unitario)}`,
+          `$ ${dinero(detalle.subtotal)}`,
+        ]),
+        margin: { left: 14, right: 14, bottom: 22 },
+        styles: {
+          font: "helvetica",
+          fontSize: 9,
+          cellPadding: 3,
+          textColor: [51, 65, 85],
+          lineColor: [226, 232, 240],
+          lineWidth: 0.15,
+        },
+        headStyles: {
+          fillColor: [241, 245, 249],
+          textColor: [51, 65, 85],
+          fontStyle: "bold",
+        },
+        alternateRowStyles: { fillColor: [252, 252, 253] },
+        columnStyles: {
+          0: { cellWidth: 82 },
+          1: { halign: "center", cellWidth: 28 },
+          2: { halign: "right", cellWidth: 36 },
+          3: { halign: "right", cellWidth: 36 },
+        },
+      });
+      y = ((doc as any).lastAutoTable?.finalY ?? y + 15) + 4;
+    } else {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      const lineas = doc.splitTextToSize(
+        venta.concepto || "Saldo anterior al sistema",
+        172
+      );
+      doc.text(lineas, 19, y + 2);
+      y += Math.max(12, lineas.length * 5 + 5);
+    }
 
     autoTable(doc, {
-      startY: y + 4,
-      head: [["Producto", "Cantidad", "Precio", "Subtotal"]],
-      body: venta.detalles.map((detalle) => [
-        detalle.producto_nombre,
-        cantidadTexto(detalle.cantidad, detalle.tipo_venta),
-        `$ ${dinero(detalle.precio_unitario)}`,
-        `$ ${dinero(detalle.subtotal)}`,
-      ]),
+      startY: y,
+      body: [[
+        `Total compra\n$ ${dinero(venta.total)}`,
+        `Saldo anterior\n$ ${dinero(saldoAntesVenta)}`,
+        `Pagó\n$ ${dinero(montoPagado)}`,
+        `Queda\n$ ${dinero(saldoDespuesVenta)}`,
+      ]],
+      margin: { left: 14, right: 14, bottom: 22 },
+      theme: "plain",
       styles: {
         font: "helvetica",
-        fontSize: 7.5,
-        cellPadding: 2.5,
-      },
-      headStyles: {
-        fillColor: [241, 245, 249],
-        textColor: [30, 41, 59],
+        fontSize: 8.5,
+        cellPadding: 3.5,
+        fillColor: [248, 250, 252],
+        textColor: [51, 65, 85],
+        lineColor: [226, 232, 240],
+        lineWidth: 0.15,
       },
       columnStyles: {
-        1: { halign: "center", cellWidth: 28 },
-        2: { halign: "right", cellWidth: 34 },
-        3: { halign: "right", cellWidth: 34 },
+        0: { halign: "left" },
+        1: { halign: "right" },
+        2: { halign: "right", textColor: [21, 128, 61], fontStyle: "bold" },
+        3: { halign: "right", textColor: [194, 65, 12], fontStyle: "bold" },
       },
     });
 
-    y = ((doc as any).lastAutoTable?.finalY ?? y + 15) + 8;
+    y = ((doc as any).lastAutoTable?.finalY ?? y + 16) + 9;
   }
 
-  if (y > 245) {
+  if (y > 255) {
     doc.addPage();
     y = 30;
   }
 
-  doc.setFillColor(240, 253, 244);
-  doc.roundedRect(14, y, 182, 25, 3, 3, "F");
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(
+    saldoDespues > 0
+      ? `Después de este pago queda un saldo pendiente de $ ${dinero(saldoDespues)}.`
+      : "La cuenta quedó saldada con este pago.",
+    14,
+    y
+  );
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(22, 101, 52);
-  doc.text("TOTAL PAGADO", 20, y + 10);
-
-  doc.setFontSize(16);
-  doc.text(`$ ${dinero(totalPagado)}`, 190, y + 11, {
-    align: "right",
-  });
-
-  doc.setTextColor(15, 23, 42);
   pie(doc, "Mini Mercado Ruta 11 - Comprobante de pago");
 
   const fechaArchivo = new Date().toISOString().slice(0, 10);

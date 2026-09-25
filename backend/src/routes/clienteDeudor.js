@@ -12,4 +12,7 @@ router.get("/buscarDeudor", clienteDeudorController.buscarClienteDeudor);
 // Crear un nuevo cliente
 router.post("/", clienteDeudorController.crearClienteDeudor);
 
+// Guardar o corregir el teléfono usado para WhatsApp
+router.put("/:cliente_id/telefono", clienteDeudorController.actualizarTelefono);
+
 module.exports = router;

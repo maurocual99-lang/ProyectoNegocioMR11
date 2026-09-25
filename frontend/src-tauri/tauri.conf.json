@@ -3,7 +3,7 @@
 
   "productName": "MR11",
 
-  "version": "0.1.1",
+  "version": "0.2.4",
 
   "identifier": "com.mr11.proyectonegocio",
 
@@ -62,6 +62,14 @@
     "windows": {
       "nsis": {
         "installMode": "perMachine",
+        "languages": [
+          "Spanish"
+        ],
+        "headerImage": "./installer-assets/header.bmp",
+        "sidebarImage": "./installer-assets/sidebar.bmp",
+        "installerIcon": "./icons/icon.ico",
+        "uninstallerIcon": "./icons/icon.ico",
+        "startMenuFolder": "MR11",
         "installerHooks": "./windows/hooks.nsh"
       }
     }

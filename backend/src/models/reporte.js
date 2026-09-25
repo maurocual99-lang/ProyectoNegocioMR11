@@ -94,6 +94,9 @@ async function obtenerReporteMensual(
     v.finalizada = TRUE
 
     AND
+    COALESCE(v.es_saldo_inicial, FALSE) = FALSE
+
+    AND
     v.fecha_venta >=
       make_date(
         $1::int,
@@ -178,23 +181,12 @@ async function obtenerReporteMensual(
 
        Hay dos formas de ingresar dinero:
 
-       A) Venta cobrada en el momento.
+       A) Importe cobrado al vender, sea total o parcial.
        B) Pago de una deuda.
 
-       PROBLEMA DEL CÓDIGO ANTERIOR:
-       cuenta_pendiente cambia a FALSE cuando una deuda queda
-       totalmente pagada. Por eso una venta a cuenta podía
-       terminar contándose después como "venta de contado" y,
-       además, sumar también su pago: se duplicaba caja.
-
-       SOLUCIÓN:
-       Consideramos venta de contado solamente una venta
-       sin saldo pendiente y SIN aplicaciones de pago
-       registradas en pago_venta.
-
-       Una venta que alguna vez fue deuda y fue pagada tiene
-       registros en pago_venta, así que no se vuelve a sumar
-       como venta de contado.
+       monto_pagado_inicial conserva exactamente lo que entró en caja
+       al finalizar la venta. Los pagos posteriores se registran en pago,
+       con su propia fecha, para no duplicar ni anticipar ingresos.
     ===================================================== */
 
     const cajaResult =
@@ -203,19 +195,25 @@ async function obtenerReporteMensual(
           SELECT
 
             /* -------------------------------------------
-               VENTAS COBRADAS DIRECTAMENTE EN EL MES
+               COBROS RECIBIDOS AL MOMENTO DE VENDER
             ------------------------------------------- */
             COALESCE(
               (
                 SELECT
                   SUM(
-                    v.total
+                    COALESCE(
+                      v.monto_pagado_inicial,
+                      0
+                    )
                   )
 
                 FROM venta v
 
                 WHERE
                   v.finalizada = TRUE
+
+                  AND
+                  COALESCE(v.es_saldo_inicial, FALSE) = FALSE
 
                   AND
                   v.fecha_venta >=
@@ -237,23 +235,6 @@ async function obtenerReporteMensual(
                       INTERVAL '1 month'
                     )
 
-                  AND
-                  COALESCE(
-                    v.saldo_pendiente,
-                    0
-                  ) = 0
-
-                  AND
-                  NOT EXISTS (
-                    SELECT
-                      1
-
-                    FROM pago_venta pv
-
-                    WHERE
-                      pv.venta_id =
-                      v.id
-                  )
               ),
               0
             )
@@ -696,6 +677,9 @@ async function obtenerReporteMensual(
 
           WHERE
             finalizada = TRUE
+
+            AND
+            COALESCE(es_saldo_inicial, FALSE) = FALSE
 
           ORDER BY
             anio DESC;

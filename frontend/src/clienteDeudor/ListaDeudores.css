@@ -88,6 +88,30 @@
   text-align: center;
 }
 
+.deudores-header-acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.deudores-cargar-inicial {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.deudores-mensaje-exito {
+  margin: 10px 0;
+  padding: 9px 11px;
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 9px;
+  font-size: 0.84rem;
+}
+
 .deudores-clientes-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
@@ -352,6 +376,120 @@
   font-size: 0.69rem;
 }
 
+.deudores-cliente-datos .deudores-cliente-telefono {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #15803d;
+}
+
+.deudores-concepto-inicial {
+  margin-top: 9px;
+  padding: 8px 10px;
+  color: #475569;
+  background: #fff7ed;
+  border-left: 3px solid #fb923c;
+  border-radius: 0 7px 7px 0;
+  font-size: 0.76rem;
+}
+
+.deuda-inicial-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 11px 12px;
+  color: #1e3a5f;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+}
+
+.deuda-inicial-intro svg {
+  flex: 0 0 auto;
+  color: #0284c7;
+}
+
+.deuda-inicial-intro strong,
+.deuda-inicial-intro span {
+  display: block;
+}
+
+.deuda-inicial-intro strong {
+  font-size: 0.86rem;
+}
+
+.deuda-inicial-intro span,
+.deuda-inicial-ayuda {
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 0.74rem;
+}
+
+.deuda-inicial-modos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-bottom: 14px;
+  padding: 4px;
+  background: #f1f5f9;
+  border-radius: 9px;
+}
+
+.deuda-inicial-modos button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px;
+  color: #64748b;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.deuda-inicial-modos button.activo {
+  color: #1d4ed8;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+}
+
+.deuda-inicial-modos button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.deuda-inicial-cargando {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.deuda-inicial-nuevo,
+.deuda-inicial-datos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.deuda-inicial-campo-completo {
+  grid-column: 1 / -1;
+}
+
+.deuda-inicial-datos {
+  margin-top: 13px;
+}
+
+.deuda-inicial-ayuda {
+  display: block;
+}
+
 .deudores-pago-venta {
   margin-top: 10px;
   padding-top: 10px;
@@ -483,6 +621,59 @@
   font-size: 0.82rem;
 }
 
+.deudores-whatsapp {
+  margin-top: 16px;
+  padding: 13px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 11px;
+  text-align: left;
+}
+
+.deudores-whatsapp .form-label {
+  margin-bottom: 5px;
+  color: #166534;
+  font-size: 0.79rem;
+  font-weight: 750;
+}
+
+.deudores-whatsapp > small {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.7rem;
+}
+
+.deudores-whatsapp-boton {
+  width: 100%;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 11px;
+  color: #fff !important;
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+  font-weight: 700 !important;
+}
+
+.deudores-whatsapp-boton:hover {
+  background: #15803d !important;
+  border-color: #15803d !important;
+}
+
+.deudores-whatsapp-error {
+  margin-top: 7px;
+  color: #b91c1c;
+  font-size: 0.74rem;
+}
+
+.deudores-whatsapp .deudores-whatsapp-aclaracion {
+  margin-top: 8px;
+  line-height: 1.35;
+  text-align: center;
+}
+
 @media (min-width: 901px) {
   .deudores-page {
     min-height: calc(100dvh - 112px);
@@ -516,8 +707,14 @@
   }
 
   .deudores-contador,
-  .deudores-deuda-total {
+  .deudores-deuda-total,
+  .deudores-header-acciones {
     width: 100%;
+  }
+
+  .deudores-header-acciones {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .deudores-deuda-total {
@@ -538,8 +735,14 @@
   }
 
   .deudores-venta-montos,
-  .deudores-pago-venta {
+  .deudores-pago-venta,
+  .deuda-inicial-nuevo,
+  .deuda-inicial-datos {
     grid-template-columns: 1fr;
+  }
+
+  .deuda-inicial-campo-completo {
+    grid-column: auto;
   }
 
   .deudores-saldo-despues-venta {

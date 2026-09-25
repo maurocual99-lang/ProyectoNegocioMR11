@@ -1,18 +1,5 @@
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import type {
-  KeyboardEvent,
-} from "react";
-
-import {
-  Plus,
-  Search,
-  UserPlus,
-} from "lucide-react";
-
+import { useEffect, useState, type KeyboardEvent } from "react";
+import { Plus, Search, UserPlus } from "lucide-react";
 import {
   CButton,
   CCard,
@@ -20,7 +7,6 @@ import {
   CCardHeader,
   CFormInput,
   CFormLabel,
-  CFormSwitch,
   CInputGroup,
   CInputGroupText,
   CModal,
@@ -34,6 +20,7 @@ import "./AgregarDeuda.css";
 
 interface Props {
   ventaId: number | null;
+  onClienteSeleccionadoChange: (seleccionado: boolean) => void;
 }
 
 interface Cliente {
@@ -41,541 +28,213 @@ interface Cliente {
   nombre: string;
   apellido: string;
   apodo?: string | null;
+  telefono?: string | null;
 }
 
 type MensajeModal = {
-  tipo:
-    | ""
-    | "error"
-    | "exito";
+  tipo: "" | "error" | "exito";
   texto: string;
 };
 
-const API_URL =
-  "http://127.0.0.1:3000";
+const API_URL = "http://127.0.0.1:3000";
 
-function AgregarDeuda({
+export default function AgregarDeuda({
   ventaId,
+  onClienteSeleccionadoChange,
 }: Props) {
-  const [
-    esMoroso,
-    setEsMoroso,
-  ] =
-    useState(
-      false
-    );
+  const [busqueda, setBusqueda] = useState("");
+  const [resultadosBusqueda, setResultadosBusqueda] = useState<Cliente[]>([]);
+  const [clienteSeleccionado, setClienteSeleccionado] =
+    useState<Cliente | null>(null);
+  const [errorBuscar, setErrorBuscar] = useState("");
+  const [asociando, setAsociando] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [nuevoNombre, setNuevoNombre] = useState("");
+  const [nuevoApellido, setNuevoApellido] = useState("");
+  const [nuevoApodo, setNuevoApodo] = useState("");
+  const [nuevoTelefono, setNuevoTelefono] = useState("");
+  const [mensajeModal, setMensajeModal] = useState<MensajeModal>({
+    tipo: "",
+    texto: "",
+  });
 
-  const [
-    busqueda,
-    setBusqueda,
-  ] =
-    useState("");
+  useEffect(() => {
+    setBusqueda("");
+    setResultadosBusqueda([]);
+    setClienteSeleccionado(null);
+    setErrorBuscar("");
+    onClienteSeleccionadoChange(false);
+  }, [ventaId, onClienteSeleccionadoChange]);
 
-  const [
-    resultadosBusqueda,
-    setResultadosBusqueda,
-  ] =
-    useState<Cliente[]>(
-      []
-    );
-
-  const [
-    clienteSeleccionado,
-    setClienteSeleccionado,
-  ] =
-    useState<Cliente | null>(
-      null
-    );
-
-  const [
-    errorBuscar,
-    setErrorBuscar,
-  ] =
-    useState("");
-
-  const [
-    asociando,
-    setAsociando,
-  ] =
-    useState(
-      false
-    );
-
-  const [
-    modalVisible,
-    setModalVisible,
-  ] =
-    useState(
-      false
-    );
-
-  const [
-    nuevoNombre,
-    setNuevoNombre,
-  ] =
-    useState("");
-
-  const [
-    nuevoApellido,
-    setNuevoApellido,
-  ] =
-    useState("");
-
-  const [
-    nuevoApodo,
-    setNuevoApodo,
-  ] =
-    useState("");
-
-  const [
-    mensajeModal,
-    setMensajeModal,
-  ] =
-    useState<MensajeModal>({
-      tipo: "",
-      texto: "",
-    });
-
-  useEffect(
-    () => {
-      setEsMoroso(
-        false
-      );
-
-      setBusqueda("");
-
-      setResultadosBusqueda(
-        []
-      );
-
-      setClienteSeleccionado(
-        null
-      );
-
-      setErrorBuscar(
-        ""
-      );
-    },
-    [
-      ventaId,
-    ]
-  );
-
-  function esRespuestaJSON(
-    respuesta: Response
-  ) {
+  function esRespuestaJSON(respuesta: Response) {
     return (
-      respuesta.headers
-        .get(
-          "content-type"
-        )
-        ?.includes(
-          "application/json"
-        ) ??
+      respuesta.headers.get("content-type")?.includes("application/json") ??
       false
     );
   }
 
-  async function asociarCliente(
-    cliente:
-      Cliente
-  ) {
-    if (
-      !ventaId
-    ) {
-      setErrorBuscar(
-        "Primero agregá al menos un producto para iniciar la venta."
-      );
-
+  async function asociarCliente(cliente: Cliente) {
+    if (!ventaId) {
+      setErrorBuscar("Primero agregá al menos un producto para iniciar la venta.");
       return false;
     }
 
-    setAsociando(
-      true
-    );
+    setAsociando(true);
 
     try {
-      const respuesta =
-        await fetch(
-          `${API_URL}/ventas/${ventaId}/cliente`,
-          {
-            method:
-              "PUT",
+      const respuesta = await fetch(`${API_URL}/ventas/${ventaId}/cliente`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cliente_id: cliente.id }),
+      });
+      const data = await respuesta.json();
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify({
-                cliente_id:
-                  cliente.id,
-              }),
-          }
-        );
-
-      const data =
-        await respuesta.json();
-
-      if (
-        !respuesta.ok
-      ) {
-        throw new Error(
-          data?.mensaje ||
-            "No se pudo asociar el cliente a la venta."
-        );
+      if (!respuesta.ok) {
+        throw new Error(data?.mensaje || "No se pudo asociar el cliente a la venta.");
       }
 
-      setClienteSeleccionado(
-        cliente
-      );
-
-      setBusqueda(
-        `${cliente.apellido} ${cliente.nombre}`
-      );
-
-      setResultadosBusqueda(
-        []
-      );
-
-      setErrorBuscar(
-        ""
-      );
-
+      setClienteSeleccionado(cliente);
+      setBusqueda(`${cliente.apellido} ${cliente.nombre}`);
+      setResultadosBusqueda([]);
+      setErrorBuscar("");
+      onClienteSeleccionadoChange(true);
       return true;
-    } catch (
-      error
-    ) {
-      console.error(
-        error
-      );
-
+    } catch (error) {
+      console.error(error);
       setErrorBuscar(
         error instanceof Error
           ? error.message
           : "No se pudo asociar el cliente."
       );
-
+      onClienteSeleccionadoChange(false);
       return false;
     } finally {
-      setAsociando(
-        false
-      );
+      setAsociando(false);
     }
   }
 
-  async function quitarCliente() {
-    if (
-      !ventaId
-    ) {
-      setClienteSeleccionado(
-        null
-      );
+  function cambiarBusquedaCliente(valor: string) {
+    setBusqueda(valor);
+    setResultadosBusqueda([]);
 
-      setBusqueda("");
+    if (!clienteSeleccionado) {
+      return;
+    }
 
+    setClienteSeleccionado(null);
+    onClienteSeleccionadoChange(false);
+
+    if (ventaId) {
+      void fetch(`${API_URL}/ventas/${ventaId}/cliente`, {
+        method: "DELETE",
+      }).catch((error) => console.error(error));
+    }
+  }
+
+  async function buscarCliente() {
+    const texto = busqueda.trim();
+    setErrorBuscar("");
+    setResultadosBusqueda([]);
+
+    if (!texto) {
+      setErrorBuscar("Escribí un nombre, apellido o apodo.");
       return;
     }
 
     try {
-      await fetch(
-        `${API_URL}/ventas/${ventaId}/cliente`,
-        {
-          method:
-            "DELETE",
-        }
-      );
-    } catch (
-      error
-    ) {
-      console.error(
-        error
-      );
-    }
-
-    setClienteSeleccionado(
-      null
-    );
-
-    setBusqueda("");
-
-    setResultadosBusqueda(
-      []
-    );
-  }
-
-  async function handleCambioMoroso(
-    marcado:
-      boolean
-  ) {
-    setEsMoroso(
-      marcado
-    );
-
-    setErrorBuscar(
-      ""
-    );
-
-    if (
-      !marcado
-    ) {
-      await quitarCliente();
-    }
-  }
-
-  async function handleBuscar() {
-    const texto =
-      busqueda.trim();
-
-    setErrorBuscar(
-      ""
-    );
-
-    setResultadosBusqueda(
-      []
-    );
-
-    if (
-      !esMoroso
-    ) {
-      return;
-    }
-
-    if (
-      !texto
-    ) {
-      setErrorBuscar(
-        "Escribí un nombre, apellido o apodo."
+      const respuesta = await fetch(
+        `${API_URL}/deudores/buscarDeudor?texto=${encodeURIComponent(texto)}`
       );
 
-      return;
-    }
-
-    try {
-      const respuesta =
-        await fetch(
-          `${API_URL}/deudores/buscarDeudor?texto=${encodeURIComponent(
-            texto
-          )}`
-        );
-
-      if (
-        !esRespuestaJSON(
-          respuesta
-        )
-      ) {
-        throw new Error(
-          "El servidor devolvió una respuesta inválida."
-        );
+      if (!esRespuestaJSON(respuesta)) {
+        throw new Error("El servidor devolvió una respuesta inválida.");
       }
 
-      const data =
-        await respuesta.json();
+      const data = await respuesta.json();
 
-      if (
-        !respuesta.ok
-      ) {
-        throw new Error(
-          data?.mensaje ||
-            "No se pudo buscar el cliente."
-        );
+      if (!respuesta.ok) {
+        throw new Error(data?.mensaje || "No se pudo buscar el cliente.");
       }
 
-      const lista:
-        Cliente[] =
-        Array.isArray(
-          data
-        )
-          ? data
-          : data
-            ? [data]
-            : [];
+      const lista: Cliente[] = Array.isArray(data) ? data : data ? [data] : [];
 
-      if (
-        lista.length ===
-        0
-      ) {
-        setErrorBuscar(
-          "No se encontraron clientes con esa búsqueda."
-        );
-
+      if (lista.length === 0) {
+        setErrorBuscar("No se encontraron clientes con esa búsqueda.");
         return;
       }
 
-      setResultadosBusqueda(
-        lista
-      );
-    } catch (
-      error
-    ) {
-      console.error(
-        error
-      );
-
+      setResultadosBusqueda(lista);
+    } catch (error) {
+      console.error(error);
       setErrorBuscar(
-        error instanceof Error
-          ? error.message
-          : "Error de red al buscar el cliente."
+        error instanceof Error ? error.message : "Error de red al buscar el cliente."
       );
     }
   }
 
-  function handleKeyDownBuscar(
-    evento:
-      KeyboardEvent<HTMLInputElement>
-  ) {
-    if (
-      evento.key ===
-      "Enter"
-    ) {
+  function manejarEnterBusqueda(evento: KeyboardEvent<HTMLInputElement>) {
+    if (evento.key === "Enter") {
       evento.preventDefault();
-
-      void handleBuscar();
+      void buscarCliente();
     }
-  }
-
-  async function handleSeleccionarCliente(
-    cliente:
-      Cliente
-  ) {
-    await asociarCliente(
-      cliente
-    );
   }
 
   function limpiarModal() {
     setNuevoNombre("");
-
     setNuevoApellido("");
-
     setNuevoApodo("");
-
-    setMensajeModal({
-      tipo: "",
-      texto: "",
-    });
+    setNuevoTelefono("");
+    setMensajeModal({ tipo: "", texto: "" });
   }
 
-  async function handleCrearCliente() {
-    setMensajeModal({
-      tipo: "",
-      texto: "",
-    });
+  async function crearCliente() {
+    setMensajeModal({ tipo: "", texto: "" });
 
-    if (
-      !nuevoNombre.trim() ||
-      !nuevoApellido.trim()
-    ) {
+    if (!nuevoNombre.trim() || !nuevoApellido.trim()) {
       setMensajeModal({
-        tipo:
-          "error",
-
-        texto:
-          "El nombre y el apellido son obligatorios.",
+        tipo: "error",
+        texto: "El nombre y el apellido son obligatorios.",
       });
-
       return;
     }
 
     try {
-      const respuesta =
-        await fetch(
-          `${API_URL}/deudores`,
-          {
-            method:
-              "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify({
-                nombre:
-                  nuevoNombre.trim(),
-
-                apellido:
-                  nuevoApellido.trim(),
-
-                apodo:
-                  nuevoApodo.trim(),
-              }),
-          }
-        );
-
-      if (
-        !esRespuestaJSON(
-          respuesta
-        )
-      ) {
-        throw new Error(
-          "El servidor devolvió una respuesta inválida."
-        );
-      }
-
-      const data =
-        await respuesta.json();
-
-      if (
-        !respuesta.ok
-      ) {
-        throw new Error(
-          data?.mensaje ||
-            "No se pudo crear el cliente."
-        );
-      }
-
-      const clienteCreado:
-        Cliente | undefined =
-        data.cliente;
-
-      if (
-        clienteCreado &&
-        esMoroso
-      ) {
-        const asociado =
-          await asociarCliente(
-            clienteCreado
-          );
-
-        if (
-          !asociado
-        ) {
-          return;
-        }
-      }
-
-      setMensajeModal({
-        tipo:
-          "exito",
-
-        texto:
-          "Cliente creado correctamente.",
+      const respuesta = await fetch(`${API_URL}/deudores`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: nuevoNombre.trim(),
+          apellido: nuevoApellido.trim(),
+          apodo: nuevoApodo.trim(),
+          telefono: nuevoTelefono.trim(),
+        }),
       });
 
-      window.setTimeout(
-        () => {
-          setModalVisible(
-            false
-          );
+      if (!esRespuestaJSON(respuesta)) {
+        throw new Error("El servidor devolvió una respuesta inválida.");
+      }
 
-          limpiarModal();
-        },
-        700
-      );
-    } catch (
-      error
-    ) {
-      console.error(
-        error
-      );
+      const data = await respuesta.json();
 
+      if (!respuesta.ok) {
+        throw new Error(data?.mensaje || "No se pudo crear el cliente.");
+      }
+
+      const clienteCreado: Cliente | undefined = data.cliente;
+      if (clienteCreado && !(await asociarCliente(clienteCreado))) {
+        return;
+      }
+
+      setMensajeModal({ tipo: "exito", texto: "Cliente creado correctamente." });
+
+      window.setTimeout(() => {
+        setModalVisible(false);
+        limpiarModal();
+      }, 700);
+    } catch (error) {
+      console.error(error);
       setMensajeModal({
-        tipo:
-          "error",
-
+        tipo: "error",
         texto:
           error instanceof Error
             ? error.message
@@ -588,299 +247,140 @@ function AgregarDeuda({
     <>
       <CCard className="agregar-deuda-card">
         <CCardHeader className="agregar-deuda-header">
-          <span>
-            Cliente
-          </span>
-
+          <span>Cliente de la cuenta</span>
           {clienteSeleccionado && (
             <span className="agregar-deuda-seleccionado">
-              {
-                clienteSeleccionado.apellido
-              }
-              {" "}
-              {
-                clienteSeleccionado.nombre
-              }
+              {clienteSeleccionado.apellido} {clienteSeleccionado.nombre}
             </span>
           )}
         </CCardHeader>
 
         <CCardBody className="agregar-deuda-body">
-          <div className="agregar-deuda-switch">
-            <div>
-              <strong>
-                ¿Paga después?
-              </strong>
+          <div className="agregar-deuda-busqueda">
+            <CFormLabel>Buscar cliente</CFormLabel>
+            <div className="agregar-deuda-busqueda-contenedor">
+              <CInputGroup>
+                <CFormInput
+                  value={busqueda}
+                  onChange={(evento) => cambiarBusquedaCliente(evento.target.value)}
+                  onKeyDown={manejarEnterBusqueda}
+                  placeholder="Nombre, apellido o apodo"
+                  disabled={asociando}
+                />
+                <CInputGroupText>
+                  <Search size={16} />
+                </CInputGroupText>
+                <CButton
+                  type="button"
+                  color="primary"
+                  variant="outline"
+                  disabled={asociando}
+                  onClick={() => void buscarCliente()}
+                >
+                  Buscar
+                </CButton>
+              </CInputGroup>
 
-              <span>
-                Marcá esta opción si la venta queda como deuda.
-              </span>
-            </div>
-
-            <CFormSwitch
-              size="lg"
-              checked={
-                esMoroso
-              }
-              onChange={(
-                evento
-              ) =>
-                void handleCambioMoroso(
-                  evento.target
-                    .checked
-                )
-              }
-            />
-          </div>
-
-          {esMoroso && (
-            <div className="agregar-deuda-busqueda">
-              <CFormLabel>
-                Buscar cliente
-              </CFormLabel>
-
-              <div className="agregar-deuda-busqueda-contenedor">
-                <CInputGroup>
-                  <CFormInput
-                    value={
-                      busqueda
-                    }
-                    onChange={(
-                      evento
-                    ) => {
-                      setBusqueda(
-                        evento.target
-                          .value
-                      );
-
-                      setResultadosBusqueda(
-                        []
-                      );
-
-                      if (
-                        clienteSeleccionado
-                      ) {
-                        setClienteSeleccionado(
-                          null
-                        );
-                      }
-                    }}
-                    onKeyDown={
-                      handleKeyDownBuscar
-                    }
-                    placeholder="Nombre, apellido o apodo"
-                    disabled={
-                      asociando
-                    }
-                  />
-
-                  <CInputGroupText>
-                    <Search
-                      size={
-                        16
-                      }
-                    />
-                  </CInputGroupText>
-
-                  <CButton
-                    type="button"
-                    color="primary"
-                    variant="outline"
-                    disabled={
-                      asociando
-                    }
-                    onClick={() =>
-                      void handleBuscar()
-                    }
-                  >
-                    Buscar
-                  </CButton>
-                </CInputGroup>
-
-                {resultadosBusqueda.length >
-                  0 && (
-                  <div className="agregar-deuda-resultados">
-                    {resultadosBusqueda.map(
-                      (
-                        cliente
-                      ) => (
-                        <button
-                          type="button"
-                          key={
-                            cliente.id
-                          }
-                          onClick={() =>
-                            void handleSeleccionarCliente(
-                              cliente
-                            )
-                          }
-                        >
-                          <strong>
-                            {
-                              cliente.apellido
-                            }
-                            ,{" "}
-                            {
-                              cliente.nombre
-                            }
-                          </strong>
-
-                          {cliente.apodo && (
-                            <span>
-                              {
-                                cliente.apodo
-                              }
-                            </span>
-                          )}
-                        </button>
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {errorBuscar && (
-                <div className="agregar-deuda-error">
-                  {
-                    errorBuscar
-                  }
+              {resultadosBusqueda.length > 0 && (
+                <div className="agregar-deuda-resultados">
+                  {resultadosBusqueda.map((cliente) => (
+                    <button
+                      type="button"
+                      key={cliente.id}
+                      onClick={() => void asociarCliente(cliente)}
+                    >
+                      <strong>{cliente.apellido}, {cliente.nombre}</strong>
+                      {cliente.apodo && <span>{cliente.apodo}</span>}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
-          )}
+
+            {errorBuscar && (
+              <div className="agregar-deuda-error">{errorBuscar}</div>
+            )}
+          </div>
 
           <button
             type="button"
             className="agregar-deuda-nuevo"
             onClick={() => {
               limpiarModal();
-
-              setModalVisible(
-                true
-              );
+              setModalVisible(true);
             }}
           >
-            <UserPlus
-              size={
-                18
-              }
-            />
-
+            <UserPlus size={18} />
             <span>
-              <strong>
-                Nuevo cliente
-              </strong>
-
-              <small>
-                Crealo sin salir de la venta.
-              </small>
+              <strong>Nuevo cliente</strong>
+              <small>Crealo sin salir de la venta.</small>
             </span>
-
-            <Plus
-              size={
-                17
-              }
-            />
+            <Plus size={17} />
           </button>
         </CCardBody>
       </CCard>
 
       <CModal
-        visible={
-          modalVisible
-        }
+        visible={modalVisible}
         alignment="center"
         onClose={() => {
-          setModalVisible(
-            false
-          );
-
+          setModalVisible(false);
           limpiarModal();
         }}
       >
         <CModalHeader>
-          <CModalTitle>
-            Agregar nuevo cliente
-          </CModalTitle>
+          <CModalTitle>Agregar nuevo cliente</CModalTitle>
         </CModalHeader>
 
         <CModalBody>
           {mensajeModal.texto && (
             <div
               className={`alert ${
-                mensajeModal.tipo ===
-                "error"
-                  ? "alert-danger"
-                  : "alert-success"
+                mensajeModal.tipo === "error" ? "alert-danger" : "alert-success"
               }`}
             >
-              {
-                mensajeModal.texto
-              }
+              {mensajeModal.texto}
             </div>
           )}
 
           <div className="mb-3">
-            <CFormLabel>
-              Nombre *
-            </CFormLabel>
-
+            <CFormLabel>Nombre *</CFormLabel>
             <CFormInput
-              value={
-                nuevoNombre
-              }
-              onChange={(
-                evento
-              ) =>
-                setNuevoNombre(
-                  evento.target
-                    .value
-                )
-              }
+              value={nuevoNombre}
+              onChange={(evento) => setNuevoNombre(evento.target.value)}
               placeholder="Ej: Juan"
             />
           </div>
 
           <div className="mb-3">
-            <CFormLabel>
-              Apellido *
-            </CFormLabel>
-
+            <CFormLabel>Apellido *</CFormLabel>
             <CFormInput
-              value={
-                nuevoApellido
-              }
-              onChange={(
-                evento
-              ) =>
-                setNuevoApellido(
-                  evento.target
-                    .value
-                )
-              }
+              value={nuevoApellido}
+              onChange={(evento) => setNuevoApellido(evento.target.value)}
               placeholder="Ej: Pérez"
             />
           </div>
 
-          <div>
-            <CFormLabel>
-              Apodo
-            </CFormLabel>
-
+          <div className="mb-3">
+            <CFormLabel>Apodo</CFormLabel>
             <CFormInput
-              value={
-                nuevoApodo
-              }
-              onChange={(
-                evento
-              ) =>
-                setNuevoApodo(
-                  evento.target
-                    .value
-                )
-              }
+              value={nuevoApodo}
+              onChange={(evento) => setNuevoApodo(evento.target.value)}
               placeholder="Opcional"
             />
+          </div>
+
+          <div>
+            <CFormLabel>Teléfono de WhatsApp</CFormLabel>
+            <CFormInput
+              type="tel"
+              value={nuevoTelefono}
+              onChange={(evento) => setNuevoTelefono(evento.target.value)}
+              placeholder="Ej: 5492215551234"
+            />
+            <small className="text-body-secondary">
+              Código de país y área, sin 0 ni 15. Es opcional.
+            </small>
           </div>
         </CModalBody>
 
@@ -888,22 +388,13 @@ function AgregarDeuda({
           <CButton
             color="secondary"
             onClick={() => {
-              setModalVisible(
-                false
-              );
-
+              setModalVisible(false);
               limpiarModal();
             }}
           >
             Cancelar
           </CButton>
-
-          <CButton
-            color="primary"
-            onClick={() =>
-              void handleCrearCliente()
-            }
-          >
+          <CButton color="primary" onClick={() => void crearCliente()}>
             Guardar cliente
           </CButton>
         </CModalFooter>
@@ -911,5 +402,3 @@ function AgregarDeuda({
     </>
   );
 }
-
-export default AgregarDeuda;

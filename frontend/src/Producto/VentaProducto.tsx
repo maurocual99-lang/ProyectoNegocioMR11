@@ -34,7 +34,6 @@ import {
 
 import ModalExito from "../ModalExito";
 import AgregarDeuda from "../clienteDeudor/AgregarDeuda";
-import { generarComprobanteVentaPDF } from "../GeneradorPDF";
 import "./VentaProducto.css";
 
 const API_URL = "http://127.0.0.1:3000";
@@ -93,6 +92,9 @@ function VentaProducto() {
   const [codigoBarra, setCodigoBarra] = useState("");
   const [detalle, setDetalle] = useState<DetalleItem[]>([]);
   const [total, setTotal] = useState(0);
+  const [montoPagadoInicial, setMontoPagadoInicial] = useState(0);
+  const [dejaSaldoPendiente, setDejaSaldoPendiente] = useState(false);
+  const [clienteDeudaSeleccionado, setClienteDeudaSeleccionado] = useState(false);
   const [cantidadProductos, setCantidadProductos] = useState(0);
   const [cantidadUnidades, setCantidadUnidades] = useState(0);
   const [pesoTotalKg, setPesoTotalKg] = useState(0);
@@ -178,7 +180,11 @@ function VentaProducto() {
     }));
 
     setDetalle(items);
-    setTotal(Number(data.total || 0));
+    const totalActualizado = Number(data.total || 0);
+    setTotal(totalActualizado);
+    setMontoPagadoInicial((montoActual) =>
+      Math.min(montoActual, totalActualizado)
+    );
     setCantidadProductos(Number(data.cantidadProductos || 0));
     setCantidadUnidades(Number(data.cantidadUnidades || 0));
     setPesoTotalKg(Number(data.pesoTotalKg || 0));
@@ -478,7 +484,13 @@ function VentaProducto() {
     try {
       const respuesta = await fetch(
         `${API_URL}/ventas/${ventaId}/finalizar`,
-        { method: "POST" }
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            monto_pagado: dejaSaldoPendiente ? montoPagadoInicial : 0,
+          }),
+        }
       );
 
       const data = await respuesta.json();
@@ -486,30 +498,6 @@ function VentaProducto() {
       if (!respuesta.ok) {
         setError(data.mensaje || "No se pudo finalizar la venta.");
         return false;
-      }
-
-      /*
-       * El PDF se genera automáticamente después de que el backend
-       * confirma la venta. Si falla el PDF, NO repetimos la venta.
-       */
-      try {
-        await generarComprobanteVentaPDF(
-          ventaId,
-          detalle.map((item) => ({
-            producto_id: item.producto_id,
-            nombre: item.nombre,
-            tipo_venta: item.tipo_venta,
-            cantidad: item.cantidad,
-            precio_unitario: item.precio_unitario,
-            subtotal: item.subtotal,
-          })),
-          total
-        );
-      } catch (errorPDF) {
-        console.error(
-          "La venta se guardó, pero falló el comprobante PDF:",
-          errorPDF
-        );
       }
 
       return true;
@@ -527,6 +515,9 @@ function VentaProducto() {
     setCodigoBarra("");
     setDetalle([]);
     setTotal(0);
+    setMontoPagadoInicial(0);
+    setDejaSaldoPendiente(false);
+    setClienteDeudaSeleccionado(false);
     setCantidadProductos(0);
     setCantidadUnidades(0);
     setPesoTotalKg(0);
@@ -537,6 +528,45 @@ function VentaProducto() {
     setBusquedaPeso("");
     setErrorPeso("");
   }
+
+  function activarSaldoPendiente() {
+    setDejaSaldoPendiente(true);
+    setMontoPagadoInicial(0);
+    setClienteDeudaSeleccionado(false);
+    setError("");
+  }
+
+  function seleccionarPagoCompleto() {
+    setDejaSaldoPendiente(false);
+    setMontoPagadoInicial(0);
+    setClienteDeudaSeleccionado(false);
+    setError("");
+
+    if (ventaId) {
+      void fetch(`${API_URL}/ventas/${ventaId}/cliente`, {
+        method: "DELETE",
+      }).catch((errorEliminar) => console.error(errorEliminar));
+    }
+  }
+
+  function cambiarMontoPagado(valor: string) {
+    const numero = Number(valor || 0);
+
+    if (!Number.isFinite(numero)) {
+      return;
+    }
+
+    if (total > 0 && numero >= total) {
+      seleccionarPagoCompleto();
+      return;
+    }
+
+    setMontoPagadoInicial(Math.min(Math.max(numero, 0), total));
+  }
+
+  const saldoPendiente = dejaSaldoPendiente
+    ? Math.max(total - montoPagadoInicial, 0)
+    : 0;
 
   return (
     <>
@@ -751,10 +781,93 @@ function VentaProducto() {
                   </strong>
                 </div>
 
+                <div className="venta-forma-pago">
+                  <strong className="venta-forma-pago-titulo">
+                    ¿Cómo paga esta venta?
+                  </strong>
+
+                  <div className="venta-forma-pago-opciones">
+                    <button
+                      type="button"
+                      className={!dejaSaldoPendiente ? "activo" : ""}
+                      onClick={seleccionarPagoCompleto}
+                    >
+                      Paga todo
+                    </button>
+                    <button
+                      type="button"
+                      className={dejaSaldoPendiente ? "activo deuda" : ""}
+                      onClick={activarSaldoPendiente}
+                    >
+                      Paga una parte
+                    </button>
+                  </div>
+
+                  {dejaSaldoPendiente && (
+                    <div className="venta-pago-parcial-visible">
+                      <div className="venta-pago-atajos">
+                        <button
+                          type="button"
+                          onClick={() => cambiarMontoPagado("0")}
+                        >
+                          No paga ahora
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            cambiarMontoPagado((total / 2).toFixed(2))
+                          }
+                        >
+                          Paga la mitad
+                        </button>
+                      </div>
+
+                      <CFormLabel htmlFor="monto-pagado-visible">
+                        Otro monto que paga ahora
+                      </CFormLabel>
+                      <CInputGroup size="sm">
+                        <CInputGroupText>$</CInputGroupText>
+                        <CFormInput
+                          id="monto-pagado-visible"
+                          type="number"
+                          min="0"
+                          max={total}
+                          step="0.01"
+                          value={montoPagadoInicial}
+                          onChange={(evento) =>
+                            cambiarMontoPagado(evento.target.value)
+                          }
+                        />
+                      </CInputGroup>
+
+                      <div className="venta-pago-resultado">
+                        <span>Queda pendiente</span>
+                        <strong>${formatearDinero(saldoPendiente)}</strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {dejaSaldoPendiente && (
+                  <div
+                    className={`venta-cliente-aviso ${
+                      clienteDeudaSeleccionado ? "listo" : ""
+                    }`}
+                  >
+                    {clienteDeudaSeleccionado
+                      ? "Cliente seleccionado. Ya podés finalizar."
+                      : "Seleccioná abajo el cliente que quedará debiendo."}
+                  </div>
+                )}
+
                 <ModalExito
                   onEnviar={finalizarVenta}
                   onExito={limpiarVenta}
-                  desactivado={!ventaId || detalle.length === 0}
+                  desactivado={
+                    !ventaId ||
+                    detalle.length === 0 ||
+                    (dejaSaldoPendiente && !clienteDeudaSeleccionado)
+                  }
                   textoBoton="Finalizar Venta"
                   variante="success"
                   className="w-100"
@@ -762,9 +875,14 @@ function VentaProducto() {
               </CCardBody>
             </CCard>
 
-            <div className="venta-deuda-panel">
-              <AgregarDeuda ventaId={ventaId} />
-            </div>
+            {dejaSaldoPendiente && (
+              <div className="venta-deuda-panel">
+                <AgregarDeuda
+                  ventaId={ventaId}
+                  onClienteSeleccionadoChange={setClienteDeudaSeleccionado}
+                />
+              </div>
+            )}
           </aside>
         </div>
       </div>
